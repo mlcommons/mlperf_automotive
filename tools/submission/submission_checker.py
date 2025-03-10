@@ -735,19 +735,19 @@ LLM_LATENCY_LIMITS = {
 ACC_PATTERN = {
     "acc": r"^(?:\{\"accuracy|accuracy)[\": ]*=?\s*([\d\.]+).*",
     "AUC": r"^AUC=([\d\.]+).*",
-    "mAP": r".*'(?:mAP|Total)':\s*([\d\.]+)",
+    "mAP": r".*(?:mAP=|'Total':)\s*([\d.]+)",
     "bleu": r"^BLEU\:\s*([\d\.]+).*",
     "F1": r"^{[\"\']exact_match[\"\']\:\s*[\d\.]+,\s*[\"\']f1[\"\']\:\s*([\d\.]+)}",
     "WER": r"Word Error Rate\:.*, accuracy=([0-9\.]+)%",
     "DICE": r"Accuracy\:\s*mean\s*=\s*([\d\.]+).*",
-    "ROUGE1": r".*'rouge1':\s([\d.]+).*",
-    "ROUGE2": r".*'rouge2':\s([\d.]+).*",
-    "ROUGEL": r".*'rougeL':\s([\d.]+).*",
+    "ROUGE1": r".*'rouge1':\s+'?([\d.]+)'?.*",
+    "ROUGE2": r".*'rouge2':\s+'?([\d.]+)'?.*",
+    "ROUGEL": r".*'rougeL':\s+'?([\d.]+)'?.*",
     "ROUGELSUM": r".*'rougeLsum':\s([\d.]+).*",
     "GEN_LEN": r".*'gen_len':\s([\d.]+).*",
     "TOKENS_PER_SAMPLE": r".*'tokens_per_sample':\s([\d.]+).*",
-    "CLIP_SCORE": r".*'CLIP_SCORE':\s([\d.]+).*",
-    "FID_SCORE": r".*'FID_SCORE':\s([\d.]+).*",
+    "CLIP_SCORE": r".*'CLIP_SCORE':\s+'?([\d.]+).*",
+    "FID_SCORE": r".*'FID_SCORE':\s+'?([\d.]+).*",
     "gsm8k_accuracy": r".*'gsm8k':\s([\d.]+).*",
     "mbxp_accuracy": r".*'mbxp':\s([\d.]+).*",
     "exact_match": r".*'exact_match':\s([\d.]+).*"
@@ -1702,7 +1702,7 @@ def get_power_metric(config, scenario_fixed, log_path, is_valid, res):
                 samples_per_query = 8
 
             if (scenario_fixed in ["MultiStream"]
-                ) and scenario in ["SingleStream"]:
+                    ) and scenario in ["SingleStream"]:
                 power_metric = (
                     avg_power * power_duration * samples_per_query * 1000 / num_queries
                 )
@@ -1977,7 +1977,7 @@ def check_results_dir(
         if config.version == "v4.0":
             unit = unit_dict[scenario_fixed]
         else:
-            unit = special_unit_dict.get(model_name, unit_dict)[scenario_fixed]
+            unit = special_unit_dict.get(mlperf_model, unit_dict)[scenario_fixed]
         power_unit = power_unit_dict[scenario_fixed]
 
         if (power_metric <= 0) or (
@@ -2407,7 +2407,7 @@ def check_results_dir(
                                 .replace('"', "")
                                 .replace("{", "")
                                 .replace("}", "")
-                            )
+                            ).strip()
                             if mlperf_model in REQUIRED_ACC_BENCHMARK:
                                 if (
                                         config.version
@@ -2425,7 +2425,7 @@ def check_results_dir(
                                             missing_files,
                                         )
                                         accuracy_is_valid = False
-                            if not accuracy_is_valid and not is_closed_or_network:
+                            if not accuracy_is_valid and acc and not is_closed_or_network:
                                 if debug:
                                     log.warning(
                                         "%s, accuracy not valid but taken for open",
