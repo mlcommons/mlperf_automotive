@@ -42,14 +42,17 @@ def change_color_brightness(color, brightness_factor):
     assert brightness_factor >= -1.0 and brightness_factor <= 1.0
     color = mplc.to_rgb(color)
     polygon_color = colorsys.rgb_to_hls(*mplc.to_rgb(color))
-    modified_lightness = polygon_color[1] + (brightness_factor * polygon_color[1])
+    modified_lightness = polygon_color[1] + \
+        (brightness_factor * polygon_color[1])
     modified_lightness = 0.0 if modified_lightness < 0.0 else modified_lightness
     modified_lightness = 1.0 if modified_lightness > 1.0 else modified_lightness
-    modified_color = colorsys.hls_to_rgb(polygon_color[0], modified_lightness, polygon_color[2])
+    modified_color = colorsys.hls_to_rgb(
+        polygon_color[0], modified_lightness, polygon_color[2])
     return modified_color
 
 
-def draw_text(ax, text, position, *, font_size, color="g", horizontal_alignment="center", rotation=0):
+def draw_text(ax, text, position, *, font_size, color="g",
+              horizontal_alignment="center", rotation=0):
     """
     Copied from Visualizer.draw_text()
     -----------------------------------
@@ -139,9 +142,11 @@ def mosaic(items, scale=1.0, pad=3, grid_width=None):
             mosaic_items.append(np.zeros_like(mosaic_items[-1]))
 
     # Stack W tiles horizontally first, then vertically
-    im_pad = lambda im: cv2.copyMakeBorder(im, pad, pad, pad, pad, cv2.BORDER_CONSTANT, 0)
+    def im_pad(im): return cv2.copyMakeBorder(
+        im, pad, pad, pad, pad, cv2.BORDER_CONSTANT, 0)
     mosaic_items = [im_pad(im) for im in mosaic_items]
-    hstack = [np.hstack(mosaic_items[j:j + grid_width]) for j in range(0, len(mosaic_items), grid_width)]
+    hstack = [np.hstack(mosaic_items[j:j + grid_width])
+              for j in range(0, len(mosaic_items), grid_width)]
     mosaic_viz = np.vstack(hstack) if len(hstack) > 1 \
         else hstack[0]
     return mosaic_viz

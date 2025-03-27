@@ -71,8 +71,9 @@ class SpatialCrossAttention(BaseModule):
     def init_weight(self):
         """Default initialization for Parameters of Module."""
         xavier_init(self.output_proj, distribution='uniform', bias=0.)
-    
-    @force_fp32(apply_to=('query', 'key', 'value', 'query_pos', 'reference_points_cam'))
+
+    @force_fp32(apply_to=('query', 'key', 'value',
+                'query_pos', 'reference_points_cam'))
     def forward(self,
                 query,
                 key,
@@ -138,12 +139,14 @@ class SpatialCrossAttention(BaseModule):
         D = reference_points_cam.size(3)
         indexes = (bev_mask.sum(-1) > 0).permute(1, 0, 2).unsqueeze(-1)
         max_len = bev_mask.shape[2]
-        # each camera only interacts with its corresponding BEV queries. This step can  greatly save GPU memory.
-        queries_rebatch = query.new_zeros([bs, self.num_cams, max_len, self.embed_dims])
+        # each camera only interacts with its corresponding BEV queries. This
+        # step can  greatly save GPU memory.
+        queries_rebatch = query.new_zeros(
+            [bs, self.num_cams, max_len, self.embed_dims])
         reference_points_rebatch = reference_points_cam.clone().view(
             bs, self.num_cams, max_len, D, 2
         )
-        
+
         for j in range(bs):
             for i, reference_points_per_img in enumerate(reference_points_cam):
                 queries_rebatch[j, i, :] = query[j, :]
@@ -155,15 +158,16 @@ class SpatialCrossAttention(BaseModule):
         value = value.permute(2, 0, 1, 3).reshape(
             bs * self.num_cams, l, self.embed_dims)
 
-        #queries = self.deformable_attention(query=queries_rebatch.view(bs*self.num_cams, max_len, self.embed_dims), key=key, value=value,
-        ##                                     reference_points=reference_points_rebatch.view(bs*self.num_cams, max_len, D, 2), spatial_shapes=spatial_shapes,
-         #                                    level_start_index=level_start_index).view(bs, self.num_cams, max_len, self.embed_dims)
-        #queries = self.deformable_attention(query=queries_rebatch.view(bs * self.num_cams, max_len, self.embed_dims), key=key, value=value)
-        #queries = queries[0].reshape([1, queries[0].shape[0], queries[0].shape[1], queries[0].shape[2]])
-        #import pdb
-        #pdb.set_trace()
+        # queries = self.deformable_attention(query=queries_rebatch.view(bs*self.num_cams, max_len, self.embed_dims), key=key, value=value,
+        # reference_points=reference_points_rebatch.view(bs*self.num_cams, max_len, D, 2), spatial_shapes=spatial_shapes,
+        #                                    level_start_index=level_start_index).view(bs, self.num_cams, max_len, self.embed_dims)
+        # queries = self.deformable_attention(query=queries_rebatch.view(bs * self.num_cams, max_len, self.embed_dims), key=key, value=value)
+        # queries = queries[0].reshape([1, queries[0].shape[0], queries[0].shape[1], queries[0].shape[2]])
+        # import pdb
+        # pdb.set_trace()
         queries = self.deformable_attention(
-            query=queries_rebatch.view(bs * self.num_cams, max_len, self.embed_dims),
+            query=queries_rebatch.view(
+                bs * self.num_cams, max_len, self.embed_dims),
             key=key,
             value=value,
             reference_points=reference_points_rebatch.view(
@@ -174,7 +178,7 @@ class SpatialCrossAttention(BaseModule):
         ).view(bs, self.num_cams, max_len, self.embed_dims)
 
         slots = (queries * indexes).sum(1)
-        #for j in range(bs):
+        # for j in range(bs):
         #    for i, index_query_per_img in enumerate(indexes):
         #        slots[j, index_query_per_img] += queries[j, i, :index_query_per_img.shape[0]]
 
@@ -341,7 +345,7 @@ class MSDeformableAttention3D(BaseModule):
 
         bs, num_query, _ = query.shape
         bs, num_value, _ = value.shape
-        #assert (spatial_shapes[:, 0] * spatial_shapes[:, 1]).sum() == num_value
+        # assert (spatial_shapes[:, 0] * spatial_shapes[:, 1]).sum() == num_value
 
         value = self.value_proj(value)
         if key_padding_mask is not None:
@@ -403,11 +407,11 @@ class MSDeformableAttention3D(BaseModule):
                 value, spatial_shapes, level_start_index, sampling_locations,
                 attention_weights, self.im2col_step)
         else:
-        #print('completed')
-        #import pdb
-        #pdb.set_trace()
+            # print('completed')
+            # import pdb
+            # pdb.set_trace()
             output = multi_scale_deformable_attn_pytorch(
-            value, spatial_shapes, sampling_locations, attention_weights)
+                value, spatial_shapes, sampling_locations, attention_weights)
         if not self.batch_first:
             output = output.permute(1, 0, 2)
 

@@ -9,6 +9,7 @@ import numpy as np
 from mmdet3d.datasets import build_dataset
 # pylint: disable=missing-docstring
 
+
 def get_args():
     """Parse commandline."""
     parser = argparse.ArgumentParser()
@@ -35,6 +36,7 @@ def get_args():
     args = parser.parse_args()
     return args
 
+
 def main():
     args = get_args()
 
@@ -51,11 +53,20 @@ def main():
     ignore_classes = [2, 25, 31]
     if 'ignore_classes' in config.dataset:
         ignore_classes = config.dataset['ignore_classes']
-    files, label_map, label_info = prepare_cognata(args.cognata_dir, folders, cameras, ignore_classes)
+    files, label_map, label_info = prepare_cognata(
+        args.cognata_dir, folders, cameras, ignore_classes)
     files = train_val_split(files)
     dboxes = generate_dboxes(config.model, model="ssd")
     image_size = config.model['image_size']
-    val_set = Cognata(label_map, label_info, files['val'], ignore_classes, SSDTransformer(dboxes, image_size, val=True))
+    val_set = Cognata(
+        label_map,
+        label_info,
+        files['val'],
+        ignore_classes,
+        SSDTransformer(
+            dboxes,
+            image_size,
+            val=True))
 
     for j in results:
         idx = j['qsl_idx']
@@ -78,11 +89,12 @@ def main():
         ids = []
         for i in range(0, len(data), 8):
             box = [float(x) for x in data[i:i + 4]]
-            label = float(data[i+5])
-            score = float(data[i+6])
-            image_idx = int(data[i+7])
+            label = float(data[i + 5])
+            score = float(data[i + 6])
+            image_idx = int(data[i + 7])
             if image_idx not in predictions:
-                predictions[image_idx] = {'dts': [], 'labels': [], 'scores': []}
+                predictions[image_idx] = {
+                    'dts': [], 'labels': [], 'scores': []}
                 ids.append(image_idx)
             predictions[image_idx]['dts'].append(box)
             predictions[image_idx]['labels'].append(label)
@@ -90,10 +102,13 @@ def main():
         preds = []
         targets = []
         for id in ids:
-            preds.append({'boxes': predictions[id]['dts'], 'labels': predictions[id]['labels'], 'scores': predictions[id]['scores']})
-            _,_,_,_,_, gt_boxes = val_set[id]
-            targets.append({'boxes': gt_boxes[idx][:,:4], 'labels': gt_boxes[idx][:, 4].to(dtype=torch.int32) })
-        
+            preds.append({'boxes': predictions[id]['dts'],
+                          'labels': predictions[id]['labels'],
+                          'scores': predictions[id]['scores']})
+            _, _, _, _, _, gt_boxes = val_set[id]
+            targets.append(
+                {'boxes': gt_boxes[idx][:, :4], 'labels': gt_boxes[idx][:, 4].to(dtype=torch.int32)})
+
         dataset = build_dataset(cfg.data.test)
         eval_kwargs = cfg.get('evaluation', {}).copy()
         # hard-code way to remove EvalHook args

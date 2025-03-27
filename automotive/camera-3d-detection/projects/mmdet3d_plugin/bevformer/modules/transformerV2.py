@@ -22,7 +22,12 @@ class ResNetFusion(BaseModule):
         for i in range(num_layer):
             if i == 0:
                 if inter_channels == in_channels:
-                    layers.append(BasicBlock(in_channels, inter_channels, stride=1, norm_cfg=norm_cfg))
+                    layers.append(
+                        BasicBlock(
+                            in_channels,
+                            inter_channels,
+                            stride=1,
+                            norm_cfg=norm_cfg))
                 else:
                     downsample = nn.Sequential(
                         build_conv_layer(None, in_channels, inter_channels, 3, stride=1, padding=1, dilation=1,
@@ -31,11 +36,16 @@ class ResNetFusion(BaseModule):
                     layers.append(
                         BasicBlock(in_channels, inter_channels, stride=1, norm_cfg=norm_cfg, downsample=downsample))
             else:
-                layers.append(BasicBlock(inter_channels, inter_channels, stride=1, norm_cfg=norm_cfg))
+                layers.append(
+                    BasicBlock(
+                        inter_channels,
+                        inter_channels,
+                        stride=1,
+                        norm_cfg=norm_cfg))
         self.layers = nn.Sequential(*layers)
         self.layer_norm = nn.Sequential(
-                nn.Linear(inter_channels, out_channels),
-                nn.LayerNorm(out_channels))
+            nn.Linear(inter_channels, out_channels),
+            nn.LayerNorm(out_channels))
         self.with_cp = with_cp
 
     def forward(self, x):
@@ -46,7 +56,8 @@ class ResNetFusion(BaseModule):
                 x = checkpoint.checkpoint(layer, x)
             else:
                 x = layer(x)
-        x = x.reshape(x.shape[0], x.shape[1], -1).permute(0, 2, 1)  # nchw -> n(hw)c
+        x = x.reshape(x.shape[0], x.shape[1], -
+                      1).permute(0, 2, 1)  # nchw -> n(hw)c
         x = self.layer_norm(x)
         return x
 
@@ -74,9 +85,13 @@ class PerceptionTransformerBEVEncoder(BaseModule):
         self.two_stage_num_proposals = two_stage_num_proposals
         self.rotate_center = rotate_center
         """Initialize layers of the Detr3DTransformer."""
-        self.level_embeds = nn.Parameter(torch.Tensor(self.num_feature_levels, self.embed_dims))
+        self.level_embeds = nn.Parameter(
+            torch.Tensor(
+                self.num_feature_levels,
+                self.embed_dims))
         if self.use_cams_embeds:
-            self.cams_embeds = nn.Parameter(torch.Tensor(self.num_cams, self.embed_dims))
+            self.cams_embeds = nn.Parameter(
+                torch.Tensor(self.num_cams, self.embed_dims))
 
     def init_weights(self):
         """Initialize the transformer weights."""
@@ -118,15 +133,21 @@ class PerceptionTransformerBEVEncoder(BaseModule):
             feat = feat.flatten(3).permute(1, 0, 3, 2)
             if self.use_cams_embeds:
                 feat = feat + self.cams_embeds[:, None, None, :].to(feat.dtype)
-            feat = feat + self.level_embeds[None, None, lvl:lvl + 1, :].to(feat.dtype)
+            feat = feat + self.level_embeds[None,
+                                            None, lvl:lvl + 1, :].to(feat.dtype)
             spatial_shapes.append(spatial_shape)
             feat_flatten.append(feat)
 
         feat_flatten = torch.cat(feat_flatten, 2)
-        spatial_shapes = torch.as_tensor(spatial_shapes, dtype=torch.long, device=bev_pos.device)
-        level_start_index = torch.cat((spatial_shapes.new_zeros((1,)), spatial_shapes.prod(1).cumsum(0)[:-1]))
+        spatial_shapes = torch.as_tensor(
+            spatial_shapes, dtype=torch.long, device=bev_pos.device)
+        level_start_index = torch.cat(
+            (spatial_shapes.new_zeros(
+                (1,)), spatial_shapes.prod(1).cumsum(0)[
+                :-1]))
 
-        feat_flatten = feat_flatten.permute(0, 2, 1, 3)  # (num_cam, H*W, bs, embed_dims)
+        feat_flatten = feat_flatten.permute(
+            0, 2, 1, 3)  # (num_cam, H*W, bs, embed_dims)
 
         bev_embed = self.encoder(bev_queries,
                                  feat_flatten,
@@ -137,20 +158,27 @@ class PerceptionTransformerBEVEncoder(BaseModule):
                                  spatial_shapes=spatial_shapes,
                                  level_start_index=level_start_index,
                                  prev_bev=None,
-                                 shift=bev_queries.new_tensor([0, 0]).unsqueeze(0),
+                                 shift=bev_queries.new_tensor(
+                                     [0, 0]).unsqueeze(0),
                                  **kwargs)
         # rotate current bev to final aligned
         prev_bev = bev_embed
         if 'aug_param' in kwargs['img_metas'][0] and 'GlobalRotScaleTransImage_param' in kwargs['img_metas'][0][
-            'aug_param']:
+                'aug_param']:
             rot_angle, scale_ratio, flip_dx, flip_dy, bda_mat, only_gt = kwargs['img_metas'][0]['aug_param'][
                 'GlobalRotScaleTransImage_param']
-            prev_bev = prev_bev.reshape(bs, bev_h, bev_w, -1).permute(0, 3, 1, 2)  # bchw
+            prev_bev = prev_bev.reshape(
+                bs, bev_h, bev_w, -1).permute(0, 3, 1, 2)  # bchw
             if only_gt:
                 # rot angle
                 # prev_bev = torchvision.transforms.functional.rotate(prev_bev, -30, InterpolationMode.BILINEAR)
                 ref_y, ref_x = torch.meshgrid(
-                    torch.linspace(0.5, bev_h - 0.5, bev_h, dtype=bev_queries.dtype, device=bev_queries.device),
+                    torch.linspace(
+                        0.5,
+                        bev_h - 0.5,
+                        bev_h,
+                        dtype=bev_queries.dtype,
+                        device=bev_queries.device),
                     torch.linspace(0.5, bev_w - 0.5, bev_w, dtype=bev_queries.dtype, device=bev_queries.device))
                 ref_y = (ref_y / bev_h)
                 ref_x = (ref_x / bev_w)
@@ -163,7 +191,8 @@ class PerceptionTransformerBEVEncoder(BaseModule):
                                                                                     grid_shift.shape[2], 1, 1)
                 grid_shift = torch.matmul(bda_mat, grid_shift).squeeze(-1)
                 # grid_shift = grid_shift / scale_ratio
-                prev_bev = torch.nn.functional.grid_sample(prev_bev, grid_shift, align_corners=False)
+                prev_bev = torch.nn.functional.grid_sample(
+                    prev_bev, grid_shift, align_corners=False)
                 # if flip_dx:
                 #     prev_bev = torch.flip(prev_bev, dims=[-1])
                 # if flip_dy:
@@ -307,15 +336,16 @@ class PerceptionTransformerV2(PerceptionTransformerBEVEncoder):
 
         if len(self.frames) > 1:
             cur_ind = list(self.frames).index(0)
-            assert prev_bev[cur_ind] is None and len(prev_bev) == len(self.frames)
+            assert prev_bev[cur_ind] is None and len(
+                prev_bev) == len(self.frames)
             prev_bev[cur_ind] = bev_embed
 
-            # fill prev frame feature 
+            # fill prev frame feature
             for i in range(1, cur_ind + 1):
                 if prev_bev[cur_ind - i] is None:
                     prev_bev[cur_ind - i] = prev_bev[cur_ind - i + 1].detach()
 
-            # fill next frame feature 
+            # fill next frame feature
             for i in range(cur_ind + 1, len(self.frames)):
                 if prev_bev[i] is None:
                     prev_bev[i] = prev_bev[i - 1].detach()

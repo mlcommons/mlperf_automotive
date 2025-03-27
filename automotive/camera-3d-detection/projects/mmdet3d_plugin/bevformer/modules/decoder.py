@@ -74,8 +74,8 @@ class DetectionTransformerDecoder(TransformerLayerSequence):
                 cls_branches=None,
                 reference_points=None,
                 key_padding_mask=None,
-                spatial_shapes = None,
-                level_start_index = None,
+                spatial_shapes=None,
+                level_start_index=None,
                 **kwargs):
         """Forward function for `Detr3DTransformerDecoder`.
         Args:
@@ -94,8 +94,8 @@ class DetectionTransformerDecoder(TransformerLayerSequence):
                 return_intermediate is `False`, otherwise it has shape
                 [num_layers, num_query, bs, embed_dims].
         """
-        #import pdb
-        #pdb.set_trace()
+        # import pdb
+        # pdb.set_trace()
         output = query
         intermediate = []
         intermediate_reference_points = []
@@ -103,15 +103,15 @@ class DetectionTransformerDecoder(TransformerLayerSequence):
 
             reference_points_input = reference_points[..., :2].unsqueeze(
                 2)  # BS NUM_QUERY NUM_LEVEL 2
-            #import pdb
-            #pdb.set_trace()
+            # import pdb
+            # pdb.set_trace()
             '''output = layer(
                 output,
                 *args,
                 reference_points=reference_points_input,
                 key_padding_mask=key_padding_mask,
                 **kwargs)'''
-            
+
             output = layer(
                 output,
                 key,
@@ -124,8 +124,8 @@ class DetectionTransformerDecoder(TransformerLayerSequence):
                 reference_points_input,
                 spatial_shapes,
                 level_start_index)
-            #pdb.set_trace()
-            #torch.onnx.export(layer, (output, kwargs['key'],kwargs['value'], kwargs['query_pos'], None, None, None,
+            # pdb.set_trace()
+            # torch.onnx.export(layer, (output, kwargs['key'],kwargs['value'], kwargs['query_pos'], None, None, None,
             #                          key_padding_mask, reference_points_input, kwargs['spatial_shapes'], kwargs['level_start_index']),
             #                          'layer_decode'+str(lid)+'.onnx', verbose=False, opset_version=16, dynamic_axes=None)
             output = output.permute(1, 0, 2)
@@ -133,7 +133,7 @@ class DetectionTransformerDecoder(TransformerLayerSequence):
             if reg_branches is not None:
                 tmp = reg_branches[lid](output)
 
-                #assert reference_points.shape[-1] == 3
+                # assert reference_points.shape[-1] == 3
 
                 new_reference_points = torch.zeros_like(reference_points)
                 new_reference_points[..., :2] = tmp[
@@ -303,7 +303,7 @@ class CustomMSDeformableAttention(BaseModule):
         Returns:
              Tensor: forwarded results with shape [num_query, bs, embed_dims].
         """
-        #pdb.set_trace()
+        # pdb.set_trace()
         if value is None:
             value = query
 
@@ -352,7 +352,8 @@ class CustomMSDeformableAttention(BaseModule):
                 f' 2 or 4, but get {reference_points.shape[-1]} instead.')
         if False and torch.cuda.is_available() and value.is_cuda:
 
-            # using fp16 deformable attention is unstable because it performs many sum operations
+            # using fp16 deformable attention is unstable because it performs
+            # many sum operations
             if value.dtype == torch.float16:
                 MultiScaleDeformableAttnFunction = MultiScaleDeformableAttnFunction_fp32
             else:

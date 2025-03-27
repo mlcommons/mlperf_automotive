@@ -14,6 +14,7 @@ class IOULoss(nn.Module):
     * Linear IoU
     * gIoU
     """
+
     def __init__(self, loc_loss_type='iou'):
         super(IOULoss, self).__init__()
         self.loc_loss_type = loc_loss_type
@@ -41,14 +42,14 @@ class IOULoss(nn.Module):
                     (pred_top + pred_bottom)
 
         w_intersect = torch.min(pred_left, target_left) + \
-                      torch.min(pred_right, target_right)
+            torch.min(pred_right, target_right)
         h_intersect = torch.min(pred_bottom, target_bottom) + \
-                      torch.min(pred_top, target_top)
+            torch.min(pred_top, target_top)
 
         g_w_intersect = torch.max(pred_left, target_left) + \
-                        torch.max(pred_right, target_right)
+            torch.max(pred_right, target_right)
         g_h_intersect = torch.max(pred_bottom, target_bottom) + \
-                        torch.max(pred_top, target_top)
+            torch.max(pred_top, target_top)
         ac_uion = g_w_intersect * g_h_intersect
 
         area_intersect = w_intersect * h_intersect

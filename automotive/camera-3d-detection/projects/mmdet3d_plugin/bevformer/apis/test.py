@@ -22,6 +22,7 @@ import mmcv
 import numpy as np
 import pycocotools.mask as mask_util
 
+
 def custom_encode_mask_results(mask_results):
     """Encode bitmap mask to RLE code. Semantic Masks only
     Args:
@@ -39,8 +40,9 @@ def custom_encode_mask_results(mask_results):
             mask_util.encode(
                 np.array(
                     cls_segms[i][:, :, np.newaxis], order='F',
-                        dtype='uint8'))[0])  # encoded with RLE
+                    dtype='uint8'))[0])  # encoded with RLE
     return [encoded_mask_results]
+
 
 def custom_multi_gpu_test(model, data_loader, tmpdir=None, gpu_collect=False):
     """Test model with multiple gpus.
@@ -76,20 +78,22 @@ def custom_multi_gpu_test(model, data_loader, tmpdir=None, gpu_collect=False):
                     bbox_result = result['bbox_results']
                     batch_size = len(result['bbox_results'])
                     bbox_results.extend(bbox_result)
-                if 'mask_results' in result.keys() and result['mask_results'] is not None:
-                    mask_result = custom_encode_mask_results(result['mask_results'])
+                if 'mask_results' in result.keys(
+                ) and result['mask_results'] is not None:
+                    mask_result = custom_encode_mask_results(
+                        result['mask_results'])
                     mask_results.extend(mask_result)
                     have_mask = True
             else:
                 batch_size = len(result)
                 bbox_results.extend(result)
 
-            #if isinstance(result[0], tuple):
+            # if isinstance(result[0], tuple):
             #    assert False, 'this code is for instance segmentation, which our code will not utilize.'
             #    result = [(bbox_results, encode_mask_results(mask_results))
             #              for bbox_results, mask_results in result]
         if rank == 0:
-            
+
             for _ in range(batch_size * world_size):
                 prog_bar.update()
 
@@ -102,9 +106,10 @@ def custom_multi_gpu_test(model, data_loader, tmpdir=None, gpu_collect=False):
             mask_results = None
     else:
         bbox_results = collect_results_cpu(bbox_results, len(dataset), tmpdir)
-        tmpdir = tmpdir+'_mask' if tmpdir is not None else None
+        tmpdir = tmpdir + '_mask' if tmpdir is not None else None
         if have_mask:
-            mask_results = collect_results_cpu(mask_results, len(dataset), tmpdir)
+            mask_results = collect_results_cpu(
+                mask_results, len(dataset), tmpdir)
         else:
             mask_results = None
 
@@ -150,8 +155,8 @@ def collect_results_cpu(result_part, size, tmpdir=None):
         '''
         bacause we change the sample of the evaluation stage to make sure that each gpu will handle continuous sample,
         '''
-        #for res in zip(*part_list):
-        for res in part_list:  
+        # for res in zip(*part_list):
+        for res in part_list:
             ordered_results.extend(list(res))
         # the dataloader may pad some samples
         ordered_results = ordered_results[:size]

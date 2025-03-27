@@ -52,7 +52,7 @@ class HungarianAssigner3D(BaseAssigner):
     def assign(self,
                bbox_pred,
                cls_pred,
-               gt_bboxes, 
+               gt_bboxes,
                gt_labels,
                gt_bboxes_ignore=None,
                eps=1e-7):
@@ -107,14 +107,14 @@ class HungarianAssigner3D(BaseAssigner):
         # classification and bboxcost.
         cls_cost = self.cls_cost(cls_pred, gt_labels)
         # regression L1 cost
-       
+
         normalized_gt_bboxes = normalize_bbox(gt_bboxes, self.pc_range)
-    
+
         reg_cost = self.reg_cost(bbox_pred[:, :8], normalized_gt_bboxes[:, :8])
-      
+
         # weighted sum of above two costs
         cost = cls_cost + reg_cost
-        
+
         # 3. do Hungarian matching on CPU using linear_sum_assignment
         cost = cost.detach().cpu()
         if linear_sum_assignment is None:

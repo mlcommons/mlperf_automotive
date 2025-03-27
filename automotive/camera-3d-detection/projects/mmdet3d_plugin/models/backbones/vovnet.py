@@ -89,7 +89,8 @@ _STAGE_SPECS = {
 }
 
 
-def dw_conv3x3(in_channels, out_channels, module_name, postfix, stride=1, kernel_size=3, padding=1):
+def dw_conv3x3(in_channels, out_channels, module_name,
+               postfix, stride=1, kernel_size=3, padding=1):
     """3x3 convolution with padding"""
     return [
         (
@@ -106,14 +107,22 @@ def dw_conv3x3(in_channels, out_channels, module_name, postfix, stride=1, kernel
         ),
         (
             '{}_{}/pw_conv1x1'.format(module_name, postfix),
-            nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=1, padding=0, groups=1, bias=False)
+            nn.Conv2d(
+                in_channels,
+                out_channels,
+                kernel_size=1,
+                stride=1,
+                padding=0,
+                groups=1,
+                bias=False)
         ),
         ('{}_{}/pw_norm'.format(module_name, postfix), nn.BatchNorm2d(out_channels)),
         ('{}_{}/pw_relu'.format(module_name, postfix), nn.ReLU(inplace=True)),
     ]
 
 
-def conv3x3(in_channels, out_channels, module_name, postfix, stride=1, groups=1, kernel_size=3, padding=1):
+def conv3x3(in_channels, out_channels, module_name, postfix,
+            stride=1, groups=1, kernel_size=3, padding=1):
     """3x3 convolution with padding"""
     return [
         (
@@ -133,7 +142,8 @@ def conv3x3(in_channels, out_channels, module_name, postfix, stride=1, groups=1,
     ]
 
 
-def conv1x1(in_channels, out_channels, module_name, postfix, stride=1, groups=1, kernel_size=1, padding=0):
+def conv1x1(in_channels, out_channels, module_name, postfix,
+            stride=1, groups=1, kernel_size=1, padding=0):
     """1x1 convolution with padding"""
     return [
         (
@@ -192,18 +202,43 @@ class _OSA_module(nn.Module):
         if self.depthwise and in_channel != stage_ch:
             self.isReduced = True
             self.conv_reduction = nn.Sequential(
-                OrderedDict(conv1x1(in_channel, stage_ch, "{}_reduction".format(module_name), "0"))
+                OrderedDict(
+                    conv1x1(
+                        in_channel,
+                        stage_ch,
+                        "{}_reduction".format(module_name),
+                        "0"))
             )
         for i in range(layer_per_block):
             if self.depthwise:
-                self.layers.append(nn.Sequential(OrderedDict(dw_conv3x3(stage_ch, stage_ch, module_name, i))))
+                self.layers.append(
+                    nn.Sequential(
+                        OrderedDict(
+                            dw_conv3x3(
+                                stage_ch,
+                                stage_ch,
+                                module_name,
+                                i))))
             else:
-                self.layers.append(nn.Sequential(OrderedDict(conv3x3(in_channel, stage_ch, module_name, i))))
+                self.layers.append(
+                    nn.Sequential(
+                        OrderedDict(
+                            conv3x3(
+                                in_channel,
+                                stage_ch,
+                                module_name,
+                                i))))
             in_channel = stage_ch
 
         # feature aggregation
         in_channel = in_ch + layer_per_block * stage_ch
-        self.concat = nn.Sequential(OrderedDict(conv1x1(in_channel, concat_ch, module_name, "concat")))
+        self.concat = nn.Sequential(
+            OrderedDict(
+                conv1x1(
+                    in_channel,
+                    concat_ch,
+                    module_name,
+                    "concat")))
 
         self.ese = eSEModule(concat_ch)
 
@@ -238,13 +273,19 @@ class _OSA_stage(nn.Sequential):
         super(_OSA_stage, self).__init__()
 
         if not stage_num == 2:
-            self.add_module("Pooling", nn.MaxPool2d(kernel_size=3, stride=2, ceil_mode=True))
+            self.add_module(
+                "Pooling",
+                nn.MaxPool2d(
+                    kernel_size=3,
+                    stride=2,
+                    ceil_mode=True))
 
         if block_per_stage != 1:
             SE = False
         module_name = f"OSA{stage_num}_1"
         self.add_module(
-            module_name, _OSA_module(in_ch, stage_ch, concat_ch, layer_per_block, module_name, SE, depthwise=depthwise)
+            module_name, _OSA_module(
+                in_ch, stage_ch, concat_ch, layer_per_block, module_name, SE, depthwise=depthwise)
         )
         for i in range(block_per_stage - 1):
             if i != block_per_stage - 2:  # last block
@@ -267,7 +308,7 @@ class _OSA_stage(nn.Sequential):
 
 @BACKBONES.register_module()
 class VoVNet(BaseModule):
-    def __init__(self, spec_name, input_ch=3, out_features=None, 
+    def __init__(self, spec_name, input_ch=3, out_features=None,
                  frozen_stages=-1, norm_eval=True, pretrained=None, init_cfg=None):
         """
         Args:
@@ -302,7 +343,9 @@ class VoVNet(BaseModule):
         stem += conv_type(stem_ch[1], stem_ch[2], "stem", "3", 2)
         self.add_module("stem", nn.Sequential((OrderedDict(stem))))
         current_stirde = 4
-        self._out_feature_strides = {"stem": current_stirde, "stage2": current_stirde}
+        self._out_feature_strides = {
+            "stem": current_stirde,
+            "stage2": current_stirde}
         self._out_feature_channels = {"stem": stem_ch[2]}
 
         stem_out_ch = [stem_ch[2]]
@@ -328,7 +371,8 @@ class VoVNet(BaseModule):
 
             self._out_feature_channels[name] = config_concat_ch[i]
             if not i == 0:
-                self._out_feature_strides[name] = current_stirde = int(current_stirde * 2)
+                self._out_feature_strides[name] = current_stirde = int(
+                    current_stirde * 2)
 
         # initialize weights
         # self._initialize_weights()

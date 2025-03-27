@@ -35,6 +35,7 @@ from mmdet.datasets import replace_ImageToTensor
 from mmdet3d.datasets import build_dataset
 from projects.mmdet3d_plugin.datasets.builder import build_dataloader
 
+
 def collate_fn(batch):
     items = list(zip(*batch))
     items[0] = default_collate([i for i in items[0] if torch.is_tensor(i)])
@@ -43,6 +44,7 @@ def collate_fn(batch):
     items[3] = default_collate([i for i in items[3] if torch.is_tensor(i)])
     items[4] = default_collate([i for i in items[4] if torch.is_tensor(i)])
     return items
+
 
 class Nuscenes(Dataset):
     def __init__(self, cfg, dataset_path):
@@ -62,8 +64,8 @@ class Nuscenes(Dataset):
             if samples_per_gpu > 1:
                 for ds_cfg in cfg.data.test:
                     ds_cfg.pipeline = replace_ImageToTensor(ds_cfg.pipeline)
-        #cfg.data.test.data_root = dataset_path
-        #cfg.data.test.ann_file = dataset_path + '/nuscenes_infos_temporal_train.pkl'
+        # cfg.data.test.data_root = dataset_path
+        # cfg.data.test.ann_file = dataset_path + '/nuscenes_infos_temporal_train.pkl'
         self.dataset = build_dataset(cfg.data.test)
         self.data_loader = build_dataloader(
             self.dataset,
@@ -73,9 +75,10 @@ class Nuscenes(Dataset):
             shuffle=False,
             nonshuffler_sampler=cfg.data.nonshuffler_sampler,
         )
+
     def __len__(self):
         return len(self.files)
-    
+
     def get_list(self):
         raise NotImplementedError("Dataset:get_list")
 
@@ -86,7 +89,7 @@ class Nuscenes(Dataset):
     def unload_query_samples(self, sample_list):
         # TODO: Unload queries from memory, if needed
         pass
-    
+
     def get_samples(self, id_list):
         data = []
         labels = []
@@ -95,12 +98,13 @@ class Nuscenes(Dataset):
             data.append(item)
             labels.append(None)
         return data, labels
-    
+
     def get_item(self, idx):
-        return self.data_loader.dataset[idx] 
+        return self.data_loader.dataset[idx]
 
     def get_item_count(self):
         return len(self.dataset)
+
 
 class PostProcessNuscenes:
     def __init__(

@@ -32,7 +32,8 @@ def _get_inverse_affine_matrix(center, angle, translate, scale, shear):
     )
 
 
-def rotate(img, angle, interpolation=InterpolationMode.NEAREST, center=None, fill=None):
+def rotate(img, angle, interpolation=InterpolationMode.NEAREST,
+           center=None, fill=None):
     if center is not None and not isinstance(center, (list, tuple)):
         raise TypeError("Argument center should be a sequence")
 
@@ -41,7 +42,8 @@ def rotate(img, angle, interpolation=InterpolationMode.NEAREST, center=None, fil
 
     if center is not None:
         img_size = [img.shape[-1], img.shape[-2]]
-        # Center values should be in pixel coordinates but translated such that (0, 0) corresponds to image center.
+        # Center values should be in pixel coordinates but translated such that
+        # (0, 0) corresponds to image center.
         center_f = [1.0 * (c - s * 0.5) for c, s in zip(center, img_size)]
         center_f = torch.tensor(center_f, device=img.device)
     else:
@@ -49,7 +51,8 @@ def rotate(img, angle, interpolation=InterpolationMode.NEAREST, center=None, fil
 
     # due to current incoherence of rotation angle direction between affine and rotate implementations
     # we need to set -angle.
-    matrix = _get_inverse_affine_matrix(center_f, -angle, [0.0, 0.0], 1.0, [0.0, 0.0])
+    matrix = _get_inverse_affine_matrix(
+        center_f, -angle, [0.0, 0.0], 1.0, [0.0, 0.0])
 
     w, h = img.shape[-1], img.shape[-2]
     ow, oh = int(w), int(h)
@@ -57,7 +60,13 @@ def rotate(img, angle, interpolation=InterpolationMode.NEAREST, center=None, fil
 
     # grid will be generated on the same device as theta and img
     d = 0.5
-    base_grid = torch.empty(1, oh, ow, 3, dtype=theta.dtype, device=theta.device)
+    base_grid = torch.empty(
+        1,
+        oh,
+        ow,
+        3,
+        dtype=theta.dtype,
+        device=theta.device)
     x_grid = torch.linspace(
         -ow * 0.5 + d, ow * 0.5 + d - 1, steps=ow, device=theta.device
     )
@@ -94,9 +103,14 @@ def rotate(img, angle, interpolation=InterpolationMode.NEAREST, center=None, fil
 
     if img.shape[0] > 1:
         # Apply same grid to a batch of images
-        grid = grid.expand(img.shape[0], grid.shape[1], grid.shape[2], grid.shape[3])
+        grid = grid.expand(
+            img.shape[0],
+            grid.shape[1],
+            grid.shape[2],
+            grid.shape[3])
 
-    # Append a dummy mask for customized fill colors, should be faster than grid_sample() twice
+    # Append a dummy mask for customized fill colors, should be faster than
+    # grid_sample() twice
     if fill is not None:
         dummy = torch.ones(
             (img.shape[0], 1, img.shape[2], img.shape[3]),

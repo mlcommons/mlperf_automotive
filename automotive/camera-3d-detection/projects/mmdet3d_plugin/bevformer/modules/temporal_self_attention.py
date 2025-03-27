@@ -97,9 +97,9 @@ class TemporalSelfAttention(BaseModule):
         self.num_points = num_points
         self.num_bev_queue = num_bev_queue
         self.sampling_offsets = nn.Linear(
-            embed_dims*self.num_bev_queue, num_bev_queue*num_heads * num_levels * num_points * 2)
-        self.attention_weights = nn.Linear(embed_dims*self.num_bev_queue,
-                                           num_bev_queue*num_heads * num_levels * num_points)
+            embed_dims * self.num_bev_queue, num_bev_queue * num_heads * num_levels * num_points * 2)
+        self.attention_weights = nn.Linear(embed_dims * self.num_bev_queue,
+                                           num_bev_queue * num_heads * num_levels * num_points)
         self.value_proj = nn.Linear(embed_dims, embed_dims)
         self.output_proj = nn.Linear(embed_dims, embed_dims)
         self.init_weights()
@@ -114,7 +114,7 @@ class TemporalSelfAttention(BaseModule):
         grid_init = (grid_init /
                      grid_init.abs().max(-1, keepdim=True)[0]).view(
             self.num_heads, 1, 1,
-            2).repeat(1, self.num_levels*self.num_bev_queue, self.num_points, 1)
+            2).repeat(1, self.num_levels * self.num_bev_queue, self.num_points, 1)
 
         for i in range(self.num_points):
             grid_init[:, :, i, :] *= i + 1
@@ -174,12 +174,12 @@ class TemporalSelfAttention(BaseModule):
              Tensor: forwarded results with shape [num_query, bs, embed_dims].
         """
 
-        #if value is None:
+        # if value is None:
         #    assert self.batch_first
         #    bs, len_bev, c = query.shape
         #    value = torch.stack([query, query], 1).reshape(bs*2, len_bev, c)
 
-            # value = torch.cat([query, query], 0)
+        # value = torch.cat([query, query], 0)
 
         if identity is None:
             identity = query
@@ -189,7 +189,7 @@ class TemporalSelfAttention(BaseModule):
             # change to (bs, num_query ,embed_dims)
             query = query.permute(1, 0, 2)
             value = value.permute(1, 0, 2)
-        bs,  num_query, embed_dims = query.shape
+        bs, num_query, embed_dims = query.shape
         _, num_value, _ = value.shape
         assert (spatial_shapes[:, 0] * spatial_shapes[:, 1]).sum() == num_value
         assert self.num_bev_queue == 2
@@ -200,14 +200,14 @@ class TemporalSelfAttention(BaseModule):
         if key_padding_mask is not None:
             value = value.masked_fill(key_padding_mask[..., None], 0.0)
 
-        value = value.reshape(bs*self.num_bev_queue,
+        value = value.reshape(bs * self.num_bev_queue,
                               num_value, self.num_heads, -1)
 
         sampling_offsets = self.sampling_offsets(query)
         sampling_offsets = sampling_offsets.view(
-            bs, num_query, self.num_heads,  self.num_bev_queue, self.num_levels, self.num_points, 2)
+            bs, num_query, self.num_heads, self.num_bev_queue, self.num_levels, self.num_points, 2)
         attention_weights = self.attention_weights(query).view(
-            bs, num_query,  self.num_heads, self.num_bev_queue, self.num_levels * self.num_points)
+            bs, num_query, self.num_heads, self.num_bev_queue, self.num_levels * self.num_points)
         attention_weights = attention_weights.softmax(-1)
 
         attention_weights = attention_weights.view(bs, num_query,
@@ -217,9 +217,9 @@ class TemporalSelfAttention(BaseModule):
                                                    self.num_points)
 
         attention_weights = attention_weights.permute(0, 3, 1, 2, 4, 5)\
-            .reshape(bs*self.num_bev_queue, num_query, self.num_heads, self.num_levels, self.num_points).contiguous()
+            .reshape(bs * self.num_bev_queue, num_query, self.num_heads, self.num_levels, self.num_points).contiguous()
         sampling_offsets = sampling_offsets.permute(0, 3, 1, 2, 4, 5, 6)\
-            .reshape(bs*self.num_bev_queue, num_query, self.num_heads, self.num_levels, self.num_points, 2)
+            .reshape(bs * self.num_bev_queue, num_query, self.num_heads, self.num_levels, self.num_points, 2)
 
         if reference_points.shape[-1] == 2:
             offset_normalizer = torch.stack(
@@ -239,7 +239,8 @@ class TemporalSelfAttention(BaseModule):
                 f' 2 or 4, but get {reference_points.shape[-1]} instead.')
         if False and torch.cuda.is_available() and value.is_cuda:
 
-            # using fp16 deformable attention is unstable because it performs many sum operations
+            # using fp16 deformable attention is unstable because it performs
+            # many sum operations
             if value.dtype == torch.float16:
                 MultiScaleDeformableAttnFunction = MultiScaleDeformableAttnFunction_fp32
             else:
@@ -250,13 +251,13 @@ class TemporalSelfAttention(BaseModule):
             # attn = nn.MultiheadAttention(self.embed_dims, self.num_heads)
             # output, _ = attn(query, key, value)
         else:
-        #print('temp completed')
-        #import pdb
-        #pdb.set_trace()
-            #import pdb
-            #pdb.set_trace()
+            # print('temp completed')
+            # import pdb
+            # pdb.set_trace()
+            # import pdb
+            # pdb.set_trace()
             output = multi_scale_deformable_attn_pytorch(
-            value, spatial_shapes, sampling_locations, attention_weights)
+                value, spatial_shapes, sampling_locations, attention_weights)
 
         # output shape (bs*num_bev_queue, num_query, embed_dims)
         # (bs*num_bev_queue, num_query, embed_dims)-> (num_query, embed_dims, bs*num_bev_queue)

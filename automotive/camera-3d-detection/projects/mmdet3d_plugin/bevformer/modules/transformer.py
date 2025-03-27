@@ -15,13 +15,14 @@ from mmdet.models.utils.builder import TRANSFORMER
 from torch.nn.init import normal_
 from projects.mmdet3d_plugin.models.utils.visual import save_tensor
 from mmcv.runner.base_module import BaseModule
-#from torchvision.transforms.functional import rotate
+# from torchvision.transforms.functional import rotate
 from ...models.utils import rotate
 from .temporal_self_attention import TemporalSelfAttention
 from .spatial_cross_attention import MSDeformableAttention3D
 from .decoder import CustomMSDeformableAttention
 from projects.mmdet3d_plugin.models.utils.bricks import run_time
 from mmcv.runner import force_fp32, auto_fp16
+
 
 @TRANSFORMER.register_module()
 class PerceptionTransformer(BaseModule):
@@ -119,8 +120,8 @@ class PerceptionTransformer(BaseModule):
         """
         obtain bev features.
         """
-        #import pdb
-        #pdb.set_trace()
+        # import pdb
+        # pdb.set_trace()
         bs = mlvl_feats[0].size(0)
         bev_queries = bev_queries.unsqueeze(1).repeat(1, bs, 1)
         bev_pos = bev_pos.flatten(2).permute(2, 0, 1)
@@ -156,7 +157,8 @@ class PerceptionTransformer(BaseModule):
         )
         shift_y = shift_y * int(self.use_shift)
         shift_x = shift_x * int(self.use_shift)
-        shift = torch.stack([shift_x, shift_y]).permute(1, 0).to('cuda' if torch.cuda.is_available() else 'cpu')
+        shift = torch.stack([shift_x, shift_y]).permute(1, 0).to(
+            'cuda' if torch.cuda.is_available() else 'cpu')
 
         if prev_bev is not None:
             if prev_bev.shape[1] == bev_h * bev_w:
@@ -198,7 +200,7 @@ class PerceptionTransformer(BaseModule):
 
         feat_flatten = feat_flatten.permute(
             0, 2, 1, 3)  # (num_cam, H*W, bs, embed_dims)
-        
+
         bev_embed = self.encoder(
             bev_queries,
             feat_flatten,
@@ -215,7 +217,7 @@ class PerceptionTransformer(BaseModule):
             image_shape=image_shape,
             **kwargs
         )
-        
+
         '''torch.onnx.export(self.encoder, (bev_queries,
             feat_flatten,
             feat_flatten,
@@ -230,7 +232,8 @@ class PerceptionTransformer(BaseModule):
             image_metas), 'encoder.onnx', verbose=False, opset_version=16, dynamic_axes=None)'''
         return bev_embed
 
-    @auto_fp16(apply_to=('mlvl_feats', 'bev_queries', 'object_query_embed', 'prev_bev', 'bev_pos'))
+    @auto_fp16(apply_to=('mlvl_feats', 'bev_queries',
+               'object_query_embed', 'prev_bev', 'bev_pos'))
     def forward(self,
                 mlvl_feats,
                 bev_queries,
@@ -300,7 +303,7 @@ class PerceptionTransformer(BaseModule):
             bev_pos=bev_pos,
             prev_bev=prev_bev,
             use_prev_bev=use_prev_bev,
-            #image_metas = kwargs['img_metas'],
+            # image_metas = kwargs['img_metas'],
             **kwargs)  # bev_embed shape: bs, bev_h*bev_w, embed_dims
         bs = mlvl_feats[0].size(0)
         query_pos, query = torch.split(
@@ -314,14 +317,14 @@ class PerceptionTransformer(BaseModule):
         query = query.permute(1, 0, 2)
         query_pos = query_pos.permute(1, 0, 2)
         bev_embed = bev_embed.permute(1, 0, 2)
-        
-        #import pdb
-        #pdb.set_trace()
-        #key = kwargs['key'],
-        #value = kwargs['value'],
-        #query_pos = kwargs['query_pos']
-        #spatial_shapes = kwargs['spatial_shapes'],
-        #level_start_index = kwargs['level_start_index']
+
+        # import pdb
+        # pdb.set_trace()
+        # key = kwargs['key'],
+        # value = kwargs['value'],
+        # query_pos = kwargs['query_pos']
+        # spatial_shapes = kwargs['spatial_shapes'],
+        # level_start_index = kwargs['level_start_index']
         inter_states, inter_references = self.decoder(
             query=query,
             key=None,
@@ -333,15 +336,15 @@ class PerceptionTransformer(BaseModule):
             spatial_shapes=torch.tensor([[bev_h, bev_w]], device=query.device),
             level_start_index=torch.tensor([0], device=query.device),
             **kwargs)
-        #import pdb
-        #pdb.set_trace()
-        '''torch.onnx.export(self.decoder, (query, 
+        # import pdb
+        # pdb.set_trace()
+        '''torch.onnx.export(self.decoder, (query,
                                             None,
                                             None,
                                             bev_embed,
-                                            query_pos, 
-                                            reference_points, 
-                                            reg_branches, 
+                                            query_pos,
+                                            reference_points,
+                                            reg_branches,
                                             cls_branches,
                                             torch.tensor([[bev_h, bev_w]], device=query.device),
                                             torch.tensor([0], device=query.device)), 'decoder.onnx', verbose=False, opset_version=16, dynamic_axes=None)'''

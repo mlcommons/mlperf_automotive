@@ -2,7 +2,7 @@
 import torch
 from torch import nn
 
-#from detectron2.modeling.meta_arch.build import META_ARCH_REGISTRY
+# from detectron2.modeling.meta_arch.build import META_ARCH_REGISTRY
 from detectron2.modeling.postprocessing import detector_postprocess as resize_instances
 from detectron2.structures import Instances
 from detectron2.layers import ShapeSpec
@@ -10,14 +10,14 @@ from mmcv.runner import force_fp32
 
 from .fcos2d import FCOS2DHead, FCOS2DInference, FCOS2DLoss
 from .fcos3d import FCOS3DHead, FCOS3DInference, FCOS3DLoss
-#from tridet.modeling.dd3d.postprocessing import nuscenes_sample_aggregate
+# from tridet.modeling.dd3d.postprocessing import nuscenes_sample_aggregate
 from .prepare_targets import DD3DTargetPreparer
-#from tridet.modeling.feature_extractor import build_feature_extractor
+# from tridet.modeling.feature_extractor import build_feature_extractor
 from projects.mmdet3d_plugin.dd3d.structures.image_list import ImageList
 from projects.mmdet3d_plugin.dd3d.utils.tensor2d import compute_features_locations as compute_locations_per_level
 
 
-#@META_ARCH_REGISTRY.register()
+# @META_ARCH_REGISTRY.register()
 class DD3D(nn.Module):
     def __init__(self,
                  num_classes,
@@ -35,28 +35,33 @@ class DD3D(nn.Module):
         # self.backbone = build_feature_extractor(cfg)
         # backbone_output_shape = self.backbone.output_shape()
         # self.in_features = cfg.DD3D.IN_FEATURES or list(backbone_output_shape.keys())
-        
-        self.backbone_output_shape = [ShapeSpec(channels=in_channels, stride=s) for s in strides]
+
+        self.backbone_output_shape = [
+            ShapeSpec(
+                channels=in_channels,
+                stride=s) for s in strides]
 
         self.feature_locations_offset = feature_locations_offset
 
         self.fcos2d_head = FCOS2DHead(num_classes=num_classes, input_shape=self.backbone_output_shape,
-                                     **fcos2d_cfg)
-        self.fcos2d_loss = FCOS2DLoss(num_classes=num_classes, **fcos2d_loss_cfg)
+                                      **fcos2d_cfg)
+        self.fcos2d_loss = FCOS2DLoss(
+            num_classes=num_classes, **fcos2d_loss_cfg)
         # NOTE: inference later
         # self.fcos2d_inference = FCOS2DInference(cfg)
 
         if box3d_on:
             self.fcos3d_head = FCOS3DHead(num_classes=num_classes, input_shape=self.backbone_output_shape,
                                           **fcos3d_cfg)
-            self.fcos3d_loss = FCOS3DLoss(num_classes=num_classes, **fcos3d_loss_cfg)
+            self.fcos3d_loss = FCOS3DLoss(
+                num_classes=num_classes, **fcos3d_loss_cfg)
             # NOTE: inference later
             # self.fcos3d_inference = FCOS3DInference(cfg)
             self.only_box2d = False
         else:
             self.only_box2d = True
 
-        self.prepare_targets = DD3DTargetPreparer(num_classes=num_classes, 
+        self.prepare_targets = DD3DTargetPreparer(num_classes=num_classes,
                                                   input_shape=self.backbone_output_shape,
                                                   box3d_on=box3d_on,
                                                   **target_assign_cfg)
@@ -97,7 +102,9 @@ class DD3D(nn.Module):
         #     intrinsics = None
         # images = ImageList.from_tensors(images, self.backbone.size_divisibility, intrinsics=intrinsics)
         if 'inv_intrinsics' in batched_inputs[0]:
-            inv_intrinsics = [x['inv_intrinsics'].to(features[0].device) for x in batched_inputs]
+            inv_intrinsics = [
+                x['inv_intrinsics'].to(
+                    features[0].device) for x in batched_inputs]
             inv_intrinsics = torch.stack(inv_intrinsics, dim=0)
         else:
             inv_intrinsics = None
@@ -115,27 +122,32 @@ class DD3D(nn.Module):
         # features = [features[f] for f in self.in_features]
 
         if "instances" in batched_inputs[0]:
-            gt_instances = [x["instances"].to(features[0].device) for x in batched_inputs]
+            gt_instances = [
+                x["instances"].to(
+                    features[0].device) for x in batched_inputs]
         else:
             gt_instances = None
 
         locations = self.compute_locations(features)
         logits, box2d_reg, centerness, _ = self.fcos2d_head(features)
         if not self.only_box2d:
-            box3d_quat, box3d_ctr, box3d_depth, box3d_size, box3d_conf, dense_depth = self.fcos3d_head(features)
+            box3d_quat, box3d_ctr, box3d_depth, box3d_size, box3d_conf, dense_depth = self.fcos3d_head(
+                features)
         # NOTE: directly use inv_intrinsics
         # inv_intrinsics = images.intrinsics.inverse() if images.intrinsics is not None else None
 
         if self.training:
             assert gt_instances is not None
             feature_shapes = [x.shape[-2:] for x in features]
-            training_targets = self.prepare_targets(locations, gt_instances, feature_shapes)
-            # NOTE: 
+            training_targets = self.prepare_targets(
+                locations, gt_instances, feature_shapes)
+            # NOTE:
             # if gt_dense_depth is not None:
             #    training_targets.update({"dense_depth": gt_dense_depth})
 
             losses = {}
-            fcos2d_loss, fcos2d_info = self.fcos2d_loss(logits, box2d_reg, centerness, training_targets)
+            fcos2d_loss, fcos2d_info = self.fcos2d_loss(
+                logits, box2d_reg, centerness, training_targets)
             losses.update(fcos2d_loss)
 
             if not self.only_box2d:
@@ -148,12 +160,13 @@ class DD3D(nn.Module):
         else:
             # TODO: do not support inference now
             raise NotImplementedError
-            
+
             pred_instances, fcos2d_info = self.fcos2d_inference(
                 logits, box2d_reg, centerness, locations, images.image_sizes
             )
             if not self.only_box2d:
-                # This adds 'pred_boxes3d' and 'scores_3d' to Instances in 'pred_instances' in place.
+                # This adds 'pred_boxes3d' and 'scores_3d' to Instances in
+                # 'pred_instances' in place.
                 self.fcos3d_inference(
                     box3d_quat, box3d_ctr, box3d_depth, box3d_size, box3d_conf, inv_intrinsics, pred_instances,
                     fcos2d_info
@@ -166,15 +179,18 @@ class DD3D(nn.Module):
 
             # Transpose to "image-first", i.e. (B, L)
             pred_instances = list(zip(*pred_instances))
-            pred_instances = [Instances.cat(instances) for instances in pred_instances]
+            pred_instances = [Instances.cat(instances)
+                              for instances in pred_instances]
 
             # 2D NMS and pick top-K.
             if self.do_nms:
-                pred_instances = self.fcos2d_inference.nms_and_top_k(pred_instances, score_key)
+                pred_instances = self.fcos2d_inference.nms_and_top_k(
+                    pred_instances, score_key)
 
             if not self.only_box2d and self.do_bev_nms:
                 # Bird-eye-view NMS.
-                dummy_group_idxs = {i: [i] for i, _ in enumerate(pred_instances)}
+                dummy_group_idxs = {i: [i]
+                                    for i, _ in enumerate(pred_instances)}
                 if 'pose' in batched_inputs[0]:
                     poses = [x['pose'] for x in batched_inputs]
                 else:

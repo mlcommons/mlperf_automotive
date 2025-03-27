@@ -4,6 +4,7 @@ import mmcv
 from mmdet.datasets.builder import PIPELINES
 from mmcv.parallel import DataContainer as DC
 
+
 @PIPELINES.register_module()
 class PadMultiViewImage(object):
     """Pad the multi-view image.
@@ -32,7 +33,7 @@ class PadMultiViewImage(object):
         elif self.size_divisor is not None:
             padded_img = [mmcv.impad_to_multiple(
                 img, self.size_divisor, pad_val=self.pad_val) for img in results['img']]
-        
+
         results['ori_shape'] = [img.shape for img in results['img']]
         results['img'] = padded_img
         results['img_shape'] = [img.shape for img in padded_img]
@@ -74,7 +75,6 @@ class NormalizeMultiviewImage(object):
         self.std = np.array(std, dtype=np.float32)
         self.to_rgb = to_rgb
 
-
     def __call__(self, results):
         """Call function to normalize images.
         Args:
@@ -84,7 +84,12 @@ class NormalizeMultiviewImage(object):
                 result dict.
         """
 
-        results['img'] = [mmcv.imnormalize(img, self.mean, self.std, self.to_rgb) for img in results['img']]
+        results['img'] = [
+            mmcv.imnormalize(
+                img,
+                self.mean,
+                self.std,
+                self.to_rgb) for img in results['img']]
         results['img_norm_cfg'] = dict(
             mean=self.mean, std=self.std, to_rgb=self.to_rgb)
         return results
@@ -141,7 +146,7 @@ class PhotoMetricDistortionMultiViewImage:
             # random brightness
             if random.randint(2):
                 delta = random.uniform(-self.brightness_delta,
-                                    self.brightness_delta)
+                                       self.brightness_delta)
                 img += delta
 
             # mode == 0 --> do random contrast first
@@ -150,7 +155,7 @@ class PhotoMetricDistortionMultiViewImage:
             if mode == 1:
                 if random.randint(2):
                     alpha = random.uniform(self.contrast_lower,
-                                        self.contrast_upper)
+                                           self.contrast_upper)
                     img *= alpha
 
             # convert color from BGR to HSV
@@ -159,7 +164,7 @@ class PhotoMetricDistortionMultiViewImage:
             # random saturation
             if random.randint(2):
                 img[..., 1] *= random.uniform(self.saturation_lower,
-                                            self.saturation_upper)
+                                              self.saturation_upper)
 
             # random hue
             if random.randint(2):
@@ -174,7 +179,7 @@ class PhotoMetricDistortionMultiViewImage:
             if mode == 0:
                 if random.randint(2):
                     alpha = random.uniform(self.contrast_lower,
-                                        self.contrast_upper)
+                                           self.contrast_upper)
                     img *= alpha
 
             # randomly swap channels
@@ -193,7 +198,6 @@ class PhotoMetricDistortionMultiViewImage:
         repr_str += f'{(self.saturation_lower, self.saturation_upper)},\n'
         repr_str += f'hue_delta={self.hue_delta})'
         return repr_str
-
 
 
 @PIPELINES.register_module()
@@ -243,7 +247,7 @@ class CustomCollect3D(object):
 
     def __init__(self,
                  keys,
-                 meta_keys=('filename', 'ori_shape', 'img_shape', 'lidar2img','lidar2cam',
+                 meta_keys=('filename', 'ori_shape', 'img_shape', 'lidar2img', 'lidar2cam',
                             'depth2img', 'cam2img', 'pad_shape',
                             'scale_factor', 'flip', 'pcd_horizontal_flip',
                             'pcd_vertical_flip', 'box_mode_3d', 'box_type_3d',
@@ -265,10 +269,10 @@ class CustomCollect3D(object):
                 - keys in ``self.keys``
                 - ``img_metas``
         """
-       
+
         data = {}
         img_metas = {}
-      
+
         for key in self.meta_keys:
             if key in results:
                 img_metas[key] = results[key]
@@ -276,7 +280,7 @@ class CustomCollect3D(object):
         data['img_metas'] = DC(img_metas, cpu_only=True)
         for key in self.keys:
             if key not in results:
-                data[key] = None 
+                data[key] = None
             else:
                 data[key] = results[key]
         return data
@@ -285,7 +289,6 @@ class CustomCollect3D(object):
         """str: Return a string that describes the module."""
         return self.__class__.__name__ + \
             f'(keys={self.keys}, meta_keys={self.meta_keys})'
-
 
 
 @PIPELINES.register_module()
@@ -297,7 +300,7 @@ class RandomScaleImageMultiViewImage(object):
 
     def __init__(self, scales=[]):
         self.scales = scales
-        assert len(self.scales)==1
+        assert len(self.scales) == 1
 
     def __call__(self, results):
         """Call function to pad images, masks, semantic segmentation maps.
@@ -322,7 +325,6 @@ class RandomScaleImageMultiViewImage(object):
         results['ori_shape'] = [img.shape for img in results['img']]
 
         return results
-
 
     def __repr__(self):
         repr_str = self.__class__.__name__

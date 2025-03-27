@@ -19,7 +19,8 @@ def _as_tensor(x: Tuple[int, int]) -> torch.Tensor:
     """
     if torch.jit.is_scripting():
         return torch.as_tensor(x)
-    if isinstance(x, (list, tuple)) and all([isinstance(t, torch.Tensor) for t in x]):
+    if isinstance(x, (list, tuple)) and all(
+            [isinstance(t, torch.Tensor) for t in x]):
         return torch.stack(x)
     return torch.as_tensor(x)
 
@@ -42,7 +43,9 @@ class ImageList(object):
     Attributes:
         image_sizes (list[tuple[int, int]]): each tuple is (h, w)
     """
-    def __init__(self, tensor: torch.Tensor, image_sizes: List[Tuple[int, int]], intrinsics=None, image_paths=None):
+
+    def __init__(self, tensor: torch.Tensor,
+                 image_sizes: List[Tuple[int, int]], intrinsics=None, image_paths=None):
         """
         Arguments:
             tensor (Tensor): of shape (N, H, W) or (N, C_1, ..., C_K, H, W) where K >= 1
@@ -56,8 +59,10 @@ class ImageList(object):
 
     @property
     def intrinsics(self):
-        if torch.allclose(self._intrinsics[0], torch.eye(3, device=self._intrinsics.device)):
-            # TODO: torch.inverse(images.intrinsics) often return identity, when it shouldn't. Is it pytorch bug?
+        if torch.allclose(self._intrinsics[0], torch.eye(
+                3, device=self._intrinsics.device)):
+            # TODO: torch.inverse(images.intrinsics) often return identity,
+            # when it shouldn't. Is it pytorch bug?
             raise ValueError("Intrinsics is Identity.")
         return self._intrinsics
 
@@ -84,7 +89,8 @@ class ImageList(object):
     @torch.jit.unused
     def to(self, *args: Any, **kwargs: Any) -> "ImageList":
         cast_tensor = self.tensor.to(*args, **kwargs)
-        return ImageList(cast_tensor, self.image_sizes, intrinsics=self.intrinsics)
+        return ImageList(cast_tensor, self.image_sizes,
+                         intrinsics=self.intrinsics)
 
     @property
     def device(self) -> device:
@@ -123,8 +129,10 @@ class ImageList(object):
 
         if size_divisibility > 1:
             stride = size_divisibility
-            # the last two dims are H,W, both subject to divisibility requirement
-            max_size = torch.div(max_size + (stride - 1),  stride, rounding_mode='floor') * stride
+            # the last two dims are H,W, both subject to divisibility
+            # requirement
+            max_size = torch.div(max_size + (stride - 1),
+                                 stride, rounding_mode='floor') * stride
 
         # handle weirdness of scripting and tracing ...
         if torch.jit.is_scripting():
@@ -138,11 +146,17 @@ class ImageList(object):
             # This seems slightly (2%) faster.
             # TODO: check whether it's faster for multiple images as well
             image_size = image_sizes[0]
-            padding_size = [0, max_size[-1] - image_size[1], 0, max_size[-2] - image_size[0]]
-            batched_imgs = F.pad(tensors[0], padding_size, value=pad_value).unsqueeze_(0)
+            padding_size = [0, max_size[-1] - image_size[1],
+                            0, max_size[-2] - image_size[0]]
+            batched_imgs = F.pad(
+                tensors[0],
+                padding_size,
+                value=pad_value).unsqueeze_(0)
         else:
-            # max_size can be a tensor in tracing mode, therefore convert to list
-            batch_shape = [len(tensors)] + list(tensors[0].shape[:-2]) + list(max_size)
+            # max_size can be a tensor in tracing mode, therefore convert to
+            # list
+            batch_shape = [len(tensors)] + \
+                list(tensors[0].shape[:-2]) + list(max_size)
             batched_imgs = tensors[0].new_full(batch_shape, pad_value)
             for img, pad_img in zip(tensors, batched_imgs):
                 pad_img[..., :img.shape[-2], :img.shape[-1]].copy_(img)
@@ -155,4 +169,5 @@ class ImageList(object):
         if image_paths is not None:
             assert len(image_paths) == len(tensors)
 
-        return ImageList(batched_imgs.contiguous(), image_sizes, intrinsics, image_paths)
+        return ImageList(batched_imgs.contiguous(),
+                         image_sizes, intrinsics, image_paths)

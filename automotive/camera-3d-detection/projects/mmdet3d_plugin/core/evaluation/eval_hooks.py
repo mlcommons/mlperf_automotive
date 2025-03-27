@@ -28,7 +28,7 @@ def _calc_dynamic_intervals(start_interval, dynamic_interval_list):
 
 class CustomDistEvalHook(BaseDistEvalHook):
 
-    def __init__(self, *args, dynamic_intervals=None,  **kwargs):
+    def __init__(self, *args, dynamic_intervals=None, **kwargs):
         super(CustomDistEvalHook, self).__init__(*args, **kwargs)
         self.use_dynamic_intervals = dynamic_intervals is not None
         if self.use_dynamic_intervals:
@@ -73,7 +73,8 @@ class CustomDistEvalHook(BaseDistEvalHook):
         if tmpdir is None:
             tmpdir = osp.join(runner.work_dir, '.eval_hook')
 
-        from projects.mmdet3d_plugin.bevformer.apis.test import custom_multi_gpu_test # to solve circlur  import
+        # to solve circlur  import
+        from projects.mmdet3d_plugin.bevformer.apis.test import custom_multi_gpu_test
 
         results = custom_multi_gpu_test(
             runner.model,
@@ -88,4 +89,3 @@ class CustomDistEvalHook(BaseDistEvalHook):
 
             if self.save_best:
                 self._save_ckpt(runner, key_score)
-  

@@ -5,6 +5,8 @@
 #  Modified by Zhiqi Li
 # ---------------------------------------------
 
+from mmcv.cnn.bricks.transformer import build_feedforward_network, build_attention
+import pdb
 import numpy as np
 import torch
 import copy
@@ -19,7 +21,7 @@ from mmcv.utils import ext_loader
 from .custom_base_transformer_layer import MyCustomBaseTransformerLayer
 ext_module = ext_loader.load_ext(
     '_ext', ['ms_deform_attn_backward', 'ms_deform_attn_forward'])
-import pdb
+
 
 @TRANSFORMER_LAYER_SEQUENCE.register_module()
 class BEVFormerEncoder(TransformerLayerSequence):
@@ -44,7 +46,8 @@ class BEVFormerEncoder(TransformerLayerSequence):
         self.fp16_enabled = False
 
     @staticmethod
-    def get_reference_points(H, W, Z=8, num_points_in_pillar=4, dim='3d', bs=1, device='cuda', dtype=torch.float):
+    def get_reference_points(H, W, Z=8, num_points_in_pillar=4,
+                             dim='3d', bs=1, device='cuda', dtype=torch.float):
         """Get the reference points used in SCA and TSA.
         Args:
             H, W: spatial shape of bev.
@@ -70,10 +73,11 @@ class BEVFormerEncoder(TransformerLayerSequence):
             ref_3d = ref_3d[None].repeat(bs, 1, 1, 1)
             return ref_3d
 
-        # reference points on 2D bev plane, used in temporal self-attention (TSA).
+        # reference points on 2D bev plane, used in temporal self-attention
+        # (TSA).
         elif dim == '2d':
-            #import pdb
-            #pdb.set_trace()
+            # import pdb
+            # pdb.set_trace()
             ref_y, ref_x = torch.meshgrid(
                 torch.linspace(
                     0.5, H - 0.5, H, dtype=dtype, device=device),
@@ -89,18 +93,18 @@ class BEVFormerEncoder(TransformerLayerSequence):
             return ref_2d
 
     # This function must use fp32!!!
-    #@force_fp32(apply_to=('reference_points', 'img_metas'))
-    def point_sampling(self, reference_points, pc_range,  lidar2img, img_shape):
+    # @force_fp32(apply_to=('reference_points', 'img_metas'))
+    def point_sampling(self, reference_points, pc_range, lidar2img, img_shape):
         # NOTE: close tf32 here.
-        #allow_tf32 = torch.backends.cuda.matmul.allow_tf32
-        #torch.backends.cuda.matmul.allow_tf32 = False
-        #torch.backends.cudnn.allow_tf32 = False
+        # allow_tf32 = torch.backends.cuda.matmul.allow_tf32
+        # torch.backends.cuda.matmul.allow_tf32 = False
+        # torch.backends.cudnn.allow_tf32 = False
 
-        #import pdb
-        #pdb.set_trace()
-        #lidar2img = np.asarray(lidar2img)
-        #lidar2img = torch.stack(lidar2img)
-        #lidar2img = reference_points.new_tensor(lidar2img)  # (B, N, 4, 4)
+        # import pdb
+        # pdb.set_trace()
+        # lidar2img = np.asarray(lidar2img)
+        # lidar2img = torch.stack(lidar2img)
+        # lidar2img = reference_points.new_tensor(lidar2img)  # (B, N, 4, 4)
         reference_points = reference_points.clone()
 
         reference_points[..., 0:1] = reference_points[..., 0:1] * \
@@ -147,8 +151,8 @@ class BEVFormerEncoder(TransformerLayerSequence):
         reference_points_cam = reference_points_cam.permute(2, 1, 3, 0, 4)
         bev_mask = bev_mask.permute(2, 1, 3, 0, 4).squeeze(-1)
 
-        #torch.backends.cuda.matmul.allow_tf32 = allow_tf32
-        #torch.backends.cudnn.allow_tf32 = allow_tf32
+        # torch.backends.cuda.matmul.allow_tf32 = allow_tf32
+        # torch.backends.cudnn.allow_tf32 = allow_tf32
 
         return reference_points_cam, bev_mask
 
@@ -157,7 +161,7 @@ class BEVFormerEncoder(TransformerLayerSequence):
                 bev_query,
                 key,
                 value,
-                #*args,
+                # *args,
                 bev_h=None,
                 bev_w=None,
                 bev_pos=None,
@@ -193,19 +197,20 @@ class BEVFormerEncoder(TransformerLayerSequence):
         output = bev_query
         intermediate = []
         ref_3d = self.get_reference_points(
-            bev_h, bev_w, self.pc_range[5]-self.pc_range[2], self.num_points_in_pillar, dim='3d', bs=bev_query.size(1),  device=bev_query.device, dtype=bev_query.dtype)
+            bev_h, bev_w, self.pc_range[5] - self.pc_range[2], self.num_points_in_pillar, dim='3d', bs=bev_query.size(1), device=bev_query.device, dtype=bev_query.dtype)
         ref_2d = self.get_reference_points(
             bev_h, bev_w, dim='2d', bs=bev_query.size(1), device=bev_query.device, dtype=bev_query.dtype)
 
         reference_points_cam, bev_mask = self.point_sampling(
             ref_3d, self.pc_range, lidar2img, image_shape)
-        #img_metas = []
-        #for meta in kwargs['img_metas']:
+        # img_metas = []
+        # for meta in kwargs['img_metas']:
         #    img_metas.append({'lidar2img': meta['lidar2img'], 'img_shape': meta['img_shape']})
-        #import pdb
-        #pdb.set_trace()
-        #torch.onnx.export(self.point_sampling, (ref_3d, self.pc_range, img_metas), 'point_sampling.onnx', verbose=False, opset_version=16, dynamic_axes=None)
-        # bug: this code should be 'shift_ref_2d = ref_2d.clone()', we keep this bug for reproducing our results in paper.
+        # import pdb
+        # pdb.set_trace()
+        # torch.onnx.export(self.point_sampling, (ref_3d, self.pc_range, img_metas), 'point_sampling.onnx', verbose=False, opset_version=16, dynamic_axes=None)
+        # bug: this code should be 'shift_ref_2d = ref_2d.clone()', we keep
+        # this bug for reproducing our results in paper.
         shift_ref_2d = ref_2d.clone()
         shift_ref_2d += shift[:, None, None, :]
 
@@ -216,12 +221,12 @@ class BEVFormerEncoder(TransformerLayerSequence):
         if prev_bev is not None:
             prev_bev = prev_bev.permute(1, 0, 2)
             prev_bev = torch.stack(
-                [prev_bev, bev_query], 1).reshape(bs*2, len_bev, -1)
+                [prev_bev, bev_query], 1).reshape(bs * 2, len_bev, -1)
             hybird_ref_2d = torch.stack([shift_ref_2d, ref_2d], 1).reshape(
-                bs*2, len_bev, num_bev_level, 2)
+                bs * 2, len_bev, num_bev_level, 2)
         else:
             hybird_ref_2d = torch.stack([ref_2d, ref_2d], 1).reshape(
-                bs*2, len_bev, num_bev_level, 2)
+                bs * 2, len_bev, num_bev_level, 2)
 
         for lid, layer in enumerate(self.layers):
             output = layer(
@@ -239,9 +244,9 @@ class BEVFormerEncoder(TransformerLayerSequence):
                 bev_mask=bev_mask,
                 prev_bev=prev_bev,
                 use_prev_bev=use_prev_bev)
-            #import pdb
-            #pdb.set_trace()
-            #torch.onnx.export(layer, (bev_query, key, value, bev_pos, None, None, None, None, None, hybird_ref_2d, ref_3d, bev_h, bev_w, reference_points_cam, None, spatial_shapes, level_start_index, bev_mask, prev_bev), 'layer'+str(lid)+'.onnx', verbose=False, opset_version=16, dynamic_axes=None)
+            # import pdb
+            # pdb.set_trace()
+            # torch.onnx.export(layer, (bev_query, key, value, bev_pos, None, None, None, None, None, hybird_ref_2d, ref_3d, bev_h, bev_w, reference_points_cam, None, spatial_shapes, level_start_index, bev_mask, prev_bev), 'layer'+str(lid)+'.onnx', verbose=False, opset_version=16, dynamic_axes=None)
             # traced_script_module = torch.jit.trace(layer, (bev_query, key, value, bev_pos, None, None, None, None, None, hybird_ref_2d, ref_3d, bev_h, bev_w, reference_points_cam, None, spatial_shapes, level_start_index, bev_mask, prev_bev), strict=False)
             # traced_script_module = torch.jit.trace(layer, (bev_query, key, value, bev_pos, hybird_ref_2d, ref_3d, torch.tensor(bev_h), torch.tensor(bev_w), reference_points_cam, spatial_shapes, level_start_index, bev_mask), strict=False)
             # traced_script_module.save('layer'+str(lid)+'.pt')
@@ -395,13 +400,15 @@ class BEVFormerLayer(MyCustomBaseTransformerLayer):
 
         for layer in self.operation_order:
             # temporal self attention
-            #import pdb
-            #pdb.set_trace()
+            # import pdb
+            # pdb.set_trace()
             if layer == 'self_attn':
                 bs, len_bev, c = query.shape
-                self_bev = torch.stack([query, query], 1).reshape(bs*2, len_bev, c)
-                prev_bev = (prev_bev*use_prev_bev)+self_bev*(1.0-use_prev_bev)
-                #if use_prev_bev < 1.0:
+                self_bev = torch.stack(
+                    [query, query], 1).reshape(bs * 2, len_bev, c)
+                prev_bev = (prev_bev * use_prev_bev) + \
+                    self_bev * (1.0 - use_prev_bev)
+                # if use_prev_bev < 1.0:
                 #    bs, len_bev, c = query.shape
                 #    prev_bev = torch.stack([query, query], 1).reshape(bs*2, len_bev, c)
                 query = self.attentions[attn_index](
@@ -452,11 +459,6 @@ class BEVFormerLayer(MyCustomBaseTransformerLayer):
         return query
 
 
-
-
-from mmcv.cnn.bricks.transformer import build_feedforward_network, build_attention
-
-
 @TRANSFORMER_LAYER.register_module()
 class MM_BEVFormerLayer(MyCustomBaseTransformerLayer):
     """multi-modality fusion layer.
@@ -485,13 +487,14 @@ class MM_BEVFormerLayer(MyCustomBaseTransformerLayer):
         assert len(operation_order) == 6
         assert set(operation_order) == set(
             ['self_attn', 'norm', 'cross_attn', 'ffn'])
-        self.cross_model_weights = torch.nn.Parameter(torch.tensor(0.5), requires_grad=True) 
+        self.cross_model_weights = torch.nn.Parameter(
+            torch.tensor(0.5), requires_grad=True)
         if lidar_cross_attn_layer:
-            self.lidar_cross_attn_layer = build_attention(lidar_cross_attn_layer)
+            self.lidar_cross_attn_layer = build_attention(
+                lidar_cross_attn_layer)
             # self.cross_model_weights+=1
         else:
             self.lidar_cross_attn_layer = None
-
 
     def forward(self,
                 query,
@@ -623,9 +626,11 @@ class MM_BEVFormerLayer(MyCustomBaseTransformerLayer):
                         reference_points=ref_2d[bs:],
                         spatial_shapes=torch.tensor(
                             [[bev_h, bev_w]], device=query.device),
-                        level_start_index=torch.tensor([0], device=query.device),
-                        )
-                query = new_query1 * self.cross_model_weights + (1-self.cross_model_weights) * new_query2
+                        level_start_index=torch.tensor(
+                            [0], device=query.device),
+                    )
+                query = new_query1 * self.cross_model_weights + \
+                    (1 - self.cross_model_weights) * new_query2
                 attn_index += 1
                 identity = query
 

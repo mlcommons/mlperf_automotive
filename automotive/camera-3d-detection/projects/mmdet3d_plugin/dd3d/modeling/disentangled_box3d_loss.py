@@ -25,10 +25,18 @@ class DisentangledBox3DLoss(nn.Module):
         disentangled_losses = {}
         for component_key in ["quat", "proj_ctr", "depth", "size"]:
             disentangled_boxes = box3d_targets.clone()
-            setattr(disentangled_boxes, component_key, getattr(box3d_pred, component_key))
+            setattr(
+                disentangled_boxes,
+                component_key,
+                getattr(
+                    box3d_pred,
+                    component_key))
             pred_corners = disentangled_boxes.to(torch.float32).corners
 
-            loss = smooth_l1_loss(pred_corners, target_corners, beta=self.smooth_l1_loss_beta)
+            loss = smooth_l1_loss(
+                pred_corners,
+                target_corners,
+                beta=self.smooth_l1_loss_beta)
 
             # Bound the loss
             loss.clamp(max=self.max_loss_per_group)
@@ -41,6 +49,7 @@ class DisentangledBox3DLoss(nn.Module):
 
             disentangled_losses["loss_box3d_" + component_key] = loss
 
-        entangled_l1_dist = (target_corners - box3d_pred.corners).detach().abs().reshape(-1, 24).mean(dim=1)
+        entangled_l1_dist = (
+            target_corners - box3d_pred.corners).detach().abs().reshape(-1, 24).mean(dim=1)
 
         return disentangled_losses, entangled_l1_dist

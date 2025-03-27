@@ -54,7 +54,10 @@ def transform_instance_annotations(
     if "bbox" in annotation:
         assert "bbox_mode" in annotation, "'bbox' is present, but 'bbox_mode' is not."
         # bbox is 1d (per-instance bounding box)
-        bbox = BoxMode.convert(annotation["bbox"], annotation["bbox_mode"], BoxMode.XYXY_ABS)
+        bbox = BoxMode.convert(
+            annotation["bbox"],
+            annotation["bbox_mode"],
+            BoxMode.XYXY_ABS)
         bbox = transforms.apply_box(np.array([bbox]))[0]
         # clip transformed bbox to image size
         bbox = bbox.clip(min=0)
@@ -62,7 +65,8 @@ def transform_instance_annotations(
         annotation["bbox"] = bbox
         annotation["bbox_mode"] = BoxMode.XYXY_ABS
 
-    # Vertical flipping is not implemented (`flip_transform.py`). TODO: implement if needed.
+    # Vertical flipping is not implemented (`flip_transform.py`). TODO:
+    # implement if needed.
     if "bbox3d" in annotation:
         bbox3d = np.array(annotation["bbox3d"])
         annotation['bbox3d'] = transforms.apply_box3d(bbox3d)
@@ -75,7 +79,8 @@ def _create_empty_instances(image_size):
 
     target.gt_boxes = Boxes([])
     target.gt_classes = torch.tensor([], dtype=torch.int64)
-    target.gt_boxes3d = Boxes3D.from_vectors([], torch.eye(3, dtype=torch.float32))
+    target.gt_boxes3d = Boxes3D.from_vectors(
+        [], torch.eye(3, dtype=torch.float32))
 
     return target
 
@@ -103,7 +108,11 @@ def annotations_to_instances(
     if len(annos) == 0:
         return _create_empty_instances(image_size)
 
-    boxes = [BoxMode.convert(obj["bbox"], obj["bbox_mode"], BoxMode.XYXY_ABS) for obj in annos]
+    boxes = [
+        BoxMode.convert(
+            obj["bbox"],
+            obj["bbox_mode"],
+            BoxMode.XYXY_ABS) for obj in annos]
     target = Instances(image_size)
     target.gt_boxes = Boxes(boxes)
 
@@ -113,7 +122,8 @@ def annotations_to_instances(
 
     if len(annos) and "bbox3d" in annos[0]:
         assert intrinsics is not None
-        target.gt_boxes3d = Boxes3D.from_vectors([anno['bbox3d'] for anno in annos], intrinsics)
+        target.gt_boxes3d = Boxes3D.from_vectors(
+            [anno['bbox3d'] for anno in annos], intrinsics)
         if len(target.gt_boxes3d) != target.gt_boxes.tensor.shape[0]:
             raise ValueError(
                 f"The sizes of `gt_boxes3d` and `gt_boxes` do not match: a={len(target.gt_boxes3d)}, b={target.gt_boxes.tensor.shape[0]}."
@@ -122,8 +132,8 @@ def annotations_to_instances(
     # NOTE: add nuscenes attributes here
     # NOTE: instances will be filtered later
     # NuScenes attributes
-    if len(annos) and "attribute_id" in annos[0]:    
-        attributes = [obj["attribute_id"] for obj in annos] 
+    if len(annos) and "attribute_id" in annos[0]:
+        attributes = [obj["attribute_id"] for obj in annos]
         target.gt_attributes = torch.tensor(attributes, dtype=torch.int64)
 
     # Speed (magnitude of velocity)

@@ -22,7 +22,8 @@ class DD3DMapper:
             return results
         mono_input_dict = []
         for dataset_dict in results['mono_input_dict']:
-            dataset_dict = copy.deepcopy(dataset_dict)  # it will be modified by code below
+            # it will be modified by code below
+            dataset_dict = copy.deepcopy(dataset_dict)
             image_shape = results['img'].data.shape[-2:]
             intrinsics = None
             if "intrinsics" in dataset_dict:
@@ -35,7 +36,8 @@ class DD3DMapper:
                     intrinsics = torch.as_tensor(intrinsics)
                     # NOTE: intrinsics = transforms.apply_intrinsics(intrinsics)
                     dataset_dict["intrinsics"] = intrinsics
-                dataset_dict["inv_intrinsics"] = torch.linalg.inv(dataset_dict['intrinsics'])
+                dataset_dict["inv_intrinsics"] = torch.linalg.inv(
+                    dataset_dict['intrinsics'])
 
             if "pose" in dataset_dict:
                 pose = Pose(wxyz=np.float32(dataset_dict["pose"]["wxyz"]),
@@ -60,7 +62,9 @@ class DD3DMapper:
                         anno.pop("bbox_mode", None)
                     if not self.task_manager.box3d_on:
                         anno.pop("bbox3d", None)
-                annos = [anno for anno in dataset_dict["annotations"] if anno.get("iscrowd", 0) == 0]
+                annos = [
+                    anno for anno in dataset_dict["annotations"] if anno.get(
+                        "iscrowd", 0) == 0]
                 if annos and 'bbox3d' in annos[0]:
                     # Remove boxes with negative z-value for center.
                     annos = [anno for anno in annos if anno['bbox3d'][6] > 0]

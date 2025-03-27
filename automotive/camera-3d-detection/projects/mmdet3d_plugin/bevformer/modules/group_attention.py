@@ -7,9 +7,17 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from mmcv.cnn import (Linear, build_activation_layer, build_conv_layer, build_norm_layer)
+from mmcv.cnn import (
+    Linear,
+    build_activation_layer,
+    build_conv_layer,
+    build_norm_layer)
 from mmcv.runner.base_module import BaseModule, ModuleList, Sequential
-from mmcv.utils import (ConfigDict, build_from_cfg, deprecated_api_warning, to_2tuple)
+from mmcv.utils import (
+    ConfigDict,
+    build_from_cfg,
+    deprecated_api_warning,
+    to_2tuple)
 from mmcv.cnn.bricks.drop import build_dropout
 from mmcv.cnn.bricks.registry import (ATTENTION, FEEDFORWARD_NETWORK, POSITIONAL_ENCODING, TRANSFORMER_LAYER,
                                       TRANSFORMER_LAYER_SEQUENCE)
@@ -61,12 +69,15 @@ class GroupMultiheadAttention(BaseModule):
         self.group = group
         self.batch_first = batch_first
 
-        self.attn = nn.MultiheadAttention(embed_dims, num_heads, attn_drop, **kwargs)
+        self.attn = nn.MultiheadAttention(
+            embed_dims, num_heads, attn_drop, **kwargs)
 
         self.proj_drop = nn.Dropout(proj_drop)
-        self.dropout_layer = build_dropout(dropout_layer) if dropout_layer else nn.Identity()
+        self.dropout_layer = build_dropout(
+            dropout_layer) if dropout_layer else nn.Identity()
 
-    @deprecated_api_warning({'residual': 'identity'}, cls_name='MultiheadAttention')
+    @deprecated_api_warning({'residual': 'identity'},
+                            cls_name='MultiheadAttention')
     def forward(self,
                 query,
                 key=None,
@@ -147,11 +158,26 @@ class GroupMultiheadAttention(BaseModule):
         num_queries = query.shape[0]
         bs = query.shape[1]
         if self.training:
-            query = torch.cat(query.split(num_queries // self.group, dim=0), dim=1)
+            query = torch.cat(
+                query.split(
+                    num_queries //
+                    self.group,
+                    dim=0),
+                dim=1)
             key = torch.cat(key.split(num_queries // self.group, dim=0), dim=1)
-            value = torch.cat(value.split(num_queries // self.group, dim=0), dim=1)
+            value = torch.cat(
+                value.split(
+                    num_queries //
+                    self.group,
+                    dim=0),
+                dim=1)
 
-        out = self.attn(query=query, key=key, value=value, attn_mask=attn_mask, key_padding_mask=key_padding_mask)[0]
+        out = self.attn(
+            query=query,
+            key=key,
+            value=value,
+            attn_mask=attn_mask,
+            key_padding_mask=key_padding_mask)[0]
 
         if self.training:
             out = torch.cat(out.split(bs, dim=1), dim=0)  # shape

@@ -7,7 +7,9 @@ class Pose:
     """SE(3) rigid transform class that allows compounding of 6-DOF poses
     and provides common transformations that are commonly seen in geometric problems.
     """
-    def __init__(self, wxyz=np.float32([1., 0., 0., 0.]), tvec=np.float32([0., 0., 0.])):
+
+    def __init__(self, wxyz=np.float32(
+            [1., 0., 0., 0.]), tvec=np.float32([0., 0., 0.])):
         """Initialize a Pose with Quaternion and 3D Position
 
         Parameters
@@ -145,7 +147,8 @@ class Pose:
         -------
         Pose
         """
-        return cls(wxyz=Quaternion(matrix=transformation_matrix[:3, :3]), tvec=np.float32(transformation_matrix[:3, 3]))
+        return cls(wxyz=Quaternion(matrix=transformation_matrix[:3, :3]), tvec=np.float32(
+            transformation_matrix[:3, 3]))
 
     @classmethod
     def from_rotation_translation(cls, rotation_matrix, tvec):
@@ -158,7 +161,8 @@ class Pose:
         tvec : np.ndarray
             length-3 translation vector
         """
-        return cls(wxyz=Quaternion(matrix=rotation_matrix), tvec=np.float64(tvec))
+        return cls(wxyz=Quaternion(matrix=rotation_matrix),
+                   tvec=np.float64(tvec))
 
     def __eq__(self, other):
         return self.quat == other.quat and (self.tvec == other.tvec).all()

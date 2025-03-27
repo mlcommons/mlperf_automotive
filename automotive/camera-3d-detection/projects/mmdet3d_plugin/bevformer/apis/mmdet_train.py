@@ -25,20 +25,22 @@ import os.path as osp
 from projects.mmdet3d_plugin.datasets.builder import build_dataloader
 from projects.mmdet3d_plugin.core.evaluation.eval_hooks import CustomDistEvalHook
 from projects.mmdet3d_plugin.datasets import custom_build_dataset
+
+
 def custom_train_detector(model,
-                   dataset,
-                   cfg,
-                   distributed=False,
-                   validate=False,
-                   timestamp=None,
-                   eval_model=None,
-                   meta=None):
+                          dataset,
+                          cfg,
+                          distributed=False,
+                          validate=False,
+                          timestamp=None,
+                          eval_model=None,
+                          meta=None):
     logger = get_root_logger(cfg.log_level)
 
     # prepare data loaders
-   
+
     dataset = dataset if isinstance(dataset, (list, tuple)) else [dataset]
-    #assert len(dataset)==1s
+    # assert len(dataset)==1s
     if 'imgs_per_gpu' in cfg.data:
         logger.warning('"imgs_per_gpu" is deprecated in MMDet V2.0. '
                        'Please use "samples_per_gpu" instead')
@@ -62,8 +64,10 @@ def custom_train_detector(model,
             len(cfg.gpu_ids),
             dist=distributed,
             seed=cfg.seed,
-            shuffler_sampler=cfg.data.shuffler_sampler,  # dict(type='DistributedGroupSampler'),
-            nonshuffler_sampler=cfg.data.nonshuffler_sampler,  # dict(type='DistributedSampler'),
+            # dict(type='DistributedGroupSampler'),
+            shuffler_sampler=cfg.data.shuffler_sampler,
+            # dict(type='DistributedSampler'),
+            nonshuffler_sampler=cfg.data.nonshuffler_sampler,
         ) for ds in dataset
     ]
 
@@ -89,7 +93,6 @@ def custom_train_detector(model,
         if eval_model is not None:
             eval_model = MMDataParallel(
                 eval_model.cuda(cfg.gpu_ids[0]), device_ids=cfg.gpu_ids)
-
 
     # build runner
     optimizer = build_optimizer(model, cfg.optimizer)
@@ -142,12 +145,12 @@ def custom_train_detector(model,
     runner.register_training_hooks(cfg.lr_config, optimizer_config,
                                    cfg.checkpoint_config, cfg.log_config,
                                    cfg.get('momentum_config', None))
-    
+
     # register profiler hook
-    #trace_config = dict(type='tb_trace', dir_name='work_dir')
-    #profiler_config = dict(on_trace_ready=trace_config)
-    #runner.register_profiler_hook(profiler_config)
-    
+    # trace_config = dict(type='tb_trace', dir_name='work_dir')
+    # profiler_config = dict(on_trace_ready=trace_config)
+    # runner.register_profiler_hook(profiler_config)
+
     if distributed:
         if isinstance(runner, EpochBasedRunner):
             runner.register_hook(DistSamplerSeedHook())
@@ -169,12 +172,17 @@ def custom_train_detector(model,
             workers_per_gpu=cfg.data.workers_per_gpu,
             dist=distributed,
             shuffle=False,
-            shuffler_sampler=cfg.data.shuffler_sampler,  # dict(type='DistributedGroupSampler'),
-            nonshuffler_sampler=cfg.data.nonshuffler_sampler,  # dict(type='DistributedSampler'),
+            # dict(type='DistributedGroupSampler'),
+            shuffler_sampler=cfg.data.shuffler_sampler,
+            # dict(type='DistributedSampler'),
+            nonshuffler_sampler=cfg.data.nonshuffler_sampler,
         )
         eval_cfg = cfg.get('evaluation', {})
         eval_cfg['by_epoch'] = cfg.runner['type'] != 'IterBasedRunner'
-        eval_cfg['jsonfile_prefix'] = osp.join('val', cfg.work_dir, time.ctime().replace(' ','_').replace(':','_'))
+        eval_cfg['jsonfile_prefix'] = osp.join(
+            'val', cfg.work_dir, time.ctime().replace(
+                ' ', '_').replace(
+                ':', '_'))
         eval_hook = CustomDistEvalHook if distributed else EvalHook
         runner.register_hook(eval_hook(val_dataloader, **eval_cfg))
 
@@ -197,4 +205,3 @@ def custom_train_detector(model,
     elif cfg.load_from:
         runner.load_checkpoint(cfg.load_from)
     runner.run(data_loaders, cfg.workflow)
-

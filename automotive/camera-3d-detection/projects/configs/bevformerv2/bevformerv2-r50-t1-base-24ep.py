@@ -28,7 +28,10 @@ input_modality = dict(
     use_radar=False,
     use_map=False,
     use_external=False)
-img_norm_cfg = dict(mean=[103.53, 116.28, 123.675], std=[1, 1, 1], to_rgb=False)
+img_norm_cfg = dict(
+    mean=[
+        103.53, 116.28, 123.675], std=[
+            1, 1, 1], to_rgb=False)
 bev_h_ = 200
 bev_w_ = 200
 frames = (0,)
@@ -60,14 +63,22 @@ ida_aug_conf_eval = {
 train_pipeline = [
     dict(type='LoadMultiViewImageFromFiles', to_float32=True),
     dict(type='PhotoMetricDistortionMultiViewImage'),
-    dict(type='LoadAnnotations3D', with_bbox_3d=True, with_label_3d=True, with_attr_label=False),
+    dict(
+        type='LoadAnnotations3D',
+        with_bbox_3d=True,
+        with_label_3d=True,
+        with_attr_label=False),
     dict(
         type='ObjectRangeFilter',
         point_cloud_range=point_cloud_range),
     dict(
         type='ObjectNameFilter',
         classes=class_names),
-    dict(type='CropResizeFlipImage', data_aug_conf=ida_aug_conf, training=True, debug=False),
+    dict(
+        type='CropResizeFlipImage',
+        data_aug_conf=ida_aug_conf,
+        training=True,
+        debug=False),
     dict(type='NormalizeMultiviewImage', **img_norm_cfg),
     dict(type='PadMultiViewImage', size_divisor=32),
     dict(type='DefaultFormatBundle3D', class_names=class_names),
@@ -82,7 +93,11 @@ train_pipeline = [
 ]
 eval_pipeline = [
     dict(type='LoadMultiViewImageFromFiles', to_float32=True, ),
-    dict(type='CropResizeFlipImage', data_aug_conf=ida_aug_conf_eval, training=False, debug=False),
+    dict(
+        type='CropResizeFlipImage',
+        data_aug_conf=ida_aug_conf_eval,
+        training=False,
+        debug=False),
     dict(type='NormalizeMultiviewImage', **img_norm_cfg),
     dict(type='PadMultiViewImage', size_divisor=32),
     dict(

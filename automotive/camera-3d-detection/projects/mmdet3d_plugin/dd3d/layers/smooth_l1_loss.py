@@ -6,7 +6,8 @@
 import torch
 
 
-def smooth_l1_loss(input: torch.Tensor, target: torch.Tensor, beta: float, reduction: str = "none") -> torch.Tensor:
+def smooth_l1_loss(input: torch.Tensor, target: torch.Tensor,
+                   beta: float, reduction: str = "none") -> torch.Tensor:
     """
     Smooth L1 loss defined in the Fast R-CNN paper as:
 

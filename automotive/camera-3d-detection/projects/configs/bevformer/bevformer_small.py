@@ -36,12 +36,12 @@ input_modality = dict(
     use_external=True)
 
 _dim_ = 256
-_pos_dim_ = _dim_//2
-_ffn_dim_ = _dim_*2
+_pos_dim_ = _dim_ // 2
+_ffn_dim_ = _dim_ * 2
 _num_levels_ = 1
 bev_h_ = 150
 bev_w_ = 150
-queue_length = 3 # each sequence contains `queue_length` frames.
+queue_length = 3  # each sequence contains `queue_length` frames.
 
 model = dict(
     type='BEVFormer',
@@ -56,8 +56,9 @@ model = dict(
         norm_cfg=dict(type='BN2d', requires_grad=False),
         norm_eval=True,
         style='caffe',
-        with_cp=True, # using checkpoint to save GPU memory
-        dcn=dict(type='DCNv2', deform_groups=1, fallback_on_stride=False), # original DCNv2 will print log when perform load_state_dict
+        with_cp=True,  # using checkpoint to save GPU memory
+        # original DCNv2 will print log when perform load_state_dict
+        dcn=dict(type='DCNv2', deform_groups=1, fallback_on_stride=False),
         stage_with_dcn=(False, False, True, True)),
     img_neck=dict(
         type='FPN',
@@ -145,7 +146,7 @@ model = dict(
             num_feats=_pos_dim_,
             row_num_embed=bev_h_,
             col_num_embed=bev_w_,
-            ),
+        ),
         loss_cls=dict(
             type='FocalLoss',
             use_sigmoid=True,
@@ -164,7 +165,8 @@ model = dict(
             type='HungarianAssigner3D',
             cls_cost=dict(type='FocalLossCost', weight=2.0),
             reg_cost=dict(type='BBox3DL1Cost', weight=0.25),
-            iou_cost=dict(type='IoUCost', weight=0.0), # Fake cost. This is just to make it compatible with DETR head.
+            # Fake cost. This is just to make it compatible with DETR head.
+            iou_cost=dict(type='IoUCost', weight=0.0),
             pc_range=point_cloud_range))))
 
 dataset_type = 'CustomNuScenesDataset'
@@ -175,7 +177,11 @@ file_client_args = dict(backend='disk')
 train_pipeline = [
     dict(type='LoadMultiViewImageFromFiles', to_float32=True),
     dict(type='PhotoMetricDistortionMultiViewImage'),
-    dict(type='LoadAnnotations3D', with_bbox_3d=True, with_label_3d=True, with_attr_label=False),
+    dict(
+        type='LoadAnnotations3D',
+        with_bbox_3d=True,
+        with_label_3d=True,
+        with_attr_label=False),
     dict(type='ObjectRangeFilter', point_cloud_range=point_cloud_range),
     dict(type='ObjectNameFilter', classes=class_names),
     dict(type='NormalizeMultiviewImage', **img_norm_cfg),
@@ -225,7 +231,7 @@ data = dict(
     val=dict(type=dataset_type,
              data_root=data_root,
              ann_file=data_root + 'nuscenes_infos_temporal_val.pkl',
-             pipeline=test_pipeline,  bev_size=(bev_h_, bev_w_),
+             pipeline=test_pipeline, bev_size=(bev_h_, bev_w_),
              classes=class_names, modality=input_modality, samples_per_gpu=1),
     test=dict(type=dataset_type,
               data_root=data_root,

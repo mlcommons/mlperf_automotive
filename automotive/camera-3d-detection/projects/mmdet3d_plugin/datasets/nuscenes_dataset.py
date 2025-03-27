@@ -23,12 +23,13 @@ class CustomNuScenesDataset(NuScenesDataset):
     This datset only add camera intrinsics and extrinsics to the results.
     """
 
-    def __init__(self, queue_length=4, bev_size=(200, 200), overlap_test=False, *args, **kwargs):
+    def __init__(self, queue_length=4, bev_size=(200, 200),
+                 overlap_test=False, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.queue_length = queue_length
         self.overlap_test = overlap_test
         self.bev_size = bev_size
-        
+
     def prepare_train_data(self, index):
         """
         Training data preparation.
@@ -38,7 +39,7 @@ class CustomNuScenesDataset(NuScenesDataset):
             dict: Training data dict of the corresponding index.
         """
         queue = []
-        index_list = list(range(index-self.queue_length, index))
+        index_list = list(range(index - self.queue_length, index))
         random.shuffle(index_list)
         index_list = sorted(index_list[1:])
         index_list.append(index)
@@ -54,7 +55,6 @@ class CustomNuScenesDataset(NuScenesDataset):
                 return None
             queue.append(example)
         return self.union2one(queue)
-
 
     def union2one(self, queue):
         imgs_list = [each['img'].data for each in queue]
@@ -79,7 +79,8 @@ class CustomNuScenesDataset(NuScenesDataset):
                 metas_map[i]['can_bus'][-1] -= prev_angle
                 prev_pos = copy.deepcopy(tmp_pos)
                 prev_angle = copy.deepcopy(tmp_angle)
-        queue[-1]['img'] = DC(torch.stack(imgs_list), cpu_only=False, stack=True)
+        queue[-1]['img'] = DC(torch.stack(imgs_list),
+                              cpu_only=False, stack=True)
         queue[-1]['img_metas'] = DC(metas_map, cpu_only=True)
         queue = queue[-1]
         return queue
@@ -174,16 +175,19 @@ class CustomNuScenesDataset(NuScenesDataset):
         """
         if self.test_mode:
             data = self.prepare_test_data(idx)
-            #import pdb
-            #pdb.set_trace()
-            #img = data["img"].data[0]
+            # import pdb
+            # pdb.set_trace()
+            # img = data["img"].data[0]
             img_metas = data["img_metas"]
-            #image_metas = []
+            # image_metas = []
             for i in range(len(img_metas)):
-                lidar2img = [torch.from_numpy(l) for l in img_metas[i].data['lidar2img']]
+                lidar2img = [
+                    torch.from_numpy(l) for l in img_metas[i].data['lidar2img']]
                 img_metas[i].data['lidar2img'] = lidar2img
-                img_metas[i].data['img_shape'] = torch.tensor(img_metas[i].data['img_shape'])
-                img_metas[i].data['can_bus'] = torch.from_numpy(img_metas[i].data['can_bus'])
+                img_metas[i].data['img_shape'] = torch.tensor(
+                    img_metas[i].data['img_shape'])
+                img_metas[i].data['can_bus'] = torch.from_numpy(
+                    img_metas[i].data['can_bus'])
             return data
         while True:
 

@@ -8,12 +8,12 @@ import random
 
 @PIPELINES.register_module()
 class CropResizeFlipImage(object):
-    """Fixed Crop and then randim resize and flip the image. Note the flip requires to flip the feature in the network   
+    """Fixed Crop and then randim resize and flip the image. Note the flip requires to flip the feature in the network
     ida_aug_conf = {
         "reisze": [576, 608, 640, 672, 704]  # stride of 32 based on 640 (0.9, 1.1)
         "reisze": [512, 544, 576, 608, 640, 672, 704, 736, 768]  #  (0.8, 1.2)
         "reisze": [448, 480, 512, 544, 576, 608, 640, 672, 704, 736, 768, 800, 832]  #  (0.7, 1.3)
-        "crop": (0, 260, 1600, 900), 
+        "crop": (0, 260, 1600, 900),
         "H": 900,
         "W": 1600,
         "rand_flip": True,
@@ -63,11 +63,12 @@ class CropResizeFlipImage(object):
             if self.debug:
                 pts_to_img_pre_aug = results['lidar2img'][i] @ lidar_pts
                 pts_to_img_pre_aug = pts_to_img_pre_aug / pts_to_img_pre_aug[2:3,
-                                                          :]  # div by the depth component in homogenous vector
+                                                                             :]  # div by the depth component in homogenous vector
 
                 img_copy = Image.fromarray(np.uint8(imgs[i]))
                 for j in range(pts_to_img_pre_aug.shape[1]):
-                    x, y = int(pts_to_img_pre_aug[0, j]), int(pts_to_img_pre_aug[1, j])
+                    x, y = int(pts_to_img_pre_aug[0, j]), int(
+                        pts_to_img_pre_aug[1, j])
                     if (0 < x < img_copy.width) and (0 < y < img_copy.height):
                         img_copy.putpixel((x - 1, y - 1), (255, 0, 0))
                         img_copy.putpixel((x - 1, y), (255, 0, 0))
@@ -81,7 +82,9 @@ class CropResizeFlipImage(object):
                 img_copy.save(f'pre_aug_{uid}_{i}.png')
 
             # augmentation (resize, crop, horizontal flip, rotate)
-            # resize, resize_dims, crop, flip, rotate = self._sample_augmentation()  ###different view use different aug (BEV Det)
+            # resize, resize_dims, crop, flip, rotate =
+            # self._sample_augmentation()  ###different view use different aug
+            # (BEV Det)
             img, ida_mat = self._img_transform(
                 img,
                 resize=resize,
@@ -90,14 +93,17 @@ class CropResizeFlipImage(object):
                 flip=flip,
             )
             new_imgs.append(np.array(img).astype(np.float32))
-            results['cam2img'][i][:3, :3] = np.matmul(ida_mat, results['cam2img'][i][:3, :3])
+            results['cam2img'][i][:3, :3] = np.matmul(
+                ida_mat, results['cam2img'][i][:3, :3])
 
             if self.debug:
-                pts_to_img_post_aug = np.matmul(results['cam2img'][i], results['lidar2cam'][i]) @ lidar_pts
+                pts_to_img_post_aug = np.matmul(
+                    results['cam2img'][i], results['lidar2cam'][i]) @ lidar_pts
                 pts_to_img_post_aug = pts_to_img_post_aug / pts_to_img_post_aug[2:3,
-                                                            :]  # div by the depth component in homogenous vector
+                                                                                :]  # div by the depth component in homogenous vector
                 for j in range(pts_to_img_post_aug.shape[1]):
-                    x, y = int(pts_to_img_post_aug[0, j]), int(pts_to_img_post_aug[1, j])
+                    x, y = int(pts_to_img_post_aug[0, j]), int(
+                        pts_to_img_post_aug[1, j])
                     if (0 < x < img.width) and (0 < y < img.height):
                         img.putpixel((x - 1, y - 1), (255, 0, 0))
                         img.putpixel((x - 1, y), (255, 0, 0))
@@ -118,17 +124,22 @@ class CropResizeFlipImage(object):
                     if torch.is_tensor(intrinsics):
                         intrinsics = intrinsics.numpy().reshape(3, 3).astype(np.float32)
                     elif isinstance(intrinsics, np.ndarray):
-                        intrinsics = intrinsics.reshape(3, 3).astype(np.float32)
+                        intrinsics = intrinsics.reshape(
+                            3, 3).astype(np.float32)
                     else:
-                        intrinsics = np.array(intrinsics, dtype=np.float32).reshape(3, 3)
-                    results['mono_input_dict'][mono_index]['intrinsics'] = np.matmul(ida_mat, intrinsics)
+                        intrinsics = np.array(
+                            intrinsics, dtype=np.float32).reshape(
+                            3, 3)
+                    results['mono_input_dict'][mono_index]['intrinsics'] = np.matmul(
+                        ida_mat, intrinsics)
                     results['mono_input_dict'][mono_index]['height'] = img.size[1]
                     results['mono_input_dict'][mono_index]['width'] = img.size[0]
 
                     # apply transform to dd3d box
                     for ann in results['mono_input_dict'][mono_index]['annotations']:
                         # bbox_mode = BoxMode.XYXY_ABS
-                        box = self._box_transform(ann['bbox'], resize, crop, flip, img.size[0])[0]
+                        box = self._box_transform(
+                            ann['bbox'], resize, crop, flip, img.size[0])[0]
                         box = box.clip(min=0)
                         box = np.minimum(box, list(img.size + img.size))
                         ann["bbox"] = box
@@ -196,7 +207,8 @@ class CropResizeFlipImage(object):
             resize = resized_h / (crop[3] - crop[1])
             resize_dims = (int(resized_w), int(resized_h))
             flip = False
-        results['aug_param']['CropResizeFlipImage_param'] = (resize, resize_dims, crop, flip)
+        results['aug_param']['CropResizeFlipImage_param'] = (
+            resize, resize_dims, crop, flip)
 
         return resize, resize_dims, crop, flip
 
@@ -241,7 +253,8 @@ class GlobalRotScaleTransImage(object):
         if not 'aug_param' in results.keys():
             results['aug_param'] = {}
 
-        rot_angle, scale_ratio, flip_dx, flip_dy, _, _ = self._sample_augmentation(results)
+        rot_angle, scale_ratio, flip_dx, flip_dy, _, _ = self._sample_augmentation(
+            results)
 
         # random rotate
         if not self.only_gt:
@@ -278,7 +291,7 @@ class GlobalRotScaleTransImage(object):
             scale_ratio = np.random.uniform(*self.scale_ratio_range)
             flip_dx = np.random.uniform() < self.flip_dx_ratio
             flip_dy = np.random.uniform() < self.flip_dy_ratio
-        # generate bda_mat 
+        # generate bda_mat
 
         rot_sin = torch.sin(torch.tensor(rot_angle))
         rot_cos = torch.cos(torch.tensor(rot_angle))
@@ -296,7 +309,7 @@ class GlobalRotScaleTransImage(object):
         bda_mat = flip_mat @ (scale_mat @ rot_mat)
         bda_mat = torch.inverse(bda_mat)
         results['aug_param']['GlobalRotScaleTransImage_param'] = (
-        rot_angle, scale_ratio, flip_dx, flip_dy, bda_mat, self.only_gt)
+            rot_angle, scale_ratio, flip_dx, flip_dy, bda_mat, self.only_gt)
 
         return rot_angle, scale_ratio, flip_dx, flip_dy, bda_mat, self.only_gt
 
@@ -304,13 +317,16 @@ class GlobalRotScaleTransImage(object):
         rot_cos = np.cos(angle)
         rot_sin = np.sin(angle)
 
-        rot_mat = np.array([[rot_cos, -rot_sin, 0, 0], [rot_sin, rot_cos, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
+        rot_mat = np.array(
+            [[rot_cos, -rot_sin, 0, 0], [rot_sin, rot_cos, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
         rot_mat_inv = np.linalg.inv(rot_mat)
 
         num_view = len(results["lidar2img"])
         for view in range(num_view):
-            results["lidar2img"][view] = np.matmul(results["lidar2img"][view], rot_mat_inv)
-            results['lidar2cam'][view] = np.matmul(results['lidar2cam'][view], rot_mat_inv)
+            results["lidar2img"][view] = np.matmul(
+                results["lidar2img"][view], rot_mat_inv)
+            results['lidar2cam'][view] = np.matmul(
+                results['lidar2cam'][view], rot_mat_inv)
 
         return
 
@@ -328,8 +344,10 @@ class GlobalRotScaleTransImage(object):
 
         num_view = len(results["lidar2img"])
         for view in range(num_view):
-            results["lidar2img"][view] = np.matmul(results["lidar2img"][view], scale_mat_inv)
-            results['lidar2cam'][view] = np.matmul(results['lidar2cam'][view], scale_mat_inv)
+            results["lidar2img"][view] = np.matmul(
+                results["lidar2img"][view], scale_mat_inv)
+            results['lidar2cam'][view] = np.matmul(
+                results['lidar2cam'][view], scale_mat_inv)
         return
 
     def flip_along_x(self, results):
@@ -346,8 +364,10 @@ class GlobalRotScaleTransImage(object):
 
         num_view = len(results["lidar2img"])
         for view in range(num_view):
-            results["lidar2img"][view] = np.matmul(results["lidar2img"][view], flip_mat_inv)
-            results['lidar2cam'][view] = np.matmul(results['lidar2cam'][view], flip_mat_inv)
+            results["lidar2img"][view] = np.matmul(
+                results["lidar2img"][view], flip_mat_inv)
+            results['lidar2cam'][view] = np.matmul(
+                results['lidar2cam'][view], flip_mat_inv)
         return
 
     def flip_along_y(self, results):
@@ -364,6 +384,8 @@ class GlobalRotScaleTransImage(object):
 
         num_view = len(results["lidar2img"])
         for view in range(num_view):
-            results["lidar2img"][view] = np.matmul(results["lidar2img"][view], flip_mat_inv)
-            results['lidar2cam'][view] = np.matmul(results['lidar2cam'][view], flip_mat_inv)
+            results["lidar2img"][view] = np.matmul(
+                results["lidar2img"][view], flip_mat_inv)
+            results['lidar2cam'][view] = np.matmul(
+                results['lidar2cam'][view], flip_mat_inv)
         return

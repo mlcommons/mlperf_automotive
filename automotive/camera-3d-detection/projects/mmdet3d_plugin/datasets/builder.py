@@ -1,5 +1,7 @@
 
 # Copyright (c) OpenMMLab. All rights reserved.
+from mmdet.datasets.builder import _concat_dataset
+from mmdet.datasets import DATASETS
 import copy
 import platform
 import random
@@ -15,6 +17,7 @@ from mmdet.datasets.samplers import GroupSampler
 from projects.mmdet3d_plugin.datasets.samplers.group_sampler import DistributedGroupSampler
 from projects.mmdet3d_plugin.datasets.samplers.distributed_sampler import DistributedSampler
 from projects.mmdet3d_plugin.datasets.samplers.sampler import build_sampler
+
 
 def build_dataloader(dataset,
                      samples_per_gpu,
@@ -49,23 +52,23 @@ def build_dataloader(dataset,
         # that images on each GPU are in the same group
         if shuffle:
             sampler = build_sampler(shuffler_sampler if shuffler_sampler is not None else dict(type='DistributedGroupSampler'),
-                                     dict(
-                                         dataset=dataset,
-                                         samples_per_gpu=samples_per_gpu,
-                                         num_replicas=world_size,
-                                         rank=rank,
-                                         seed=seed)
-                                     )
+                                    dict(
+                dataset=dataset,
+                samples_per_gpu=samples_per_gpu,
+                num_replicas=world_size,
+                rank=rank,
+                seed=seed)
+            )
 
         else:
             sampler = build_sampler(nonshuffler_sampler if nonshuffler_sampler is not None else dict(type='DistributedSampler'),
-                                     dict(
-                                         dataset=dataset,
-                                         num_replicas=world_size,
-                                         rank=rank,
-                                         shuffle=shuffle,
-                                         seed=seed)
-                                     )
+                                    dict(
+                dataset=dataset,
+                num_replicas=world_size,
+                rank=rank,
+                shuffle=shuffle,
+                seed=seed)
+            )
 
         batch_size = samples_per_gpu
         num_workers = workers_per_gpu
@@ -103,11 +106,7 @@ def worker_init_fn(worker_id, num_workers, rank, seed):
 
 
 # Copyright (c) OpenMMLab. All rights reserved.
-import platform
-from mmcv.utils import Registry, build_from_cfg
 
-from mmdet.datasets import DATASETS
-from mmdet.datasets.builder import _concat_dataset
 
 if platform.system() != 'Windows':
     # https://github.com/pytorch/pytorch/issues/973
@@ -126,7 +125,8 @@ def custom_build_dataset(cfg, default_args=None):
     from mmdet.datasets.dataset_wrappers import (ClassBalancedDataset,
                                                  ConcatDataset, RepeatDataset)
     if isinstance(cfg, (list, tuple)):
-        dataset = ConcatDataset([custom_build_dataset(c, default_args) for c in cfg])
+        dataset = ConcatDataset(
+            [custom_build_dataset(c, default_args) for c in cfg])
     elif cfg['type'] == 'ConcatDataset':
         dataset = ConcatDataset(
             [custom_build_dataset(c, default_args) for c in cfg['datasets']],
@@ -138,7 +138,10 @@ def custom_build_dataset(cfg, default_args=None):
         dataset = ClassBalancedDataset(
             custom_build_dataset(cfg['dataset'], default_args), cfg['oversample_thr'])
     elif cfg['type'] == 'CBGSDataset':
-        dataset = CBGSDataset(custom_build_dataset(cfg['dataset'], default_args))
+        dataset = CBGSDataset(
+            custom_build_dataset(
+                cfg['dataset'],
+                default_args))
     elif isinstance(cfg.get('ann_file'), (list, tuple)):
         dataset = _concat_dataset(cfg, default_args)
     else:

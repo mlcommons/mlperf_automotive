@@ -13,12 +13,10 @@ try:
     from waymo_open_dataset import label_pb2
     from waymo_open_dataset.protos import metrics_pb2
 except ImportError:
-    #pass
+    # pass
     raise ImportError(
         'Please run "pip install waymo-open-dataset-tf-2-1-0==1.2.0" '
         'to install the official devkit first.')
-
-
 
 
 class KITTI2Waymo(object):

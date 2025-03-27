@@ -394,7 +394,7 @@ class CustomNuScenesMonoDataset(CocoDataset):
             dict: Dictionary of evaluation details.
         """
         from nuscenes import NuScenes
-        #from nuscenes.eval.detection.evaluate import NuScenesEval
+        # from nuscenes.eval.detection.evaluate import NuScenesEval
         from .nuscnes_eval import NuScenesEval_custom
         output_dir = osp.join(*osp.split(result_path)[:-1])
         self.nusc = NuScenes(
@@ -419,7 +419,7 @@ class CustomNuScenesMonoDataset(CocoDataset):
             verbose=True,
             overlap_test=self.overlap_test,
             data_infos=self.data_infos
-            )
+        )
 
         self.nusc_eval.main(render_curves=True)
 

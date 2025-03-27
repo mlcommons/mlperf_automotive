@@ -1,11 +1,12 @@
 try:
     from torch.optim import _functional as F
-except:
+except BaseException:
     print('WARNING!!!, I recommend using torch>=1.8')
 
 import torch
 from torch.optim.optimizer import Optimizer
 from mmcv.runner.optimizer.builder import OPTIMIZERS
+
 
 @OPTIMIZERS.register_module()
 class AdamW2(Optimizer):
@@ -42,11 +43,16 @@ class AdamW2(Optimizer):
         if not 0.0 <= eps:
             raise ValueError("Invalid epsilon value: {}".format(eps))
         if not 0.0 <= betas[0] < 1.0:
-            raise ValueError("Invalid beta parameter at index 0: {}".format(betas[0]))
+            raise ValueError(
+                "Invalid beta parameter at index 0: {}".format(
+                    betas[0]))
         if not 0.0 <= betas[1] < 1.0:
-            raise ValueError("Invalid beta parameter at index 1: {}".format(betas[1]))
+            raise ValueError(
+                "Invalid beta parameter at index 1: {}".format(
+                    betas[1]))
         if not 0.0 <= weight_decay:
-            raise ValueError("Invalid weight_decay value: {}".format(weight_decay))
+            raise ValueError(
+                "Invalid weight_decay value: {}".format(weight_decay))
         defaults = dict(lr=lr, betas=betas, eps=eps,
                         weight_decay=weight_decay, amsgrad=amsgrad)
         super(AdamW2, self).__init__(params, defaults)
@@ -87,7 +93,8 @@ class AdamW2(Optimizer):
                     continue
                 params_with_grad.append(p)
                 if p.grad.is_sparse:
-                    raise RuntimeError('AdamW does not support sparse gradients')
+                    raise RuntimeError(
+                        'AdamW does not support sparse gradients')
                 grads.append(p.grad)
 
                 state = self.state[p]
@@ -96,19 +103,22 @@ class AdamW2(Optimizer):
                 if len(state) == 0:
                     state['step'] = 0
                     # Exponential moving average of gradient values
-                    state['exp_avg'] = torch.zeros_like(p, memory_format=torch.preserve_format)
+                    state['exp_avg'] = torch.zeros_like(
+                        p, memory_format=torch.preserve_format)
                     # Exponential moving average of squared gradient values
-                    state['exp_avg_sq'] = torch.zeros_like(p, memory_format=torch.preserve_format)
+                    state['exp_avg_sq'] = torch.zeros_like(
+                        p, memory_format=torch.preserve_format)
                     if amsgrad:
-                        # Maintains max of all exp. moving avg. of sq. grad. values
-                        state['max_exp_avg_sq'] = torch.zeros_like(p, memory_format=torch.preserve_format)
+                        # Maintains max of all exp. moving avg. of sq. grad.
+                        # values
+                        state['max_exp_avg_sq'] = torch.zeros_like(
+                            p, memory_format=torch.preserve_format)
 
                 exp_avgs.append(state['exp_avg'])
                 exp_avg_sqs.append(state['exp_avg_sq'])
 
                 if amsgrad:
                     max_exp_avg_sqs.append(state['max_exp_avg_sq'])
-
 
                 # update the steps for each param group update
                 state['step'] += 1

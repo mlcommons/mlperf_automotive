@@ -61,7 +61,8 @@ class BEVFormerV2(MVXTwoStageDetector):
         assert not self.video_test_mode  # not support video_test_mode yet
 
         # fcos3d head
-        self.fcos3d_bbox_head = build_head(fcos3d_bbox_head) if fcos3d_bbox_head else None
+        self.fcos3d_bbox_head = build_head(
+            fcos3d_bbox_head) if fcos3d_bbox_head else None
         # loss weight
         self.mono_loss_weight = mono_loss_weight
 
@@ -69,6 +70,7 @@ class BEVFormerV2(MVXTwoStageDetector):
         self.num_levels = num_levels
         self.num_mono_levels = num_mono_levels
         self.frames = frames
+
     def extract_img_feat(self, img):
         """Extract features of images."""
         B = img.size(0)
@@ -100,7 +102,7 @@ class BEVFormerV2(MVXTwoStageDetector):
 
         img_feats = self.extract_img_feat(img)
         if 'aug_param' in img_metas[0] and img_metas[0]['aug_param']['CropResizeFlipImage_param'][-1] is True:
-            # flip feature 
+            # flip feature
             img_feats = [torch.flip(x, dims=[-1, ]) for x in img_feats]
         return img_feats
 
@@ -135,13 +137,14 @@ class BEVFormerV2(MVXTwoStageDetector):
                 image size, scaling factor, etc.
         ann_idx (list[list[idx]]): indicate which image has mono annotation.
         """
-        bsz = img_feats[0].shape[0];
+        bsz = img_feats[0].shape[0]
         num_lvls = len(img_feats)
 
         img_feats_select = [[] for lvl in range(num_lvls)]
         for lvl, img_feat in enumerate(img_feats):
             for i in range(bsz):
-                img_feats_select[lvl].append(img_feat[i, mono_input_dict['mono_ann_idx'][i]])
+                img_feats_select[lvl].append(
+                    img_feat[i, mono_input_dict['mono_ann_idx'][i]])
             img_feats_select[lvl] = torch.cat(img_feats_select[lvl], dim=0)
         bsz_new = img_feats_select[0].shape[0]
         assert bsz == len(mono_input_dict['mono_input_dict'])
@@ -149,7 +152,8 @@ class BEVFormerV2(MVXTwoStageDetector):
         for i in range(bsz):
             input_dict.extend(mono_input_dict['mono_input_dict'][i])
         assert bsz_new == len(input_dict)
-        losses = self.fcos3d_bbox_head.forward_train(img_feats_select, input_dict)
+        losses = self.fcos3d_bbox_head.forward_train(
+            img_feats_select, input_dict)
         return losses
 
     def forward_dummy(self, img):
@@ -216,7 +220,7 @@ class BEVFormerV2(MVXTwoStageDetector):
 
         if self.fcos3d_bbox_head:
             losses_mono = self.forward_mono_train(img_feats=img_feats if self.num_mono_levels is None
-            else img_feats[:self.num_mono_levels],
+                                                  else img_feats[:self.num_mono_levels],
                                                   mono_input_dict=mono_input_dict)
             for k, v in losses_mono.items():
                 losses[f'{k}_mono'] = v * self.mono_loss_weight
@@ -229,7 +233,8 @@ class BEVFormerV2(MVXTwoStageDetector):
                 raise TypeError('{} must be a list, but got {}'.format(
                     name, type(var)))
         img = [img] if img is None else img
-        new_prev_bev, bbox_results = self.simple_test(img_metas[0], img[0], prev_bev=None, **kwargs)
+        new_prev_bev, bbox_results = self.simple_test(
+            img_metas[0], img[0], prev_bev=None, **kwargs)
         return bbox_results
 
     def simple_test_pts(self, x, img_metas, prev_bev=None, rescale=False):
@@ -244,7 +249,8 @@ class BEVFormerV2(MVXTwoStageDetector):
         ]
         return outs['bev_embed'], bbox_results
 
-    def simple_test(self, img_metas, img=None, prev_bev=None, rescale=False, **kwargs):
+    def simple_test(self, img_metas, img=None,
+                    prev_bev=None, rescale=False, **kwargs):
         """Test function without augmentaiton."""
         img_metas = OrderedDict(sorted(img_metas[0].items()))
         img_dict = {}
