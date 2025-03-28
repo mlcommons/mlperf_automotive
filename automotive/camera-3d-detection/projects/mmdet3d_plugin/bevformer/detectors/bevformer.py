@@ -310,6 +310,8 @@ class BEVFormer(MVXTwoStageDetector):
         return outs['bev_embed'], bbox_results
 
     def post_process(self, outputs_classes, outputs_coords):
-        dic = {"all_cls_scores": outputs_classes, "all_bbox_preds": outputs_coords}
+        dic = {
+            "all_cls_scores": outputs_classes,
+            "all_bbox_preds": outputs_coords}
         result_list = self.pts_bbox_head.get_bboxes(dic)
         return result_list
