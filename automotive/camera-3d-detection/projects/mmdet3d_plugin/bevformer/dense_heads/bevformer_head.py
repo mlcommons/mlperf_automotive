@@ -499,7 +499,7 @@ class BEVFormerHead(DETRHead):
         return loss_dict
 
     @force_fp32(apply_to=('preds_dicts'))
-    def get_bboxes(self, preds_dicts, img_metas, rescale=False):
+    def get_bboxes(self, preds_dicts):
         """Generate bboxes from bbox head predictions.
         Args:
             preds_dicts (tuple[list[dict]]): Prediction results.
@@ -518,8 +518,6 @@ class BEVFormerHead(DETRHead):
 
             bboxes[:, 2] = bboxes[:, 2] - bboxes[:, 5] * 0.5
 
-            code_size = bboxes.shape[-1]
-            bboxes = img_metas[i]['box_type_3d'](bboxes, code_size)
             scores = preds['scores']
             labels = preds['labels']
 
