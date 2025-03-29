@@ -14,6 +14,7 @@ from mmdet3d.datasets import build_dataset
 from projects.mmdet3d_plugin.datasets.builder import build_dataloader
 import torch
 
+
 def get_args():
     """Parse commandline."""
     parser = argparse.ArgumentParser()
@@ -94,7 +95,8 @@ def main():
 
     sorted_predictions = []
     for i in range(len(predictions)):
-        sorted_predictions.append([torch.tensor(predictions[i]['bboxes']), torch.tensor(predictions[i]['scores']), torch.tensor(predictions[i]['labels'])])
+        sorted_predictions.append([torch.tensor(predictions[i]['bboxes']), torch.tensor(
+            predictions[i]['scores']), torch.tensor(predictions[i]['labels'])])
     result_list = []
     for i in range(len(sorted_predictions)):
         for bboxes, scores, labels in [sorted_predictions[i]]:
