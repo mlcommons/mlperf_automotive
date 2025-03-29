@@ -8,7 +8,10 @@ import json
 import numpy as np
 from mmdet3d.datasets import build_dataset
 # pylint: disable=missing-docstring
-
+from mmdet3d.core import bbox3d2result
+from mmcv import Config, DictAction
+from mmdet3d.datasets import build_dataset
+from projects.mmdet3d_plugin.datasets.builder import build_dataloader
 
 def get_args():
     """Parse commandline."""
@@ -18,9 +21,9 @@ def get_args():
         required=True,
         help="path to mlperf_log_accuracy.json")
     parser.add_argument(
-        "--cognata-dir",
+        "--nuscenes-dir",
         required=True,
-        help="cognata dataset directory")
+        help="nuscenes dataset directory")
     parser.add_argument(
         "--verbose",
         action="store_true",
@@ -33,6 +36,10 @@ def get_args():
         "--use-inv-map",
         action="store_true",
         help="use inverse label map")
+    parser.add_argument(
+        "--config",
+        required=True,
+        help="bevformer config file")
     args = parser.parse_args()
     return args
 
@@ -47,27 +54,17 @@ def main():
     image_ids = set()
     seen = set()
     no_results = 0
-    folders = config.dataset['folders']
-    cameras = config.dataset['cameras']
-    config = importlib.import_module('config.' + args.config)
-    ignore_classes = [2, 25, 31]
-    if 'ignore_classes' in config.dataset:
-        ignore_classes = config.dataset['ignore_classes']
-    files, label_map, label_info = prepare_cognata(
-        args.cognata_dir, folders, cameras, ignore_classes)
-    files = train_val_split(files)
-    dboxes = generate_dboxes(config.model, model="ssd")
-    image_size = config.model['image_size']
-    val_set = Cognata(
-        label_map,
-        label_info,
-        files['val'],
-        ignore_classes,
-        SSDTransformer(
-            dboxes,
-            image_size,
-            val=True))
-
+    cfg = Config.fromfile(args.config)
+    dataset = build_dataset(cfg.data.test)
+    data_loader = build_dataloader(
+        dataset,
+        samples_per_gpu=1,
+        workers_per_gpu=cfg.data.workers_per_gpu,
+        dist=False,
+        shuffle=False,
+        nonshuffler_sampler=cfg.data.nonshuffler_sampler,
+    )
+    dataset = data_loader.dataset
     for j in results:
         idx = j['qsl_idx']
         # de-dupe in case loadgen sends the same image multiple times
@@ -83,33 +80,32 @@ def main():
         data = np.frombuffer(bytes.fromhex(j['data']), np.float32)
         current_id = -1
         predictions = {}
-        dts = []
-        labels = []
-        scores = []
         ids = []
-        for i in range(0, len(data), 8):
-            box = [float(x) for x in data[i:i + 4]]
-            label = float(data[i + 5])
-            score = float(data[i + 6])
-            image_idx = int(data[i + 7])
-            if image_idx not in predictions:
-                predictions[image_idx] = {
-                    'dts': [], 'labels': [], 'scores': []}
-                ids.append(image_idx)
-            predictions[image_idx]['dts'].append(box)
-            predictions[image_idx]['labels'].append(label)
-            predictions[image_idx]['scores'].append(score)
-        preds = []
-        targets = []
-        for id in ids:
-            preds.append({'boxes': predictions[id]['dts'],
-                          'labels': predictions[id]['labels'],
-                          'scores': predictions[id]['scores']})
-            _, _, _, _, _, gt_boxes = val_set[id]
-            targets.append(
-                {'boxes': gt_boxes[idx][:, :4], 'labels': gt_boxes[idx][:, 4].to(dtype=torch.int32)})
-
-        dataset = build_dataset(cfg.data.test)
+        for i in range(0, len(data), 12):
+            box = [float(x) for x in data[i:i + 9]]
+            label = int(data[i + 9])
+            score = float(data[i + 10])
+            id = int(data[i + 11])
+            if id not in predictions:
+                predictions[id] = {
+                    'bboxes': [], 'labels': [], 'scores': []}
+                ids.append(id)
+            predictions[id]['bboxes'].append(box)
+            predictions[id]['labels'].append(label)
+            predictions[id]['scores'].append(score)
+        sorted_predictions = sorted(
+            [{'id': id, 'bboxes': predictions[id]['bboxes'], 'labels': predictions[id]['labels'], 'scores': predictions[id]['scores']}
+            for id in predictions],
+            key=lambda x: x['id']
+        )
+        result_list = []
+        for i in range(len(sorted_predictions)):
+            for bboxes, scores, labels in sorted_predictions[i]:
+                code_size = bboxes.shape[-1]
+                img_metas = dataset.data_infos[idx]['img_metas']
+                bboxes = img_metas[0]['box_type_3d'](bboxes, code_size)
+                result_list.append(bbox3d2result(bboxes, scores, labels))
+            results.extend(result_list)
         eval_kwargs = cfg.get('evaluation', {}).copy()
         # hard-code way to remove EvalHook args
         for key in [
