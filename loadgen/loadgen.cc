@@ -207,8 +207,9 @@ auto ScheduleDistribution<TestScenario::Server>(double qps) {
   };
 }
 
-auto ScheduleConstantDistribution(double qps){
-  return [dist = std::uniform_real_distribution<>(1.0 / qps, 1.0 / qps)](auto& gen) mutable {
+auto ScheduleConstantDistribution(double qps) {
+  return [dist = std::uniform_real_distribution<>(1.0 / qps, 1.0 / qps)](
+             auto& gen) mutable {
     return std::chrono::duration_cast<std::chrono::nanoseconds>(
         std::chrono::duration<double>(dist(gen)));
   };
@@ -264,8 +265,7 @@ auto SampleDistributionEqualIssue(size_t sample_count, size_t set_size,
 /// the QPS as scheduled is equal to the QPS as requested.
 template <TestScenario scenario, TestMode mode>
 std::vector<QueryMetadata> GenerateQueries(
-    QuerySampleLibrary* qsl,
-    const TestSettingsInternal& settings,
+    QuerySampleLibrary* qsl, const TestSettingsInternal& settings,
     const LoadableSampleSet& loaded_sample_set, SequenceGen* sequence_gen,
     ResponseDelegate* response_delegate) {
   auto tracer =
@@ -319,8 +319,10 @@ std::vector<QueryMetadata> GenerateQueries(
       min_queries, loaded_samples.size(), &sample_rng);
 
   TestScenario temp_scenario = scenario;
-  auto schedule_distribution = ScheduleDistribution<scenario>(settings.target_qps);
-  auto schedule_constant_distribution = ScheduleConstantDistribution(settings.target_qps);
+  auto schedule_distribution =
+      ScheduleDistribution<scenario>(settings.target_qps);
+  auto schedule_constant_distribution =
+      ScheduleConstantDistribution(settings.target_qps);
 
   // When sample_concatenate_permutation is turned on, pad to a multiple of the
   // complete dataset to ensure fairness.
@@ -356,8 +358,7 @@ std::vector<QueryMetadata> GenerateQueries(
 
   if (settings.use_grouped_qsl) {
     size_t current_idx = 0;
-    while (current_idx < loaded_samples.size())
-    {
+    while (current_idx < loaded_samples.size()) {
       size_t current_group = qsl->GroupOf(loaded_samples[current_idx]);
       groups.push_back(current_group);
       groups_first.push_back(current_idx);
@@ -366,8 +367,8 @@ std::vector<QueryMetadata> GenerateQueries(
     }
   }
 
-  auto grouped_sample_distribution = SampleDistribution<mode>(
-      number_of_groups, sample_stride, &sample_rng);
+  auto grouped_sample_distribution =
+      SampleDistribution<mode>(number_of_groups, sample_stride, &sample_rng);
 
   while (prev_timestamp < gen_duration || queries.size() < min_queries) {
     if (kIsMultiStream) {
@@ -417,7 +418,8 @@ std::vector<QueryMetadata> GenerateQueries(
       }
     } else if (settings.use_grouped_qsl) {
       g = grouped_sample_distribution(sample_rng);
-      group_size = qsl->GroupSize(qsl->GroupOf(loaded_samples[groups_first[g]]));
+      group_size =
+          qsl->GroupSize(qsl->GroupOf(loaded_samples[groups_first[g]]));
     } else {
       for (auto& s : samples) {
         s = loaded_samples[settings.performance_issue_unique
@@ -432,16 +434,17 @@ std::vector<QueryMetadata> GenerateQueries(
     if (!settings.use_grouped_qsl) {
       queries.emplace_back(samples, timestamp, response_delegate, sequence_gen);
     } else {
-      for (size_t i = 0; i < group_size; i++){
-        samples[0] = loaded_samples[groups_first[g]+i];
-        queries.emplace_back(samples, timestamp, response_delegate, sequence_gen);
+      for (size_t i = 0; i < group_size; i++) {
+        samples[0] = loaded_samples[groups_first[g] + i];
+        queries.emplace_back(samples, timestamp, response_delegate,
+                             sequence_gen);
         timestamp += schedule_constant_distribution(schedule_rng);
       }
       prev_timestamp = timestamp - schedule_constant_distribution(schedule_rng);
     }
 
-    if (!settings.use_grouped_qsl){
-      if (settings.server_constant_gen && (scenario == TestScenario::Server)){
+    if (!settings.use_grouped_qsl) {
+      if (settings.server_constant_gen && (scenario == TestScenario::Server)) {
         timestamp += schedule_constant_distribution(schedule_rng);
       } else {
         timestamp += schedule_distribution(schedule_rng);
@@ -454,7 +457,6 @@ std::vector<QueryMetadata> GenerateQueries(
         (scenario != TestScenario::Offline)) {
       min_queries += loaded_samples.size();
     }
-    
   }
 
   // See if we need to create a "remainder" query for offline+accuracy to
@@ -491,8 +493,7 @@ std::vector<QueryMetadata> GenerateQueries(
 //       no longer generates queries on the fly. Should we reduce the
 //       use of templates?
 template <TestScenario scenario, TestMode mode>
-PerformanceResult IssueQueries(SystemUnderTest* sut, 
-                               QuerySampleLibrary* qsl,
+PerformanceResult IssueQueries(SystemUnderTest* sut, QuerySampleLibrary* qsl,
                                const TestSettingsInternal& settings,
                                const LoadableSampleSet& loaded_sample_set,
                                SequenceGen* sequence_gen) {
@@ -641,9 +642,9 @@ PerformanceResult IssueQueries(SystemUnderTest* sut,
   }
   std::vector<size_t> group_sizes;
   std::vector<QuerySampleIndex> sample_index;
-  if (settings.use_grouped_qsl){
-    for (size_t i = 0; i < queries.size(); i++){
-      for (auto s: queries[i].GetSampleIndices()){
+  if (settings.use_grouped_qsl) {
+    for (size_t i = 0; i < queries.size(); i++) {
+      for (auto s : queries[i].GetSampleIndices()) {
         sample_index.push_back(s);
       }
     }
@@ -664,8 +665,7 @@ PerformanceResult IssueQueries(SystemUnderTest* sut,
       TokenPerformanceResults{first_token_latencies, time_per_output_token_arr,
                               tokens_per_sample},
       std::move(group_sizes),
-      std::move(sample_index)
-      };
+      std::move(sample_index)};
 }
 
 void LoadSamplesToRam(QuerySampleLibrary* qsl,
@@ -700,7 +700,7 @@ std::vector<LoadableSampleSet> GenerateLoadableSets(
   const size_t qsl_total_count = qsl->TotalSampleCount();
   std::vector<QuerySampleIndex> samples(qsl_total_count);
   std::vector<QuerySampleIndex> groupIdx(qsl_total_count);
-  if (!settings.use_grouped_qsl){
+  if (!settings.use_grouped_qsl) {
     for (size_t i = 0; i < qsl_total_count; i++) {
       samples[i] = static_cast<QuerySampleIndex>(i);
     }
@@ -737,7 +737,7 @@ std::vector<LoadableSampleSet> GenerateLoadableSets(
   std::vector<QuerySampleIndex> loadable_set;
   loadable_set.reserve(set_size + set_padding);
 
-  if (!settings.use_grouped_qsl){
+  if (!settings.use_grouped_qsl) {
     for (auto s : samples) {
       loadable_set.push_back(s);
       if (loadable_set.size() == set_size) {

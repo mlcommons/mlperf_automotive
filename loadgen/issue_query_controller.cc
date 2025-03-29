@@ -107,9 +107,9 @@ void QueryMetadata::CoalesceQueries(QueryMetadata* queries, size_t first,
 
 void QueryMetadata::Decoalesce() { query_to_send.resize(1); }
 
-std::vector<QuerySampleIndex> QueryMetadata::GetSampleIndices(){
+std::vector<QuerySampleIndex> QueryMetadata::GetSampleIndices() {
   std::vector<QuerySampleIndex> sample_indices;
-  for (auto s: this->samples_){
+  for (auto s : this->samples_) {
     sample_indices.push_back(s.sample_index);
   }
   return sample_indices;

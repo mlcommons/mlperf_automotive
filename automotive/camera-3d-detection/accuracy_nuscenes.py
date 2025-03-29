@@ -13,6 +13,7 @@ from mmcv import Config, DictAction
 from mmdet3d.datasets import build_dataset
 from projects.mmdet3d_plugin.datasets.builder import build_dataloader
 
+
 def get_args():
     """Parse commandline."""
     parser = argparse.ArgumentParser()
@@ -95,7 +96,7 @@ def main():
             predictions[id]['scores'].append(score)
         sorted_predictions = sorted(
             [{'id': id, 'bboxes': predictions[id]['bboxes'], 'labels': predictions[id]['labels'], 'scores': predictions[id]['scores']}
-            for id in predictions],
+             for id in predictions],
             key=lambda x: x['id']
         )
         result_list = []

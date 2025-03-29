@@ -146,8 +146,9 @@ void PerformanceSummary::ProcessTokenLatencies() {
   }
 }
 
-void PerformanceSummary::ProcessGroupLatencies(){
-  if (pr.sample_latencies.empty() || pr.group_sizes.empty() || (!settings.use_grouped_qsl) || (group_latencies_processed)) {
+void PerformanceSummary::ProcessGroupLatencies() {
+  if (pr.sample_latencies.empty() || pr.group_sizes.empty() ||
+      (!settings.use_grouped_qsl) || (group_latencies_processed)) {
     return;
   }
   sample_count = pr.sample_latencies.size();
@@ -155,7 +156,7 @@ void PerformanceSummary::ProcessGroupLatencies(){
   std::vector<QuerySampleLatency> group_latencies;
   size_t acum_group_idx = 0;
 
-  for(size_t i = 0; i < pr.group_sizes.size(); i++){
+  for (size_t i = 0; i < pr.group_sizes.size(); i++) {
     group_initial_idx.push_back(acum_group_idx);
     acum_group_idx += pr.group_sizes[i];
   }
@@ -164,12 +165,13 @@ void PerformanceSummary::ProcessGroupLatencies(){
 
   while (i < pr.sample_index.size()) {
     auto sample_index = pr.sample_index[i];
-    auto low = std::lower_bound (group_initial_idx.begin(), group_initial_idx.end(), sample_index);
+    auto low = std::lower_bound(group_initial_idx.begin(),
+                                group_initial_idx.end(), sample_index);
     size_t idx = low - group_initial_idx.begin();
-    if (group_initial_idx[idx] == sample_index){
+    if (group_initial_idx[idx] == sample_index) {
       group_count++;
       QuerySampleLatency q = 0;
-      for (size_t j = 0; j < pr.group_sizes[idx]; j++){
+      for (size_t j = 0; j < pr.group_sizes[idx]; j++) {
         q += pr.sample_latencies[i + j];
       }
       group_latencies.push_back(q);
@@ -529,11 +531,9 @@ void PerformanceSummary::LogSummary(AsyncSummary& summary) {
 
   if (settings.use_grouped_qsl) {
     double gps_as_completed =
-            group_count / pr.final_query_all_samples_done_time;
+        group_count / pr.final_query_all_samples_done_time;
     summary("Groups per second: ", group_count / pr.max_latency);
-    summary("Completed tokens per second: ",
-            DoubleToString(gps_as_completed));
-        
+    summary("Completed tokens per second: ", DoubleToString(gps_as_completed));
   }
 
   std::string min_duration_recommendation;
@@ -691,9 +691,9 @@ void PerformanceSummary::LogSummary(AsyncSummary& summary) {
     summary("Max group latency (ns)          : ", group_latency_max);
     summary("Mean group latency (ns)         : ", group_latency_mean);
     for (auto& lp : group_latency_percentiles) {
-      summary(
-          DoubleToString(lp.percentile * 100) + " group percentile latency (ns)   : ",
-          lp.query_latency);
+      summary(DoubleToString(lp.percentile * 100) +
+                  " group percentile latency (ns)   : ",
+              lp.query_latency);
     }
   }
 
@@ -920,18 +920,15 @@ void PerformanceSummary::LogDetail(AsyncDetail& detail) {
     }
   }
 
-  if(settings.use_grouped_qsl) {
-    MLPERF_LOG(detail, "result_group_min_latency_ns",
-                 group_latency_min);
-    MLPERF_LOG(detail, "result_group_max_latency_ns",
-                group_latency_max);
-    MLPERF_LOG(detail, "result_group_mean_latency_ns",
-                group_latency_mean);
+  if (settings.use_grouped_qsl) {
+    MLPERF_LOG(detail, "result_group_min_latency_ns", group_latency_min);
+    MLPERF_LOG(detail, "result_group_max_latency_ns", group_latency_max);
+    MLPERF_LOG(detail, "result_group_mean_latency_ns", group_latency_mean);
     for (auto& lp : group_latency_percentiles) {
       MLPERF_LOG(detail,
-                  "result_group_" + DoubleToString(lp.percentile * 100) +
-                      "_percentile_latency_ns",
-                  lp.query_latency);
+                 "result_group_" + DoubleToString(lp.percentile * 100) +
+                     "_percentile_latency_ns",
+                 lp.query_latency);
     }
   }
 #endif

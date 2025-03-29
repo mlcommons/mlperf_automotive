@@ -342,8 +342,7 @@ void LogRequestedTestSettings(const TestSettings &s) {
                s.performance_sample_count_override);
     MLPERF_LOG(detail, "requested_sample_concatenate_permutation",
                s.sample_concatenate_permutation);
-    MLPERF_LOG(detail, "requested_server_constant_gen",
-               s.server_constant_gen);
+    MLPERF_LOG(detail, "requested_server_constant_gen", s.server_constant_gen);
     MLPERF_LOG(detail, "requested_use_grouped_qsl", s.use_grouped_qsl);
     // Token latencies specific values
     if (s.use_token_latencies) {
@@ -459,8 +458,7 @@ void TestSettingsInternal::LogEffectiveSettings() const {
                s.performance_sample_count);
     MLPERF_LOG(detail, "effective_sample_concatenate_permutation",
                s.sample_concatenate_permutation);
-    MLPERF_LOG(detail, "effective_server_constant_gen",
-               s.server_constant_gen);
+    MLPERF_LOG(detail, "effective_server_constant_gen", s.server_constant_gen);
     MLPERF_LOG(detail, "effective_use_grouped_qsl", s.use_grouped_qsl);
 #else
     detail("");
