@@ -466,18 +466,17 @@ def main():
         else min(count, 500)
     )
     sut = lg.ConstructSUT(issue_queries, flush_queries)
-    scene_lengths = [40, 41, 40]
+    scene_lengths = [40, 41, 40, 41]
 
     qsl = lg.ConstructGroupedQSL(
         scene_lengths, performance_sample_count, ds.load_query_samples, ds.unload_query_samples
     )
-
+    settings.use_grouped_qsl = True
     log.info("starting {}".format(scenario))
     result_dict = {"scenario": str(scenario)}
     runner.start_run(result_dict, args.accuracy)
 
-    lg.StartTestWithLogSettings(sut, qsl, settings, log_settings, audit_config)
-
+    lg.StartTestWithGroupedQSL(sut, qsl, settings, audit_config)
     if args.accuracy:
         post_proc.finalize(result_dict, ds)
         final_results["accuracy_results"] = result_dict

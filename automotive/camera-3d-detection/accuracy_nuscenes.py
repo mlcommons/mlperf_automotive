@@ -9,10 +9,10 @@ import numpy as np
 from mmdet3d.datasets import build_dataset
 # pylint: disable=missing-docstring
 from mmdet3d.core import bbox3d2result
-from mmcv import Config, DictAction
+from mmcv import Config
 from mmdet3d.datasets import build_dataset
 from projects.mmdet3d_plugin.datasets.builder import build_dataloader
-
+import torch
 
 def get_args():
     """Parse commandline."""
@@ -51,10 +51,7 @@ def main():
     with open(args.mlperf_accuracy_file, "r") as f:
         results = json.load(f)
 
-    detections = {}
-    image_ids = set()
     seen = set()
-    no_results = 0
     cfg = Config.fromfile(args.config)
     dataset = build_dataset(cfg.data.test)
     data_loader = build_dataloader(
@@ -66,6 +63,8 @@ def main():
         nonshuffler_sampler=cfg.data.nonshuffler_sampler,
     )
     dataset = data_loader.dataset
+    predictions = {}
+    ids = []
     for j in results:
         idx = j['qsl_idx']
         # de-dupe in case loadgen sends the same image multiple times
@@ -79,13 +78,11 @@ def main():
         # note that id is a index into instances_val2017.json, not the actual
         # image_id
         data = np.frombuffer(bytes.fromhex(j['data']), np.float32)
-        current_id = -1
-        predictions = {}
-        ids = []
+
         for i in range(0, len(data), 12):
             box = [float(x) for x in data[i:i + 9]]
-            label = int(data[i + 9])
-            score = float(data[i + 10])
+            score = float(data[i + 9])
+            label = int(data[i + 10])
             id = int(data[i + 11])
             if id not in predictions:
                 predictions[id] = {
@@ -94,29 +91,29 @@ def main():
             predictions[id]['bboxes'].append(box)
             predictions[id]['labels'].append(label)
             predictions[id]['scores'].append(score)
-        sorted_predictions = sorted(
-            [{'id': id, 'bboxes': predictions[id]['bboxes'], 'labels': predictions[id]['labels'], 'scores': predictions[id]['scores']}
-             for id in predictions],
-            key=lambda x: x['id']
-        )
-        result_list = []
-        for i in range(len(sorted_predictions)):
-            for bboxes, scores, labels in sorted_predictions[i]:
-                code_size = bboxes.shape[-1]
-                img_metas = dataset.data_infos[idx]['img_metas']
-                bboxes = img_metas[0]['box_type_3d'](bboxes, code_size)
-                result_list.append(bbox3d2result(bboxes, scores, labels))
-            results.extend(result_list)
-        eval_kwargs = cfg.get('evaluation', {}).copy()
-        # hard-code way to remove EvalHook args
-        for key in [
-                'interval', 'tmpdir', 'start', 'gpu_collect', 'save_best',
-                'rule'
-        ]:
-            eval_kwargs.pop(key, None)
-        eval_kwargs.update(dict(metric=args.eval, **kwargs))
 
-        print(dataset.evaluate(outputs, **eval_kwargs))
+    sorted_predictions = []
+    for i in range(len(predictions)):
+        sorted_predictions.append([torch.tensor(predictions[i]['bboxes']), torch.tensor(predictions[i]['scores']), torch.tensor(predictions[i]['labels'])])
+    result_list = []
+    for i in range(len(sorted_predictions)):
+        for bboxes, scores, labels in [sorted_predictions[i]]:
+            code_size = bboxes.shape[-1]
+            img_metas = dataset[i]['img_metas']
+            bboxes = img_metas[0].data['box_type_3d'](bboxes, code_size)
+            result_list.append(bbox3d2result(bboxes, scores, labels))
+        results.extend(result_list)
+    eval_kwargs = cfg.get('evaluation', {}).copy()
+    # hard-code way to remove EvalHook args
+    for key in [
+            'interval', 'tmpdir', 'start', 'gpu_collect', 'save_best',
+            'rule'
+    ]:
+        eval_kwargs.pop(key, None)
+    kwargs = {}
+    eval_kwargs.update(dict(metric='bbox', **kwargs))
+
+    print(dataset.evaluate(result_list, **eval_kwargs))
 
 
 if __name__ == "__main__":
