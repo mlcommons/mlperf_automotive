@@ -301,8 +301,8 @@ uintptr_t ConstructGroupedQSL(
 }
 
 void DestroyGroupedQSL(uintptr_t qdl) {
-  QueryDispatchLibraryTrampoline* qdl_cast =
-      reinterpret_cast<QueryDispatchLibraryTrampoline*>(qdl);
+  GroupedQuerySampleLibraryTrampoline* qdl_cast =
+      reinterpret_cast<GroupedQuerySampleLibraryTrampoline*>(qdl);
   delete qdl_cast;
 }
 
