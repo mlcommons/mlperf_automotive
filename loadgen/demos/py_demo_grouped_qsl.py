@@ -67,7 +67,8 @@ def main(argv):
 
     sut = mlperf_loadgen.ConstructSUT(issue_query, flush_queries)
     qsl = mlperf_loadgen.ConstructGroupedQSL(
-        np.array([16 for _ in range(64)] + [32 for _ in range(32)], dtype=np.uint64), 16*128, load_samples_to_ram, unload_samples_from_ram
+        np.array([16 for _ in range(64)] + [32 for _ in range(32)],
+                 dtype=np.uint64), 16 * 128, load_samples_to_ram, unload_samples_from_ram
     )
 
     # qsl = mlperf_loadgen.ConstructQSL(
