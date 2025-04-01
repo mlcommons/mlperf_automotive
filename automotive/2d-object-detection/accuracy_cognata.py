@@ -16,6 +16,7 @@ from utils import generate_dboxes, Encoder
 from torchmetrics.detection.mean_ap import MeanAveragePrecision
 # pylint: disable=missing-docstring
 
+
 def get_args():
     """Parse commandline."""
     parser = argparse.ArgumentParser()
@@ -43,6 +44,7 @@ def get_args():
     args = parser.parse_args()
     return args
 
+
 def main():
     args = get_args()
 
@@ -59,11 +61,20 @@ def main():
     ignore_classes = [2, 25, 31]
     if 'ignore_classes' in config.dataset:
         ignore_classes = config.dataset['ignore_classes']
-    files, label_map, label_info = prepare_cognata(args.cognata_dir, folders, cameras, ignore_classes)
+    files, label_map, label_info = prepare_cognata(
+        args.cognata_dir, folders, cameras, ignore_classes)
     files = train_val_split(files)
     dboxes = generate_dboxes(config.model, model="ssd")
     image_size = config.model['image_size']
-    val_set = Cognata(label_map, label_info, files['val'], ignore_classes, SSDTransformer(dboxes, image_size, val=True))
+    val_set = Cognata(
+        label_map,
+        label_info,
+        files['val'],
+        ignore_classes,
+        SSDTransformer(
+            dboxes,
+            image_size,
+            val=True))
     preds = []
     targets = []
     for j in results:
@@ -87,20 +98,26 @@ def main():
         ids = []
         for i in range(0, len(data), 7):
             box = [float(x) for x in data[i:i + 4]]
-            label = int(data[i+4])
-            score = float(data[i+5])
-            image_idx = int(data[i+6])
+            label = int(data[i + 4])
+            score = float(data[i + 5])
+            image_idx = int(data[i + 6])
             if image_idx not in predictions:
-                predictions[image_idx] = {'dts': [], 'labels': [], 'scores': []}
+                predictions[image_idx] = {
+                    'dts': [], 'labels': [], 'scores': []}
                 ids.append(image_idx)
             predictions[image_idx]['dts'].append(box)
             predictions[image_idx]['labels'].append(label)
             predictions[image_idx]['scores'].append(score)
         for id in ids:
-            preds.append({'boxes': torch.tensor(predictions[id]['dts']), 'labels': torch.tensor(predictions[id]['labels']), 'scores': torch.tensor(predictions[id]['scores'])})
-            _,_,_,_,_, gt_boxes = val_set.get_item(id)
-            targets.append({'boxes': gt_boxes[:,:4], 'labels': gt_boxes[:, 4].to(dtype=torch.int32) })
-    metric = MeanAveragePrecision(iou_type="bbox", class_metrics=True, backend='faster_coco_eval')
+            preds.append({'boxes': torch.tensor(predictions[id]['dts']), 'labels': torch.tensor(
+                predictions[id]['labels']), 'scores': torch.tensor(predictions[id]['scores'])})
+            _, _, _, _, _, gt_boxes = val_set.get_item(id)
+            targets.append(
+                {'boxes': gt_boxes[:, :4], 'labels': gt_boxes[:, 4].to(dtype=torch.int32)})
+    metric = MeanAveragePrecision(
+        iou_type="bbox",
+        class_metrics=True,
+        backend='faster_coco_eval')
     metric.update(preds, targets)
     metrics = metric.compute()
     pp = pprint.PrettyPrinter(indent=4)

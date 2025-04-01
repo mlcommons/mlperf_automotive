@@ -8,8 +8,10 @@ from utils import generate_dboxes, Encoder
 import cognata_labels
 from model import SSD, ResNet
 
+
 class BackendDeploy(backend.Backend):
-    def __init__(self, config, transformer, data_path, checkpoint, nms_threshold):
+    def __init__(self, config, transformer, data_path,
+                 checkpoint, nms_threshold):
         super(BackendDeploy, self).__init__()
         self.config = importlib.import_module('config.' + config)
         self.image_size = self.config.model['image_size']
@@ -23,6 +25,7 @@ class BackendDeploy(backend.Backend):
         self.checkpoint = checkpoint
         self.encoder = Encoder(dboxes)
         self.nms_threshold = nms_threshold
+
     def version(self):
         return torch.__version__
 
@@ -34,7 +37,11 @@ class BackendDeploy(backend.Backend):
 
     def load(self):
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        model = SSD(self.config.model, backbone=ResNet(self.config.model), num_classes=self.num_classes)
+        model = SSD(
+            self.config.model,
+            backbone=ResNet(
+                self.config.model),
+            num_classes=self.num_classes)
         checkpoint = torch.load(self.checkpoint, map_location=device)
         model.load_state_dict(checkpoint["model_state_dict"])
         model.to(device)
@@ -44,7 +51,8 @@ class BackendDeploy(backend.Backend):
 
     def predict(self, input):
         with torch.no_grad():
-            device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+            device = torch.device(
+                "cuda:0" if torch.cuda.is_available() else "cpu")
             model_input = input[0]
             img = model_input[0].to(device).unsqueeze(0)
             img_id = model_input[1]
@@ -58,11 +66,13 @@ class BackendDeploy(backend.Backend):
             for idx in range(ploc.shape[0]):
                 ploc_i = ploc[idx, :, :].unsqueeze(0)
                 plabel_i = plabel[idx, :, :].unsqueeze(0)
-                result = self.encoder.decode_batch(ploc_i, plabel_i, self.nms_threshold, 500)[0]
+                result = self.encoder.decode_batch(
+                    ploc_i, plabel_i, self.nms_threshold, 500)[0]
                 height, width = img_size
                 loc, label, prob = [r.cpu().numpy() for r in result]
                 for loc_, label_, prob_ in zip(loc, label, prob):
-                    dts.append([loc_[0]* width, loc_[1]* height, loc_[2]* width, loc_[3]* height,])
+                    dts.append([loc_[0] * width, loc_[1] * height,
+                               loc_[2] * width, loc_[3] * height,])
                     labels.append(label_)
                     scores.append(prob_)
                     ids.append(img_id)

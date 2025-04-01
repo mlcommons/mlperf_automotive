@@ -34,6 +34,7 @@ import csv
 import ast
 import random
 
+
 def collate_fn(batch):
     items = list(zip(*batch))
     items[0] = default_collate([i for i in items[0] if torch.is_tensor(i)])
@@ -43,16 +44,19 @@ def collate_fn(batch):
     items[4] = default_collate([i for i in items[4] if torch.is_tensor(i)])
     return items
 
+
 class Cognata(Dataset):
-    def __init__(self, label_map, label_info, files, ignore_classes=[2, 25, 31], transform=None):
+    def __init__(self, label_map, label_info, files,
+                 ignore_classes=[2, 25, 31], transform=None):
         self.label_map = label_map
         self.label_info = label_info
         self.transform = transform
         self.files = files
         self.ignore_classes = ignore_classes
+
     def __len__(self):
         return len(self.files)
-    
+
     def get_list(self):
         raise NotImplementedError("Dataset:get_list")
 
@@ -63,7 +67,7 @@ class Cognata(Dataset):
     def unload_query_samples(self, sample_list):
         # TODO: Unload queries from memory, if needed
         pass
-    
+
     def get_samples(self, id_list):
         data = []
         labels = []
@@ -72,7 +76,7 @@ class Cognata(Dataset):
             data.append((item[0], item[1], item[2]))
             labels.append((item[3], item[4], item[5]))
         return data, labels
-    
+
     def get_item(self, idx):
         img = Image.open(self.files[idx]['img']).convert('RGB')
         width, height = img.size
@@ -90,28 +94,33 @@ class Cognata(Dataset):
             for annotation in annotations:
                 bbox = annotation[bbox_index]
                 bbox = ast.literal_eval(bbox)
-                object_width = bbox[2]-bbox[0]
-                object_height = bbox[3]-bbox[1]
-                object_area = object_width*object_height
+                object_width = bbox[2] - bbox[0]
+                object_height = bbox[3] - bbox[1]
+                object_area = object_width * object_height
                 label = ast.literal_eval(annotation[class_index])
                 distance = ast.literal_eval(annotation[distance_index])
-                if object_area < 50 or int(label) in self.ignore_classes or object_height < 8 or object_width < 8 or distance > 300:
+                if object_area < 50 or int(
+                        label) in self.ignore_classes or object_height < 8 or object_width < 8 or distance > 300:
                     continue
-                boxes.append([bbox[0] / width, bbox[1] / height, bbox[2] / width, bbox[3] / height])
+                boxes.append([bbox[0] / width, bbox[1] / height,
+                             bbox[2] / width, bbox[3] / height])
                 label = self.label_map[label]
-                gt_boxes.append([bbox[0], bbox[1], bbox[2], bbox[3], label, 0, 0])
+                gt_boxes.append(
+                    [bbox[0], bbox[1], bbox[2], bbox[3], label, 0, 0])
                 labels.append(label)
-            
+
             boxes = torch.tensor(boxes)
             labels = torch.tensor(labels)
             gt_boxes = torch.tensor(gt_boxes)
         if self.transform is not None:
-            image, (height, width), boxes, labels = self.transform(img, (height, width), boxes, labels, max_num=500)
+            image, (height, width), boxes, labels = self.transform(
+                img, (height, width), boxes, labels, max_num=500)
         return image, idx, (height, width), boxes, labels, gt_boxes
 
     def get_item_count(self):
         return len(self.files)
-    
+
+
 def object_labels(files, ignore_classes):
     counter = 1
     label_map = {}
@@ -134,14 +143,17 @@ def object_labels(files, ignore_classes):
                     counter += 1
     return label_map, label_info
 
+
 def prepare_cognata(root, folders, cameras, ignore_classes=[2, 25, 31]):
     files = []
     for folder in folders:
         for camera in cameras:
             ann_folder = os.path.join(root, folder, camera + '_ann')
             img_folder = os.path.join(root, folder, camera + '_png')
-            ann_files = sorted([os.path.join(ann_folder, f) for f in os.listdir(ann_folder) if os.path.isfile(os.path.join(ann_folder, f))])
-            img_files = sorted([os.path.join(img_folder, f) for f in os.listdir(img_folder) if os.path.isfile(os.path.join(img_folder, f))])
+            ann_files = sorted([os.path.join(ann_folder, f) for f in os.listdir(
+                ann_folder) if os.path.isfile(os.path.join(ann_folder, f))])
+            img_files = sorted([os.path.join(img_folder, f) for f in os.listdir(
+                img_folder) if os.path.isfile(os.path.join(img_folder, f))])
             for i in range(len(ann_files)):
                 with open(ann_files[i]) as f:
                     reader = csv.reader(f)
@@ -154,22 +166,26 @@ def prepare_cognata(root, folders, cameras, ignore_classes=[2, 25, 31]):
                     for annotation in annotations:
                         bbox = annotation[bbox_index]
                         bbox = ast.literal_eval(bbox)
-                        object_width = bbox[2]-bbox[0]
-                        object_height = bbox[3]-bbox[1]
-                        object_area = object_width*object_height
+                        object_width = bbox[2] - bbox[0]
+                        object_height = bbox[3] - bbox[1]
+                        object_area = object_width * object_height
                         label = ast.literal_eval(annotation[class_index])
                         distance = ast.literal_eval(annotation[distance_index])
-                        if object_area >= 50 and int(label) not in ignore_classes and object_height >= 8 and object_width >= 8 and distance <= 300:
-                            files.append({'img': img_files[i], 'ann': ann_files[i]})
+                        if object_area >= 50 and int(
+                                label) not in ignore_classes and object_height >= 8 and object_width >= 8 and distance <= 300:
+                            files.append(
+                                {'img': img_files[i], 'ann': ann_files[i]})
                             break
-    
+
     label_map, label_info = object_labels(files, ignore_classes)
     return files, label_map, label_info
 
+
 def train_val_split(files):
     random.Random(5).shuffle(files)
-    val_index = round(len(files)*0.8)
+    val_index = round(len(files) * 0.8)
     return {'train': files[:val_index], 'val': files[val_index:]}
+
 
 class PostProcessCognata:
     def __init__(

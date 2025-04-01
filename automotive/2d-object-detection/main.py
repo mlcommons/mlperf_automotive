@@ -308,10 +308,11 @@ def main():
     config = importlib.import_module('config.' + args.config)
     image_size = config.model['image_size']
     dboxes = generate_dboxes(config.model, model="ssd")
-    transformer=SSDTransformer(dboxes, image_size, val=True)
+    transformer = SSDTransformer(dboxes, image_size, val=True)
     folders = config.dataset['folders']
     cameras = config.dataset['cameras']
-    files, label_map, label_info = prepare_cognata(args.dataset_path, folders, cameras)
+    files, label_map, label_info = prepare_cognata(
+        args.dataset_path, folders, cameras)
     files = train_val_split(files)
     if config.dataset['use_label_file']:
         label_map = cognata_labels.label_map
@@ -322,7 +323,7 @@ def main():
         args.backend,
         config=args.config,
         transformer=transformer,
-        data_path = args.dataset_path,
+        data_path=args.dataset_path,
         checkpoint=args.checkpoint,
         nms_threshold=0.5
     )
@@ -348,7 +349,7 @@ def main():
     ds = dataset_class(
         label_map=label_map,
         label_info=label_info,
-        files = files['val'],
+        files=files['val'],
         ignore_classes=[2, 25, 31],
         transform=transformer)
 
