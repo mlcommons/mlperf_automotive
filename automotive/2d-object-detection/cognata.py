@@ -187,7 +187,7 @@ class PostProcessCognata:
         processed_results = []
         for idx in range(len(content_id)):
             processed_results.append([])
-            detection_num = len(results[0][idx])
+            detection_num = len(results[0])
             if detection_num == 0:
                 processed_results[idx].append([
                     -1,
@@ -196,17 +196,17 @@ class PostProcessCognata:
                     -1,
                     -1,
                     -1,
-                    results[3][idx]
+                    content_id[idx]
                 ])
             for detection in range(0, detection_num):
                 processed_results[idx].append([
-                    results[0][idx][detection][0],
-                    results[0][idx][detection][1],
-                    results[0][idx][detection][2],
-                    results[0][idx][detection][3],
-                    results[1][idx][detection],
-                    results[2][idx][detection],
-                    results[3][idx]
+                    results[0][detection][0],
+                    results[0][detection][1],
+                    results[0][detection][2],
+                    results[0][detection][3],
+                    results[1][detection],
+                    results[2][detection],
+                    content_id[idx]
                 ])
         return processed_results
 

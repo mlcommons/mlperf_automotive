@@ -104,7 +104,7 @@ def get_args():
     parser.add_argument("--output", default="output", help="test results")
     parser.add_argument("--qps", type=int, help="target qps")
     parser.add_argument("--checkpoint", help="Path to model weights")
-
+    parser.add_argument("--config", help="config file")
     parser.add_argument(
         "--dtype",
         default="fp32",
@@ -305,7 +305,7 @@ def main():
     args = get_args()
 
     log.info(args)
-    config = importlib.import_module('config.baseline_8MP_ss_scales_fm1_5x5_all')
+    config = importlib.import_module('config.' + args.config)
     image_size = config.model['image_size']
     dboxes = generate_dboxes(config.model, model="ssd")
     transformer=SSDTransformer(dboxes, image_size, val=True)
@@ -313,13 +313,14 @@ def main():
     cameras = config.dataset['cameras']
     files, label_map, label_info = prepare_cognata(args.dataset_path, folders, cameras)
     files = train_val_split(files)
-    label_map = cognata_labels.label_map
-    label_info = cognata_labels.label_info
+    if config.dataset['use_label_file']:
+        label_map = cognata_labels.label_map
+        label_info = cognata_labels.label_info
     # find backend
     backend = get_backend(
         # TODO: pass model, inference and backend arguments
         args.backend,
-        config='baseline_8MP_ss_scales_fm1_5x5_all',
+        config=args.config,
         transformer=transformer,
         data_path = args.dataset_path,
         checkpoint=args.checkpoint,

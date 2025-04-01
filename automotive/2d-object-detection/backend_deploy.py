@@ -16,12 +16,12 @@ class BackendDeploy(backend.Backend):
         dboxes = generate_dboxes(self.config.model, model="ssd")
         folders = self.config.dataset['folders']
         cameras = self.config.dataset['cameras']
-        ignore_classes = [2, 25, 31]
-        files, label_map, label_info = prepare_cognata(data_path, folders, cameras)
-        label_map = cognata_labels.label_map
-        label_info = cognata_labels.label_info
+        _, label_map, _ = prepare_cognata(data_path, folders, cameras)
+        if self.config.dataset['use_label_file']:
+            label_map = cognata_labels.label_map
         self.num_classes = len(label_map.keys())
         self.checkpoint = checkpoint
+        self.encoder = Encoder(dboxes)
         self.nms_threshold = nms_threshold
     def version(self):
         return torch.__version__
@@ -43,26 +43,27 @@ class BackendDeploy(backend.Backend):
         return self
 
     def predict(self, input):
-        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        model_input = input[0]
-        img = model_input[0].to(device).unsqueeze(0)
-        img_id = model_input[1]
-        img_size = model_input[2]
-        ploc, plabel = self.model(img)
-        ploc, plabel = ploc.float(), plabel.float()
-        dts = []
-        labels = []
-        scores = []
-        ids = []
-        for idx in range(ploc.shape[0]):
-            ploc_i = ploc[idx, :, :].unsqueeze(0)
-            plabel_i = plabel[idx, :, :].unsqueeze(0)
-            result = self.encoder.decode_batch(ploc_i, plabel_i, self.nms_threshold, 500)[0]
-            height, width = img_size[idx]
-            loc, label, prob = [r.cpu().numpy() for r in result]
-            for loc_, label_, prob_ in zip(loc, label, prob):
-                dts.append([loc_[0]* width, loc_[1]* height, loc_[2]* width, loc_[3]* height,])
-                labels.append(label_)
-                scores.append(prob_)
-                ids.append(img_id)
+        with torch.no_grad():
+            device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+            model_input = input[0]
+            img = model_input[0].to(device).unsqueeze(0)
+            img_id = model_input[1]
+            img_size = model_input[2]
+            ploc, plabel = self.model(img)
+            ploc, plabel = ploc.float(), plabel.float()
+            dts = []
+            labels = []
+            scores = []
+            ids = []
+            for idx in range(ploc.shape[0]):
+                ploc_i = ploc[idx, :, :].unsqueeze(0)
+                plabel_i = plabel[idx, :, :].unsqueeze(0)
+                result = self.encoder.decode_batch(ploc_i, plabel_i, self.nms_threshold, 500)[0]
+                height, width = img_size
+                loc, label, prob = [r.cpu().numpy() for r in result]
+                for loc_, label_, prob_ in zip(loc, label, prob):
+                    dts.append([loc_[0]* width, loc_[1]* height, loc_[2]* width, loc_[3]* height,])
+                    labels.append(label_)
+                    scores.append(prob_)
+                    ids.append(img_id)
         return dts, labels, scores, ids
