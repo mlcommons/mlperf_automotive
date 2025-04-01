@@ -141,7 +141,7 @@ class GroupedQuerySampleLibraryTrampoline : public QuerySampleLibrary {
       std::string name, size_t performance_sample_count,
       LoadSamplesToRamCallback load_samples_to_ram_cb,
       UnloadSamplesFromRamCallback unload_samples_from_ram_cb,
-      pybind11::array_t<size_t>& group_sizes)
+      pybind11::array_t<size_t> group_sizes)
       : name_(std::move(name)),
         performance_sample_count_(performance_sample_count),
         load_samples_to_ram_cb_(load_samples_to_ram_cb),
@@ -287,7 +287,8 @@ void DestroyQDL(uintptr_t qdl) {
 }
 
 uintptr_t ConstructGroupedQSL(
-    pybind11::array_t<size_t>& group_sizes, size_t performance_sample_count,
+    pybind11::array_t<size_t> group_sizes,
+    size_t performance_sample_count,
     LoadSamplesToRamCallback load_samples_to_ram_cb,
     UnloadSamplesFromRamCallback unload_samples_from_ram_cb) {
   GroupedQuerySampleLibraryTrampoline* qsl =
@@ -297,10 +298,10 @@ uintptr_t ConstructGroupedQSL(
   return reinterpret_cast<uintptr_t>(qsl);
 }
 
-void DestroyGroupedQSL(uintptr_t qdl) {
-  GroupedQuerySampleLibraryTrampoline* qdl_cast =
-      reinterpret_cast<GroupedQuerySampleLibraryTrampoline*>(qdl);
-  delete qdl_cast;
+void DestroyGroupedQSL(uintptr_t qsl) {
+  GroupedQuerySampleLibraryTrampoline* qsl_cast =
+      reinterpret_cast<GroupedQuerySampleLibraryTrampoline*>(qsl);
+  delete qsl_cast;
 }
 
 void StartTest(uintptr_t sut, uintptr_t qsl, mlperf::TestSettings test_settings,
@@ -549,7 +550,7 @@ PYBIND11_MODULE(mlperf_loadgen, m) {
 
   m.def("ConstructGroupedQSL", &py::ConstructGroupedQSL,
         "Construct grouped query sample library.");
-  m.def("DestroyGroupedQSL", &py::DestroyQSL,
+  m.def("DestroyGroupedQSL", &py::DestroyGroupedQSL,
         "Destroy the object created by ConstructGroupedQSL.");
 
   m.def("StartTest", &py::StartTest,
