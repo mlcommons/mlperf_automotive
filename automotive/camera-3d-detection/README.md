@@ -22,8 +22,9 @@ docker run -it -v ./inference:/inference -v <path to nuscenes dataset>:/inferenc
 ## Run the model in performance mode
 ```
 cd /inference/automotive/camera-3d-detection
-python main.py --dataset nuscenes --dataset-path ./output/data --checkpoint ./output/data/bevformer_tiny.onnx --config projects/config/bevformer/bevformer_tiny.py --scene-file ./output/data/scene_lengths.pkl
+python main.py --dataset nuscenes --dataset-path ./output/data --checkpoint ./data/bevformer_tiny.onnx --config ./projects/config/bevformer/bevformer_tiny.py --scene-file ./data/scene_lengths.pkl
 ```
+The dataset being mounted twice is intentional due to some hard coded paths in the original BEVFormer code. This is the solution for now until we push a fix.
 
 ## Run in accuracy model and accuracy checker
 ```
