@@ -287,8 +287,7 @@ void DestroyQDL(uintptr_t qdl) {
 }
 
 uintptr_t ConstructGroupedQSL(
-    pybind11::array_t<size_t> group_sizes,
-    size_t performance_sample_count,
+    pybind11::array_t<size_t> group_sizes, size_t performance_sample_count,
     LoadSamplesToRamCallback load_samples_to_ram_cb,
     UnloadSamplesFromRamCallback unload_samples_from_ram_cb) {
   GroupedQuerySampleLibraryTrampoline* qsl =
