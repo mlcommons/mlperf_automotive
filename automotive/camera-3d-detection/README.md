@@ -8,7 +8,7 @@ This is the reference implementation for the ABTF camera-based 3D object detecti
 
 ## Downloading the dataset and model checkpoints
 
-Contact MLCommons support for accessing the NuScenes dataset. This includes preprocessed data as well as the model checkpoint.
+Contact [MLCommons](https://docs.google.com/forms/d/e/1FAIpQLSdUsbqaGcoIAxoNVrxpnkUKT03S1GbbPcUIAP3hKOeV7BCgKQ/viewform) support for accessing the NuScenes dataset. This includes preprocessed data as well as the model checkpoint.
 
 ## Build and run the Docker container
 
