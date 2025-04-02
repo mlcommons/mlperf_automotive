@@ -20,7 +20,7 @@ from queue import Queue
 import mlperf_loadgen as lg
 import numpy as np
 import torch
-
+import pickle
 import dataset
 import mmcv
 import torch
@@ -104,7 +104,7 @@ def get_args():
     parser.add_argument("--qps", type=int, help="target qps")
     parser.add_argument("--checkpoint", help="Path to model weights")
     parser.add_argument("--config", help="bevformer configuration file path")
-
+    parser.add_argument("--scene-file", help="file with list of scene lengths")
     parser.add_argument(
         "--dtype",
         default="fp32",
@@ -465,9 +465,9 @@ def main():
         if args.performance_sample_count
         else min(count, 500)
     )
+    with open(args.scene_file, "rb") as f:
+        scene_lengths = pickle.load(f)
     sut = lg.ConstructSUT(issue_queries, flush_queries)
-    scene_lengths = [40, 41, 40, 41]
-
     qsl = lg.ConstructGroupedQSL(
         scene_lengths, performance_sample_count, ds.load_query_samples, ds.unload_query_samples
     )
@@ -482,7 +482,7 @@ def main():
         final_results["accuracy_results"] = result_dict
 
     runner.finish()
-    lg.DestroyQSL(qsl)
+    lg.DestroyGroupedQSL(qsl)
     lg.DestroySUT(sut)
 
     #
