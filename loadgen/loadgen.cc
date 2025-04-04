@@ -318,8 +318,10 @@ std::vector<QueryMetadata> GenerateQueries(
   auto sample_distribution_equal_issue = SampleDistributionEqualIssue(
       min_queries, loaded_samples.size(), &sample_rng);
 
-  auto schedule_distribution = ScheduleDistribution<scenario>(settings.target_qps);
-  auto schedule_constant_distribution = ScheduleConstantDistribution(settings.target_qps);
+  auto schedule_distribution =
+      ScheduleDistribution<scenario>(settings.target_qps);
+  auto schedule_constant_distribution =
+      ScheduleConstantDistribution(settings.target_qps);
 
   // When sample_concatenate_permutation is turned on, pad to a multiple of the
   // complete dataset to ensure fairness.
@@ -752,7 +754,7 @@ std::vector<LoadableSampleSet> GenerateLoadableSets(
         loadable_set.push_back(samples[idx]);
         idx++;
       }
-      if (loadable_set.size() >= set_size)  {
+      if (loadable_set.size() >= set_size) {
         result.push_back({std::move(loadable_set), loadable_set.size()});
         loadable_set.clear();
         loadable_set.reserve(set_size + set_padding);
