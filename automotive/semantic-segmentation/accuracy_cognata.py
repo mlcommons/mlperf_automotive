@@ -5,11 +5,12 @@ the images in coco's annotations/instances_val2017.json.
 """
 import argparse
 import json
+import os
 import numpy as np
 from cognata import Cognata, prepare_cognata, train_val_split
 import torch
 import cognata_scenarios
-from utils import StreamSegMetrics
+from utils import StreamSegMetrics, read_dataset_csv
 from utils import ext_transforms as et
 # pylint: disable=missing-docstring
 
@@ -22,7 +23,7 @@ def get_args():
         required=True,
         help="path to mlperf_log_accuracy.json")
     parser.add_argument(
-        "--cognata-dir",
+        "--dataset-path",
         required=True,
         help="cognata dataset directory")
     parser.add_argument(
@@ -55,15 +56,12 @@ def main():
     with open(args.mlperf_accuracy_file, "r") as f:
         results = json.load(f)
 
-    detections = {}
-    image_ids = set()
     seen = set()
-    no_results = 0
     num_classes = 19
     metrics = StreamSegMetrics(num_classes)
     metrics.reset()
-    files = prepare_cognata(args.cognata_dir, cognata_scenarios.folders, cognata_scenarios.cameras)
-    split = train_val_split(files)
+    files = read_dataset_csv("val_set.csv")
+    files = [{'img': os.path.join(args.dataset_path, f['img']), 'label': os.path.join(args.dataset_path, f['label'])} for f in files]
     image_size = args.image_size
     val_transform = et.ExtCompose([
         et.ExtResize((image_size[0], image_size[1])),
@@ -71,9 +69,7 @@ def main():
         et.ExtNormalize(mean=[0.485, 0.456, 0.406],
                         std=[0.229, 0.224, 0.225]),
     ])
-    val_loader = Cognata(split['val'], transform=val_transform)
-    preds = []
-    targets = []
+    val_loader = Cognata(files, transform=val_transform)
     for j in results:
         idx = j['qsl_idx']
         # de-dupe in case loadgen sends the same image multiple times

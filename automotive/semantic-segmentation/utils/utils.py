@@ -2,6 +2,7 @@ from torchvision.transforms.functional import normalize
 import torch.nn as nn
 import numpy as np
 import os 
+import csv
 
 def denormalize(tensor, mean, std):
     mean = np.array(mean)
@@ -36,3 +37,11 @@ def fix_bn(model):
 def mkdir(path):
     if not os.path.exists(path):
         os.mkdir(path)
+
+def read_dataset_csv(file_path):
+    files = []
+    with open(file_path, mode='r') as csv_file:
+        csv_reader = csv.DictReader(csv_file)
+        for row in csv_reader:
+            files.append(row)
+    return files

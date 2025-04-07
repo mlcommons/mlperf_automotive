@@ -23,10 +23,7 @@ import torch
 
 import dataset
 import cognata
-import importlib
-from cognata import Cognata, prepare_cognata, train_val_split
-import cognata_scenarios
-from utils import ext_transforms as et
+from utils import ext_transforms as et, read_dataset_csv
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("main")
@@ -318,8 +315,9 @@ def main():
         et.ExtNormalize(mean=[0.485, 0.456, 0.406],
                         std=[0.229, 0.224, 0.225]),
     ])
-    files = prepare_cognata(args.dataset_path, cognata_scenarios.folders, cognata_scenarios.cameras)
-    split = train_val_split(files)
+
+    files = read_dataset_csv("val_set.csv")
+    files = [{'img': os.path.join(args.dataset_path, f['img']), 'label': os.path.join(args.dataset_path, f['label'])} for f in files]
     # find backend
     backend = get_backend( 
         # TODO: pass model, inference and backend arguments
@@ -348,7 +346,7 @@ def main():
     # dataset to use
     dataset_class, pre_proc, post_proc, kwargs = SUPPORTED_DATASETS[args.dataset]
     ds = dataset_class( #self, files, transform=None
-        files=split['val'],
+        files=files,
         transform=val_transform)
 
     final_results = {

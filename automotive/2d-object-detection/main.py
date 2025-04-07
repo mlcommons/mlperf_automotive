@@ -20,12 +20,12 @@ from queue import Queue
 import mlperf_loadgen as lg
 import numpy as np
 import torch
-
+import csv
 import dataset
 import cognata
 from transform import SSDTransformer
 import importlib
-from utils import generate_dboxes, Encoder
+from utils import generate_dboxes, Encoder, read_dataset_csv
 from cognata import Cognata, prepare_cognata, train_val_split
 import cognata_labels
 
@@ -300,7 +300,6 @@ class QueueRunner(RunnerBase):
         for worker in self.workers:
             worker.join()
 
-
 def main():
     args = get_args()
 
@@ -311,12 +310,15 @@ def main():
     transformer = SSDTransformer(dboxes, image_size, val=True)
     folders = config.dataset['folders']
     cameras = config.dataset['cameras']
-    files, label_map, label_info = prepare_cognata(
-        args.dataset_path, folders, cameras)
-    files = train_val_split(files)
+
     if config.dataset['use_label_file']:
         label_map = cognata_labels.label_map
         label_info = cognata_labels.label_info
+    else:
+        _, label_map, label_info = prepare_cognata(args.dataset_path, folders, cameras)
+    
+    files = read_dataset_csv("val_set.csv")
+    files = [{'img': os.path.join(args.dataset_path, f['img']), 'ann': os.path.join(args.dataset_path, f['ann'])} for f in files]
     # find backend
     backend = get_backend(
         # TODO: pass model, inference and backend arguments
@@ -349,7 +351,7 @@ def main():
     ds = dataset_class(
         label_map=label_map,
         label_info=label_info,
-        files=files['val'],
+        files=files,
         ignore_classes=[2, 25, 31],
         transform=transformer)
 

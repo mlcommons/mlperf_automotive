@@ -27,7 +27,7 @@ SOFTWARE.
 import numpy as np
 import itertools
 from math import sqrt
-
+import csv
 import torch
 import torch.nn.functional as F
 from torchvision.ops.boxes import box_iou, box_convert
@@ -218,3 +218,11 @@ def generate_dboxes(config, model="ssd"):
         aspect_ratios = [[2,3], [2, 3], [2, 3], [2, 3], [2,3], [2,3]]
         dboxes = DefaultBoxes(figsize, feat_size, steps, scales, aspect_ratios)
     return dboxes
+
+def read_dataset_csv(file_path):
+    files = []
+    with open(file_path, mode='r') as csv_file:
+        csv_reader = csv.DictReader(csv_file)
+        for row in csv_reader:
+            files.append(row)
+    return files

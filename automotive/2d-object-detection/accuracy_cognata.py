@@ -9,10 +9,11 @@ import os
 import pprint
 import numpy as np
 from cognata import collate_fn, Cognata, prepare_cognata, train_val_split
+import cognata_labels
 from transform import SSDTransformer
 import importlib
 import torch
-from utils import generate_dboxes, Encoder
+from utils import generate_dboxes, read_dataset_csv
 from torchmetrics.detection.mean_ap import MeanAveragePrecision
 # pylint: disable=missing-docstring
 
@@ -25,7 +26,7 @@ def get_args():
         required=True,
         help="path to mlperf_log_accuracy.json")
     parser.add_argument(
-        "--cognata-dir",
+        "--dataset-path",
         required=True,
         help="cognata dataset directory")
     parser.add_argument(
@@ -51,25 +52,26 @@ def main():
     with open(args.mlperf_accuracy_file, "r") as f:
         results = json.load(f)
 
-    detections = {}
-    image_ids = set()
     seen = set()
-    no_results = 0
     config = importlib.import_module('config.' + args.config)
     folders = config.dataset['folders']
     cameras = config.dataset['cameras']
     ignore_classes = [2, 25, 31]
     if 'ignore_classes' in config.dataset:
         ignore_classes = config.dataset['ignore_classes']
-    files, label_map, label_info = prepare_cognata(
-        args.cognata_dir, folders, cameras, ignore_classes)
-    files = train_val_split(files)
+    if config.dataset['use_label_file']:
+        label_map = cognata_labels.label_map
+        label_info = cognata_labels.label_info
+    else:
+        _, label_map, label_info = prepare_cognata(args.dataset_path, folders, cameras)
+    files = read_dataset_csv("val_set.csv")
+    files = [{'img': os.path.join(args.dataset_path, f['img']), 'ann': os.path.join(args.dataset_path, f['ann'])} for f in files]
     dboxes = generate_dboxes(config.model, model="ssd")
     image_size = config.model['image_size']
     val_set = Cognata(
         label_map,
         label_info,
-        files['val'],
+        files,
         ignore_classes,
         SSDTransformer(
             dboxes,

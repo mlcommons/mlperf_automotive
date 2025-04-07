@@ -181,10 +181,11 @@ def prepare_cognata(root, folders, cameras, ignore_classes=[2, 25, 31]):
     return files, label_map, label_info
 
 
-def train_val_split(files):
+def train_val_split(files, calibration_length=200):
     random.Random(5).shuffle(files)
     val_index = round(len(files) * 0.8)
-    return {'train': files[:val_index], 'val': files[val_index:]}
+    calibration_index = len(files) - calibration_length
+    return {'train': files[:val_index], 'val': files[val_index:calibration_index], 'calibration': files[calibration_index:]}
 
 
 class PostProcessCognata:

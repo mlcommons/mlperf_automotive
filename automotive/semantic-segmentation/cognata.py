@@ -24,10 +24,11 @@ def prepare_cognata(root, folders, cameras):
     
     return files
 
-def train_val_split(files):
+def train_val_split(files, calibration_length=200):
     random.Random(5).shuffle(files)
-    val_index = round(len(files)*0.8)
-    return {'train': files[:val_index], 'val': files[val_index:]}
+    val_index = round(len(files) * 0.8)
+    calibration_index = len(files) - calibration_length
+    return {'train': files[:val_index], 'val': files[val_index:calibration_index], 'calibration': files[calibration_index:]}
 
 class Cognata(dataset.Dataset):
     CognataClass = namedtuple('CognataClass', ['name', 'id', 'train_id', 'color'])
