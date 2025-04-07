@@ -44,7 +44,7 @@ def get_args():
         type=int,
         nargs=2,
         metavar=("HEIGHT", "WIDTH"),
-        default=(2160,3840),
+        default=(2160, 3840),
         help="image size as two integers: width and height")
     args = parser.parse_args()
     return args
@@ -61,7 +61,8 @@ def main():
     metrics = StreamSegMetrics(num_classes)
     metrics.reset()
     files = read_dataset_csv("val_set.csv")
-    files = [{'img': os.path.join(args.dataset_path, f['img']), 'label': os.path.join(args.dataset_path, f['label'])} for f in files]
+    files = [{'img': os.path.join(args.dataset_path, f['img']), 'label': os.path.join(
+        args.dataset_path, f['label'])} for f in files]
     image_size = args.image_size
     val_transform = et.ExtCompose([
         et.ExtResize((image_size[0], image_size[1])),
@@ -82,9 +83,16 @@ def main():
         # id, box[0], box[1], box[2], box[3], score, detection_class
         # note that id is a index into instances_val2017.json, not the actual
         # image_id
-        prediction = np.frombuffer(bytes.fromhex(j['data']), np.float32).astype(int)
-        metrics.update(target.cpu().to(dtype=torch.int32).numpy().reshape(1, image_size[0], image_size[1]), prediction.reshape(1, image_size[0], image_size[1]))
-    
+        prediction = np.frombuffer(
+            bytes.fromhex(
+                j['data']),
+            np.float32).astype(int)
+        metrics.update(
+            target.cpu().to(
+                dtype=torch.int32).numpy().reshape(
+                1, image_size[0], image_size[1]), prediction.reshape(
+                1, image_size[0], image_size[1]))
+
     score = metrics.get_results()
     print(metrics.to_str(score))
 

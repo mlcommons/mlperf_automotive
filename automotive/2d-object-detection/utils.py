@@ -32,6 +32,7 @@ import torch
 import torch.nn.functional as F
 from torchvision.ops.boxes import box_iou, box_convert
 
+
 class Encoder(object):
     """
         Inspired by https://github.com/kuangliu/pytorch-src
@@ -99,22 +100,31 @@ class Encoder(object):
         bboxes_in[:, :, :2] = self.scale_xy * bboxes_in[:, :, :2]
         bboxes_in[:, :, 2:] = self.scale_wh * bboxes_in[:, :, 2:]
 
-        bboxes_in[:, :, :2] = bboxes_in[:, :, :2] * self.dboxes_xywh[:, :, 2:] + self.dboxes_xywh[:, :, :2]
-        bboxes_in[:, :, 2:] = bboxes_in[:, :, 2:].exp() * self.dboxes_xywh[:, :, 2:]
+        bboxes_in[:, :, :2] = bboxes_in[:, :, :2] * \
+            self.dboxes_xywh[:, :, 2:] + self.dboxes_xywh[:, :, :2]
+        bboxes_in[:, :, 2:] = bboxes_in[:, :, 2:].exp() * \
+            self.dboxes_xywh[:, :, 2:]
         bboxes_in = box_convert(bboxes_in, in_fmt="cxcywh", out_fmt="xyxy")
 
         return bboxes_in, F.softmax(scores_in, dim=-1)
 
-    def decode_batch(self, bboxes_in, scores_in, nms_threshold=0.45, max_output=200):
+    def decode_batch(self, bboxes_in, scores_in,
+                     nms_threshold=0.45, max_output=200):
         bboxes, probs = self.scale_back_batch(bboxes_in, scores_in)
         output = []
         for bbox, prob in zip(bboxes.split(1, 0), probs.split(1, 0)):
             bbox = bbox.squeeze(0)
             prob = prob.squeeze(0)
-            output.append(self.decode_single(bbox, prob, nms_threshold, max_output))
+            output.append(
+                self.decode_single(
+                    bbox,
+                    prob,
+                    nms_threshold,
+                    max_output))
         return output
 
-    def decode_single(self, bboxes_in, scores_in, nms_threshold, max_output, max_num=200):
+    def decode_single(self, bboxes_in, scores_in,
+                      nms_threshold, max_output, max_num=200):
         bboxes_out = []
         scores_out = []
         labels_out = []
@@ -127,7 +137,8 @@ class Encoder(object):
             mask = score > 0.05
 
             bboxes, score = bboxes_in[mask, :], score[mask]
-            if score.size(0) == 0: continue
+            if score.size(0) == 0:
+                continue
 
             score_sorted, score_idx_sorted = score.sort(dim=0)
 
@@ -152,8 +163,8 @@ class Encoder(object):
             return [torch.tensor([]) for _ in range(3)]
 
         bboxes_out, labels_out, scores_out = torch.cat(bboxes_out, dim=0), \
-                                             torch.tensor(labels_out, dtype=torch.long, device=bboxes_in.device), \
-                                             torch.cat(scores_out, dim=0)
+            torch.tensor(labels_out, dtype=torch.long, device=bboxes_in.device), \
+            torch.cat(scores_out, dim=0)
 
         _, max_ids = scores_out.sort(dim=0)
         max_ids = max_ids[-max_output:]
@@ -161,7 +172,8 @@ class Encoder(object):
 
 
 class DefaultBoxes(object):
-    def __init__(self, fig_size, feat_size, steps, scales, aspect_ratios, scale_xy=0.1, scale_wh=0.2):
+    def __init__(self, fig_size, feat_size, steps, scales,
+                 aspect_ratios, scale_xy=0.1, scale_wh=0.2):
 
         self.feat_size = feat_size
         self.fig_size = fig_size
@@ -172,7 +184,7 @@ class DefaultBoxes(object):
         self.steps = steps
         self.scales = scales
 
-        #fk = fig_size / np.array(steps)
+        # fk = fig_size / np.array(steps)
         self.aspect_ratios = aspect_ratios
 
         self.default_boxes = []
@@ -181,19 +193,24 @@ class DefaultBoxes(object):
             sk1 = scales[idx]
             sk2 = scales[idx + 1]
             sk3 = sqrt(sk1 * sk2)
-            all_sizes = [(sk1/fig_size[1], sk1/fig_size[0]), (sk3/fig_size[1], sk3/fig_size[0])]
+            all_sizes = [(sk1 / fig_size[1], sk1 / fig_size[0]),
+                         (sk3 / fig_size[1], sk3 / fig_size[0])]
 
             for alpha in aspect_ratios[idx]:
-                w, h = sk1 * sqrt(alpha)/fig_size[1], sk1 / (sqrt(alpha)*fig_size[0])
+                w, h = sk1 * sqrt(alpha) / \
+                    fig_size[1], sk1 / (sqrt(alpha) * fig_size[0])
                 all_sizes.append((w, h))
             for w, h in all_sizes:
-                for i, j in itertools.product(range(sfeat[0]), range(sfeat[1])):
-                    cx, cy = (j + 0.5)*steps[idx] / fig_size[1], (i + 0.5)*steps[idx] / fig_size[0]
+                for i, j in itertools.product(
+                        range(sfeat[0]), range(sfeat[1])):
+                    cx, cy = (
+                        j + 0.5) * steps[idx] / fig_size[1], (i + 0.5) * steps[idx] / fig_size[0]
                     self.default_boxes.append((cx, cy, w, h))
 
         self.dboxes = torch.tensor(self.default_boxes, dtype=torch.float)
         self.dboxes.clamp_(min=0, max=1)
-        self.dboxes_ltrb = box_convert(self.dboxes, in_fmt="cxcywh", out_fmt="xyxy")
+        self.dboxes_ltrb = box_convert(
+            self.dboxes, in_fmt="cxcywh", out_fmt="xyxy")
 
     def __call__(self, order="ltrb"):
         if order == "ltrb":
@@ -215,9 +232,10 @@ def generate_dboxes(config, model="ssd"):
         feat_size = [19, 10, 5, 3, 2, 1]
         steps = [16, 32, 64, 100, 150, 300]
         scales = [60, 105, 150, 195, 240, 285, 330]
-        aspect_ratios = [[2,3], [2, 3], [2, 3], [2, 3], [2,3], [2,3]]
+        aspect_ratios = [[2, 3], [2, 3], [2, 3], [2, 3], [2, 3], [2, 3]]
         dboxes = DefaultBoxes(figsize, feat_size, steps, scales, aspect_ratios)
     return dboxes
+
 
 def read_dataset_csv(file_path):
     files = []

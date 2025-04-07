@@ -4,12 +4,14 @@ import backend
 import utils
 import network
 
+
 class BackendDeploy(backend.Backend):
     def __init__(self, model_path, num_classes, output_stride):
         super(BackendDeploy, self).__init__()
         self.checkpoint_file = model_path
         self.num_classes = num_classes
         self.output_stride = output_stride
+
     def version(self):
         return torch.__version__
 
@@ -22,7 +24,7 @@ class BackendDeploy(backend.Backend):
     def load(self):
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         model = network.modeling.__dict__['deeplabv3plus_resnet50'](
-                num_classes=self.num_classes, output_stride=self.output_stride)
+            num_classes=self.num_classes, output_stride=self.output_stride)
         checkpoint = torch.load(
             self.checkpoint_file, map_location=torch.device(
                 'cuda' if torch.cuda.is_available() else 'cpu'))

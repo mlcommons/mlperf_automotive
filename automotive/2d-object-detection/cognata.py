@@ -185,7 +185,8 @@ def train_val_split(files, calibration_length=200):
     random.Random(5).shuffle(files)
     val_index = round(len(files) * 0.8)
     calibration_index = len(files) - calibration_length
-    return {'train': files[:val_index], 'val': files[val_index:calibration_index], 'calibration': files[calibration_index:]}
+    return {'train': files[:val_index], 'val': files[val_index:calibration_index],
+            'calibration': files[calibration_index:]}
 
 
 class PostProcessCognata:

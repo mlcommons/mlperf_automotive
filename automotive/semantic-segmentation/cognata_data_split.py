@@ -4,6 +4,7 @@ from cognata import Cognata, prepare_cognata, train_val_split
 import cognata_scenarios
 import csv
 
+
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -19,12 +20,14 @@ def get_args():
     args = parser.parse_args()
     return args
 
+
 def write_data_to_csv(file_path, files):
     with open(file_path, mode='w', newline='') as csv_file:
         writer = csv.writer(csv_file)
         writer.writerow(['img', 'label'])
         for file in files:
             writer.writerow([file['img'], file['label']])
+
 
 def main():
     args = get_args()
@@ -37,5 +40,6 @@ def main():
             file['label'] = file['label'].replace(args.dataset_path, '')
     write_data_to_csv('val_set.csv', files['val'])
     write_data_to_csv('calibration_set.csv', files['calibration'])
+
 
 main()

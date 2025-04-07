@@ -146,7 +146,7 @@ def get_args():
         type=int,
         nargs=2,
         metavar=("HEIGHT", "WIDTH"),
-        default=(2160,3840),
+        default=(2160, 3840),
         help="image size as two integers: width and height")
     args = parser.parse_args()
 
@@ -317,9 +317,10 @@ def main():
     ])
 
     files = read_dataset_csv("val_set.csv")
-    files = [{'img': os.path.join(args.dataset_path, f['img']), 'label': os.path.join(args.dataset_path, f['label'])} for f in files]
+    files = [{'img': os.path.join(args.dataset_path, f['img']), 'label': os.path.join(
+        args.dataset_path, f['label'])} for f in files]
     # find backend
-    backend = get_backend( 
+    backend = get_backend(
         # TODO: pass model, inference and backend arguments
         args.backend,
         model_path=args.checkpoint,
@@ -345,7 +346,7 @@ def main():
 
     # dataset to use
     dataset_class, pre_proc, post_proc, kwargs = SUPPORTED_DATASETS[args.dataset]
-    ds = dataset_class( #self, files, transform=None
+    ds = dataset_class(  # self, files, transform=None
         files=files,
         transform=val_transform)
 

@@ -63,9 +63,11 @@ def main():
         label_map = cognata_labels.label_map
         label_info = cognata_labels.label_info
     else:
-        _, label_map, label_info = prepare_cognata(args.dataset_path, folders, cameras)
+        _, label_map, label_info = prepare_cognata(
+            args.dataset_path, folders, cameras)
     files = read_dataset_csv("val_set.csv")
-    files = [{'img': os.path.join(args.dataset_path, f['img']), 'ann': os.path.join(args.dataset_path, f['ann'])} for f in files]
+    files = [{'img': os.path.join(args.dataset_path, f['img']), 'ann': os.path.join(
+        args.dataset_path, f['ann'])} for f in files]
     dboxes = generate_dboxes(config.model, model="ssd")
     image_size = config.model['image_size']
     val_set = Cognata(

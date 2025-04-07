@@ -300,6 +300,7 @@ class QueueRunner(RunnerBase):
         for worker in self.workers:
             worker.join()
 
+
 def main():
     args = get_args()
 
@@ -315,10 +316,12 @@ def main():
         label_map = cognata_labels.label_map
         label_info = cognata_labels.label_info
     else:
-        _, label_map, label_info = prepare_cognata(args.dataset_path, folders, cameras)
-    
+        _, label_map, label_info = prepare_cognata(
+            args.dataset_path, folders, cameras)
+
     files = read_dataset_csv("val_set.csv")
-    files = [{'img': os.path.join(args.dataset_path, f['img']), 'ann': os.path.join(args.dataset_path, f['ann'])} for f in files]
+    files = [{'img': os.path.join(args.dataset_path, f['img']), 'ann': os.path.join(
+        args.dataset_path, f['ann'])} for f in files]
     # find backend
     backend = get_backend(
         # TODO: pass model, inference and backend arguments
