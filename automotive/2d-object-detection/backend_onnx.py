@@ -13,14 +13,15 @@ import logging
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("backend-onnx")
 
+
 def to_numpy(tensor):
     return tensor.detach().cpu().numpy() if tensor.requires_grad else tensor.cpu().numpy()
 
 
 class BackendOnnx(backend.Backend):
     def __init__(
-        self, config, data_path,
-        checkpoint, nms_threshold):
+            self, config, data_path,
+            checkpoint, nms_threshold):
         super(BackendOnnx, self).__init__()
         self.config = importlib.import_module('config.' + config)
         self.image_size = self.config.model['image_size']
@@ -52,9 +53,10 @@ class BackendOnnx(backend.Backend):
             img = model_input[0].unsqueeze(0)
             img_id = model_input[1]
             img_size = model_input[2]
-            input_data = { self.input_img_name: to_numpy(img) }
+            input_data = {self.input_img_name: to_numpy(img)}
             ploc, plabel = self.ort_sess.run(None, input_data)
-            ploc, plabel = torch.from_numpy(ploc).float(), torch.from_numpy(plabel).float()
+            ploc, plabel = torch.from_numpy(
+                ploc).float(), torch.from_numpy(plabel).float()
             dts = []
             labels = []
             scores = []
