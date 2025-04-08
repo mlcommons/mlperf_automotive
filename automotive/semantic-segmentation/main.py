@@ -175,6 +175,7 @@ def get_backend(backend, **kwargs):
     elif backend == 'onnx':
         from backend_onnx import BackendOnnx
         backend = BackendOnnx(**kwargs)
+    else:
         raise ValueError("unknown backend: " + backend)
     return backend
 

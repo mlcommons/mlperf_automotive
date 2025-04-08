@@ -11,10 +11,11 @@ RUN cd /tmp && \
 RUN pip install Cython
 RUN pip install scikit-image
 RUN pip install tqdm
-RUN pip install faster-coco-eval
 RUN pip install torchinfo
 RUN pip install torchmetrics
 RUN apt-get update
 RUN apt-get install -y libgl1-mesa-glx
+RUN pip install onnx
+RUN pip install onnxruntime
 
 
