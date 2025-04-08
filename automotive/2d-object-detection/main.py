@@ -173,6 +173,7 @@ def get_backend(backend, **kwargs):
     elif backend == 'onnx':
         from backend_onnx import BackendOnnx
         backend = BackendOnnx(**kwargs)
+    else:
         raise ValueError("unknown backend: " + backend)
     return backend
 
@@ -327,7 +328,6 @@ def main():
         # TODO: pass model, inference and backend arguments
         args.backend,
         config=args.config,
-        transformer=transformer,
         data_path=args.dataset_path,
         checkpoint=args.checkpoint,
         nms_threshold=0.5
