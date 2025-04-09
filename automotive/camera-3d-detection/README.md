@@ -16,19 +16,18 @@ Contact [MLCommons](https://docs.google.com/forms/d/e/1FAIpQLSdUsbqaGcoIAxoNVrxp
 git clone -b v0.5abtf git@github.com:rod409/inference.git
 cd inference/automotive/camera-3d-detection
 docker build -t bevformer_inference -f dockerfile.gpu .
-docker run -it -v ./inference:/inference -v <path to nuscenes dataset>:/inference/automotive/camera-3d-detection/data -v <path to nuscenes dataset>:/inference/automotive/camera-3d-detection/output/data --rm bevformer_inference
+docker run -it -v ./inference:/inference -v <path to nuscenes dataset>:/inference/automotive/camera-3d-detection/data --rm bevformer_inference
 ```
 
 ## Run the model in performance mode
 ```
 cd /inference/automotive/camera-3d-detection
-python main.py --dataset nuscenes --dataset-path ./output/data --checkpoint ./data/bevformer_tiny.onnx --config ./projects/configs/bevformer/bevformer_tiny.py --scene-file ./data/scene_lengths.pkl
+python main.py --dataset nuscenes --dataset-path ./data --checkpoint ./data/bevformer_tiny.onnx --config ./projects/configs/bevformer/bevformer_tiny.py --scene-file ./data/scene_lengths.pkl
 ```
-The dataset being mounted twice is intentional due to some hard coded paths in the original BEVFormer code. This is the solution for now until we push a fix.
 
 ## Run in accuracy model and accuracy checker
 ```
 cd /inference/automotive/camera-3d-detection
-python main.py --dataset nuscenes --dataset-path ./output/data --checkpoint ./output/data/bevformer_tiny.onnx --config projects/configs/bevformer/bevformer_tiny.py --scene-file ./output/data/scene_lengths.pkl --accuracy
-python accuracy_nuscenes.py --mlperf-accuracy-file ./output/mlperf_log_accuracy.json --config projects/configs/bevformer/bevformer_tiny.py --nuscenes-dir ./output/data
+python main.py --dataset nuscenes --dataset-path ./output/data --checkpoint ./data/bevformer_tiny.onnx --config ./projects/configs/bevformer/bevformer_tiny.py --scene-file ./data/scene_lengths.pkl --accuracy
+python accuracy_nuscenes.py --mlperf-accuracy-file ./output/mlperf_log_accuracy.json --config projects/configs/bevformer/bevformer_tiny.py --nuscenes-dir ./data
 ```
