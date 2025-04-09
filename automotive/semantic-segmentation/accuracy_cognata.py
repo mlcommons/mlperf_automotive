@@ -86,7 +86,7 @@ def main():
         prediction = np.frombuffer(
             bytes.fromhex(
                 j['data']),
-            np.float32).astype(int)
+            np.uint8).astype(int)
         metrics.update(
             target.cpu().to(
                 dtype=torch.int32).numpy().reshape(
