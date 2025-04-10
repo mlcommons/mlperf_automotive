@@ -2,9 +2,9 @@
 
 This is the reference implementation for the ABTF semantic segmentation benchmark. The reference uses ONNX as a backend. A pytorch implementation is provided as well.
 
-| model | accuracy | dataset | model source | precision |
-| ---- | ---- | ---- | ---- | ---- |
-| DeepLabv3+ | TBD | Cognata | https://github.com/rod409/pp/tree/main/deeplabv3plus | fp32 |
+| model | accuracy | resolution | dataset | model source | precision |
+| ---- | ---- | ---- | ---- | ---- | ---- |
+| DeepLabv3+ | 0.8959 mIOU | 4MP | Cognata | https://github.com/rod409/pp/tree/main/deeplabv3plus | fp32 |
 
 ## Downloading the dataset and model checkpoints
 Contact [MLCommons](https://mlcommons.org/datasets/cognata) to access the cognata dataset. Access requires MLCommons membership and signing the EULA. The dataset download also contains the DeepLabv3+ onnx and pytorch model checkpoints.
