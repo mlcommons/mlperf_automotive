@@ -29,4 +29,4 @@ python main.py --backend onnx --checkpoint /cognata/deeplabv3+.onnx --dataset-pa
 ## Run the model in accuracy mode and run the accuracy checker
 ```
 python main.py --backend onnx --checkpoint /cognata/deeplabv3+.onnx --dataset-path /cognata/ --dataset cognata --accuracy
-python accuracy_cognata.py --mlperf-accuracy-file ./output/mlperf_log_accuracy.json --dataset-path /Documents/research/datasets/cognata/
+python accuracy_cognata.py --mlperf-accuracy-file ./output/mlperf_log_accuracy.json --dataset-path /cognata/
