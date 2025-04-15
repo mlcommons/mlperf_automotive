@@ -166,7 +166,7 @@ class PostProcessCognata:
 
     def add_results(self, results):
         pass
-        #self.results.extend(results)
+        # self.results.extend(results)
 
     def __call__(self, results, content_id, inputs, result_dict):
         self.content_ids.extend(content_id)
