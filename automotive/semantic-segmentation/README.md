@@ -41,7 +41,7 @@ Using the ONNX backend
 python main.py --backend onnx --checkpoint /cognata/deeplabv3+.onnx --dataset-path /cognata/ --dataset cognata --image-size 1440 2560
 ```
 
-You can also run the model with PyTorch.
+Using PyTorch
 ```
 python main.py --checkpoint /cognata/latest_deeplabv3plusresnet50_cognata_os16_it100000.pth --dataset-path /cognata/ --dataset cognata --image-size 1440 2560
 ```
