@@ -11,18 +11,35 @@ Contact [MLCommons](https://mlcommons.org/datasets/cognata) to access the cognat
 After downloading the datasets extract the compressed files.
 
 ## Build and run the Docker container
+CPU only
 ```
-git clone -b v0.5abtf git@github.com:rod409/inference.git
-cd inference/automotive/2d-object-detection
+git clone -b v0.5abtf git@github.com:mlcommons/mlperf_automotive.git
+cd mlperf_automotive/automotive/2d-object-detection
 docker build -t ssd_inference -f dockerfile.gpu .
-docker run -it -v ./inference:/inference -v <path to cognata>:/cognata ssd_inference
+docker run -it -v ./mlperf_automotive:/mlperf_automotive -v <path to cognata>:/cognata ssd_inference
+```
+
+GPU enabled
+```
+git clone -b v0.5abtf git@github.com:mlcommons/mlperf_automotive.git
+cd mlperf_automotive/automotive/2d-object-detection
+docker build -t ssd_inference -f dockerfile.gpu .
+docker run -it -v ./mlperf_automotive:/mlperf_automotive -v <path to cognata>:/cognata ssd_inference
 ```
 ## Run the model in performance mode
+Using the ONNX backend
+```
+python main.py --backend onnx --config baseline_8MP_ss_scales_fm1_5x5_all --dataset cognata --dataset-path /cognata/ --checkpoint /cognata/ssd_resnet50.onnx
+```
+
+Using PyTorch
 ```
 python main.py --config baseline_8MP_ss_scales_fm1_5x5_all --dataset cognata --dataset-path /cognata/ --checkpoint /cognata/baseline_8MP_ss_scales_fm1_5x5_all_ep60.pth
 ```
 ## Run the model in accuracy mode and run the accuracy checker
+Add the --accuracy flag to run in accuracy mode.
+
 ```
-python main.py --config baseline_8MP_ss_scales_fm1_5x5_all --dataset cognata --dataset-path /cognata/ --checkpoint /cognata/baseline_8MP_ss_scales_fm1_5x5_all_ep60.pth --accuracy
+python main.py --backend onnx --config baseline_8MP_ss_scales_fm1_5x5_all --dataset cognata --dataset-path /cognata/ --checkpoint /cognata/ssd_resnet50.onnx.pth --accuracy
 python accuracy_cognata.py --config baseline_8MP_ss_scales_fm1_5x5_all --dataset cognata --dataset-path /cognata/ --mlperf-accuracy-file ./output/mlperf_log_accuracy.json
 ```
