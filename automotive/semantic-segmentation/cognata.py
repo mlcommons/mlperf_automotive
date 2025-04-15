@@ -165,7 +165,8 @@ class PostProcessCognata:
         self.results = []
 
     def add_results(self, results):
-        self.results.extend(results)
+        pass
+        #self.results.extend(results)
 
     def __call__(self, results, content_id, inputs, result_dict):
         self.content_ids.extend(content_id)
@@ -179,5 +180,4 @@ class PostProcessCognata:
         self.results = []
 
     def finalize(self, result_dict, ds=None):
-
-        return result_dict
+        pass
