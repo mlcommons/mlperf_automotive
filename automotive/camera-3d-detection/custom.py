@@ -5,6 +5,7 @@ from copy import deepcopy
 import numbers
 import warnings
 
+
 class LoadMultiViewImageFromFiles(object):
     """Load multi channel images from a list of separate channel files.
 
@@ -41,7 +42,7 @@ class LoadMultiViewImageFromFiles(object):
         filename = results['img_filename']
         # img is of shape (h, w, c, num_views)
         img = np.stack(
-            [np.array(Image.open(name))[:,:,::-1] for name in filename], axis=-1)
+            [np.array(Image.open(name))[:, :, ::-1] for name in filename], axis=-1)
         if self.to_float32:
             img = img.astype(np.float32)
         results['filename'] = filename
@@ -59,6 +60,7 @@ class LoadMultiViewImageFromFiles(object):
             std=np.ones(num_channels, dtype=np.float32),
             to_rgb=False)
         return results
+
 
 def imnormalize(img, mean, std, to_rgb=True):
     """Normalize an image with mean and std.
@@ -97,6 +99,7 @@ def imnormalize_(img, mean, std, to_rgb=True):
     cv2.subtract(img, mean, img)  # inplace
     cv2.multiply(img, stdinv, img)  # inplace
     return img
+
 
 class NormalizeMultiviewImage(object):
     """Normalize the image.
@@ -137,6 +140,7 @@ class NormalizeMultiviewImage(object):
         repr_str += f'(mean={self.mean}, std={self.std}, to_rgb={self.to_rgb})'
         return repr_str
 
+
 class MultiScaleFlipAug3D(object):
     """Test-time augmentation with multiple scales and flipping.
 
@@ -171,8 +175,7 @@ class MultiScaleFlipAug3D(object):
         self.img_scale = img_scale if isinstance(img_scale,
                                                  list) else [img_scale]
         self.pts_scale_ratio = pts_scale_ratio \
-            if isinstance(pts_scale_ratio, list) else[float(pts_scale_ratio)]
-
+            if isinstance(pts_scale_ratio, list) else [float(pts_scale_ratio)]
 
         self.flip = flip
         self.pcd_horizontal_flip = pcd_horizontal_flip
@@ -236,6 +239,8 @@ class MultiScaleFlipAug3D(object):
             for key, val in data.items():
                 aug_data_dict[key].append(val)
         return aug_data_dict
+
+
 cv2_interp_codes = {
     'nearest': cv2.INTER_NEAREST,
     'bilinear': cv2.INTER_LINEAR,
@@ -243,6 +248,7 @@ cv2_interp_codes = {
     'area': cv2.INTER_AREA,
     'lanczos': cv2.INTER_LANCZOS4
 }
+
 
 def imresize(img,
              size,
@@ -269,13 +275,18 @@ def imresize(img,
         `resized_img`.
     """
     h, w = img.shape[:2]
-    resized_img = cv2.resize(img, size, dst=out, interpolation=cv2_interp_codes[interpolation])
+    resized_img = cv2.resize(
+        img,
+        size,
+        dst=out,
+        interpolation=cv2_interp_codes[interpolation])
     if not return_scale:
         return resized_img
     else:
         w_scale = size[0] / w
         h_scale = size[1] / h
         return resized_img, w_scale, h_scale
+
 
 class RandomScaleImageMultiViewImage(object):
     """Random scale the image
@@ -310,7 +321,8 @@ class RandomScaleImageMultiViewImage(object):
         results['ori_shape'] = [img.shape for img in results['img']]
 
         return results
-    
+
+
 class PadMultiViewImage(object):
     """Pad the multi-view image.
     There are two padding modes: (1) pad to a fixed size and (2) pad to the
@@ -355,6 +367,7 @@ class PadMultiViewImage(object):
         """
         self._pad_img(results)
         return results
+
 
 def impad(img,
           *,

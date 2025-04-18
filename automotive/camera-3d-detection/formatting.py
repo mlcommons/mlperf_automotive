@@ -3,8 +3,6 @@ import numpy as np
 import torch
 
 
-
-
 def to_tensor(data):
     """Convert objects of various python types to :obj:`torch.Tensor`.
 
@@ -26,6 +24,7 @@ def to_tensor(data):
         return torch.FloatTensor([data])
     else:
         raise TypeError(f'type {type(data)} cannot be converted to tensor.')
+
 
 class DefaultFormatBundle(object):
     """Default formatting bundle.

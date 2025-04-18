@@ -34,6 +34,7 @@ import numpy as np
 from custom import LoadMultiViewImageFromFiles, NormalizeMultiviewImage, MultiScaleFlipAug3D, RandomScaleImageMultiViewImage, PadMultiViewImage
 from formatting import DefaultFormatBundle
 
+
 def collate_fn(batch):
     items = list(zip(*batch))
     items[0] = default_collate([i for i in items[0] if torch.is_tensor(i)])
@@ -48,16 +49,30 @@ class Nuscenes(Dataset):
     def __init__(self, cfg, dataset_path):
         self.pipeline = []
         self.pipeline.append(LoadMultiViewImageFromFiles(to_float32=True))
-        self.pipeline.append(NormalizeMultiviewImage(mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True))
+        self.pipeline.append(
+            NormalizeMultiviewImage(
+                mean=[
+                    123.675, 116.28, 103.53], std=[
+                    58.395, 57.12, 57.375], to_rgb=True))
         transforms = []
         transforms.append(RandomScaleImageMultiViewImage(scales=[0.5]))
         transforms.append(PadMultiViewImage(size_divisor=32))
         transforms.append(DefaultFormatBundle())
-        self.pipeline.append(MultiScaleFlipAug3D(img_scale=(1600, 900), pts_scale_ratio=1, flip=False, transforms=transforms))
-        
+        self.pipeline.append(
+            MultiScaleFlipAug3D(
+                img_scale=(
+                    1600,
+                    900),
+                pts_scale_ratio=1,
+                flip=False,
+                transforms=transforms))
+
         with open(os.path.join(dataset_path, cfg.data.test['ann_file']), 'rb') as f:
             data = pickle.load(f)
-            self.data_infos = list(sorted(data['infos'], key=lambda e: e['timestamp']))
+            self.data_infos = list(
+                sorted(
+                    data['infos'],
+                    key=lambda e: e['timestamp']))
 
     def __len__(self):
         return len(self.data_infos)
@@ -154,6 +169,7 @@ class Nuscenes(Dataset):
         can_bus[-1] = patch_angle
 
         return input_dict
+
 
 class PostProcessNuscenes:
     def __init__(
