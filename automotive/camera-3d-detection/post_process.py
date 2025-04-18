@@ -1,5 +1,6 @@
 import torch
 
+
 class PostProcess:
     def __init__(self, num_classes, max_num, pc_range,
                  post_center_range=None, score_threshold=None):

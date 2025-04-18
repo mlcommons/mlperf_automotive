@@ -300,10 +300,11 @@ def main():
     args = get_args()
 
     log.info(args)
-    spec = importlib.util.spec_from_file_location('bevformer_tiny', str(args.config))
+    spec = importlib.util.spec_from_file_location(
+        'bevformer_tiny', str(args.config))
     cfg = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(cfg)
- 
+
     # find backend
     cfg.data_root = args.dataset_path
     backend = get_backend(
