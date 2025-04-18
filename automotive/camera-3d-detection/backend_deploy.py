@@ -3,10 +3,8 @@ import backend
 
 import onnxruntime as ort
 
-from mmcv.parallel import MMDataParallel
-from mmdet3d.models import build_model
 import numpy as np
-
+from post_process import PostProcess
 
 def to_numpy(tensor):
     return tensor.detach().cpu().numpy() if tensor.requires_grad else tensor.cpu().numpy()
@@ -15,7 +13,6 @@ def to_numpy(tensor):
 class BackendDeploy(backend.Backend):
     def __init__(self, cfg, checkpoint):
         super(BackendDeploy, self).__init__()
-        self.model = build_model(cfg.model, test_cfg=cfg.get('test_cfg'))
         self.prev_frame_info = {
             "scene_token": None,
             "prev_pos": 0,
@@ -23,6 +20,7 @@ class BackendDeploy(backend.Backend):
         }
         self.prev_bev = torch.zeros(cfg.bev_h_ * cfg.bev_w_, 1, cfg._dim_)
         self.checkpoint = checkpoint
+        self.post_process = PostProcess(num_classes=10, max_num=300, pc_range=[-51.2, -51.2, -5.0, 51.2, 51.2, 3.0], post_center_range=[-61.2, -61.2, -10.0, 61.2, 61.2, 10.0], score_threshold=None)
 
     def version(self):
         return torch.__version__
@@ -34,8 +32,6 @@ class BackendDeploy(backend.Backend):
         return "NCHW"
 
     def load(self):
-        self.model = MMDataParallel(self.model, device_ids=[0])
-        self.model.eval()
         self.ort_sess = ort.InferenceSession(self.checkpoint)
         self.input_img_name = self.ort_sess.get_inputs()[0].name
         self.input_prev_bev_name = self.ort_sess.get_inputs()[1].name
@@ -74,8 +70,7 @@ class BackendDeploy(backend.Backend):
         bev_embed = torch.from_numpy(result[0])
         outputs_classes = torch.from_numpy(result[1])
         outputs_coords = torch.from_numpy(result[2])
-        result = self.model.module.post_process(
-            outputs_classes, outputs_coords)
+        result = self.post_process.process(outputs_classes, outputs_coords)
         self.prev_bev = bev_embed
         self.prev_frame_info["prev_pos"] = tmp_pos
         self.prev_frame_info["prev_angle"] = tmp_angle
