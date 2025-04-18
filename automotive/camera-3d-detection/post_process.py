@@ -7,8 +7,10 @@ voxel_size = [0.2, 0.2, 8]
             voxel_size=voxel_size,
             num_classes=10),'''
 
+
 class PostProcess:
-    def __init__(self, num_classes, max_num, pc_range, post_center_range=None, score_threshold=None):
+    def __init__(self, num_classes, max_num, pc_range,
+                 post_center_range=None, score_threshold=None):
         self.num_classes = num_classes
         self.max_num = max_num
         self.pc_range = pc_range
@@ -56,7 +58,7 @@ class PostProcess:
             mask = (final_box_preds[..., :3] >=
                     self.post_center_range[:3]).all(1)
             mask &= (final_box_preds[..., :3] <=
-                        self.post_center_range[3:]).all(1)
+                     self.post_center_range[3:]).all(1)
 
             if self.score_threshold:
                 mask &= thresh_mask
@@ -131,30 +133,30 @@ class PostProcess:
         return denormalized_bboxes
 
     def get_bboxes(self, preds_dicts):
-            """Generate bboxes from bbox head predictions.
-            Args:
-                preds_dicts (tuple[list[dict]]): Prediction results.
-                img_metas (list[dict]): Point cloud and image's meta info.
-            Returns:
-                list[dict]: Decoded bbox, scores and labels after nms.
-            """
+        """Generate bboxes from bbox head predictions.
+        Args:
+            preds_dicts (tuple[list[dict]]): Prediction results.
+            img_metas (list[dict]): Point cloud and image's meta info.
+        Returns:
+            list[dict]: Decoded bbox, scores and labels after nms.
+        """
 
-            preds_dicts = self.decode(preds_dicts)
+        preds_dicts = self.decode(preds_dicts)
 
-            num_samples = len(preds_dicts)
-            ret_list = []
-            for i in range(num_samples):
-                preds = preds_dicts[i]
-                bboxes = preds['bboxes']
+        num_samples = len(preds_dicts)
+        ret_list = []
+        for i in range(num_samples):
+            preds = preds_dicts[i]
+            bboxes = preds['bboxes']
 
-                bboxes[:, 2] = bboxes[:, 2] - bboxes[:, 5] * 0.5
+            bboxes[:, 2] = bboxes[:, 2] - bboxes[:, 5] * 0.5
 
-                scores = preds['scores']
-                labels = preds['labels']
+            scores = preds['scores']
+            labels = preds['labels']
 
-                ret_list.append([bboxes, scores, labels])
+            ret_list.append([bboxes, scores, labels])
 
-            return ret_list
+        return ret_list
 
     def process(self, outputs_classes, outputs_coords):
         dic = {

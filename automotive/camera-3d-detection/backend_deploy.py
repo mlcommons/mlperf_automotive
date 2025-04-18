@@ -6,6 +6,7 @@ import onnxruntime as ort
 import numpy as np
 from post_process import PostProcess
 
+
 def to_numpy(tensor):
     return tensor.detach().cpu().numpy() if tensor.requires_grad else tensor.cpu().numpy()
 
@@ -20,7 +21,10 @@ class BackendDeploy(backend.Backend):
         }
         self.prev_bev = torch.zeros(cfg.bev_h_ * cfg.bev_w_, 1, cfg._dim_)
         self.checkpoint = checkpoint
-        self.post_process = PostProcess(num_classes=10, max_num=300, pc_range=[-51.2, -51.2, -5.0, 51.2, 51.2, 3.0], post_center_range=[-61.2, -61.2, -10.0, 61.2, 61.2, 10.0], score_threshold=None)
+        self.post_process = PostProcess(
+            num_classes=10, max_num=300, pc_range=[
+                -51.2, -51.2, -5.0, 51.2, 51.2, 3.0], post_center_range=[
+                -61.2, -61.2, -10.0, 61.2, 61.2, 10.0], score_threshold=None)
 
     def version(self):
         return torch.__version__
