@@ -26,7 +26,7 @@ import mmcv
 import torch
 from mmcv import Config, DictAction
 from mmdet.datasets import replace_ImageToTensor
-import nuscenes_dataset
+import nuscenes_inf
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("main")
@@ -36,9 +36,9 @@ MILLI_SEC = 1000
 
 SUPPORTED_DATASETS = {
     "nuscenes": (
-        nuscenes_dataset.Nuscenes,
+        nuscenes_inf.Nuscenes,
         dataset.preprocess,
-        nuscenes_dataset.PostProcessNuscenes(),
+        nuscenes_inf.PostProcessNuscenes(),
         {}  # "image_size": [3, 1024, 1024]},
     )
 }
