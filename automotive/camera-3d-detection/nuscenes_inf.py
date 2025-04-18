@@ -67,7 +67,7 @@ class Nuscenes(Dataset):
                 flip=False,
                 transforms=transforms))
 
-        with open(os.path.join(dataset_path, cfg.data.test['ann_file']), 'rb') as f:
+        with open(os.path.join(dataset_path, cfg.data['test']['ann_file']), 'rb') as f:
             data = pickle.load(f)
             self.data_infos = list(
                 sorted(

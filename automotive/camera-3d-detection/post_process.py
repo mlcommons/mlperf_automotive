@@ -1,12 +1,4 @@
 import torch
-'''point_cloud_range = [-51.2, -51.2, -5.0, 51.2, 51.2, 3.0]
-voxel_size = [0.2, 0.2, 8]
-            post_center_range=[-61.2, -61.2, -10.0, 61.2, 61.2, 10.0],
-            pc_range=point_cloud_range,
-            max_num=300,
-            voxel_size=voxel_size,
-            num_classes=10),'''
-
 
 class PostProcess:
     def __init__(self, num_classes, max_num, pc_range,
