@@ -17,5 +17,5 @@ RUN apt-get update
 RUN apt-get install -y libgl1-mesa-glx
 RUN pip install onnx
 RUN pip install onnxruntime
-
+RUN pip install ijson
 
