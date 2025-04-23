@@ -306,7 +306,9 @@ def main():
     spec.loader.exec_module(cfg)
 
     # find backend
-    cfg.data_root = args.dataset_path
+    dataset_path = os.path.abspath(args.dataset_path)
+    scene_file = os.path.abspath(args.scene_file)
+    cfg.data_root = dataset_path
     backend = get_backend(
         # TODO: pass model, inference and backend arguments
         args.backend,
@@ -332,7 +334,7 @@ def main():
 
     # dataset to use
     dataset_class, pre_proc, post_proc, kwargs = SUPPORTED_DATASETS[args.dataset]
-    ds = dataset_class(cfg=cfg, dataset_path=args.dataset_path)
+    ds = dataset_class(cfg=cfg, dataset_path=dataset_path)
 
     final_results = {
         "runtime": model.name(),
@@ -426,7 +428,7 @@ def main():
         if args.performance_sample_count
         else min(count, 500)
     )
-    with open(args.scene_file, "rb") as f:
+    with open(scene_file, "rb") as f:
         scene_lengths = pickle.load(f)
     sut = lg.ConstructSUT(issue_queries, flush_queries)
     qsl = lg.ConstructGroupedQSL(

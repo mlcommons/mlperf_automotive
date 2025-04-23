@@ -2,7 +2,6 @@ import torch
 import backend
 
 import onnxruntime as ort
-
 import numpy as np
 from post_process import PostProcess
 

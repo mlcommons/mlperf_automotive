@@ -48,7 +48,7 @@ def collate_fn(batch):
 class Nuscenes(Dataset):
     def __init__(self, cfg, dataset_path):
         self.pipeline = []
-        self.pipeline.append(LoadMultiViewImageFromFiles(to_float32=True))
+        self.pipeline.append(LoadMultiViewImageFromFiles(to_float32=True, data_root=dataset_path))
         self.pipeline.append(
             NormalizeMultiviewImage(
                 mean=[
@@ -67,7 +67,7 @@ class Nuscenes(Dataset):
                 flip=False,
                 transforms=transforms))
 
-        with open(os.path.join(dataset_path, cfg.data['test']['ann_file']), 'rb') as f:
+        with open(os.path.join(dataset_path, 'nuscenes', 'nuscenes_infos_temporal_val.pkl'), 'rb') as f:
             data = pickle.load(f)
             self.data_infos = list(
                 sorted(
