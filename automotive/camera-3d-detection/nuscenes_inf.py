@@ -48,7 +48,10 @@ def collate_fn(batch):
 class Nuscenes(Dataset):
     def __init__(self, cfg, dataset_path):
         self.pipeline = []
-        self.pipeline.append(LoadMultiViewImageFromFiles(to_float32=True, data_root=dataset_path))
+        self.pipeline.append(
+            LoadMultiViewImageFromFiles(
+                to_float32=True,
+                data_root=dataset_path))
         self.pipeline.append(
             NormalizeMultiviewImage(
                 mean=[
