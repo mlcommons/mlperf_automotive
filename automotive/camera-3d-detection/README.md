@@ -15,12 +15,13 @@ Contact [MLCommons](https://docs.google.com/forms/d/e/1FAIpQLSdUsbqaGcoIAxoNVrxp
 ```
 git clone -b v0.5abtf git@github.com:mlcommons/mlperf_automotive.git
 cd mlperf_automotive/automotive/camera-3d-detection
-docker build -t bevformer_inference -f dockerfile .
+docker build -t bevformer_inference -f dockerfile.cpu .
 docker run -it -v ./mlperf_automotive:/mlperf_automotive -v <path to nuscenes dataset>:/mlperf_automotive/automotive/camera-3d-detection/data --rm bevformer_inference
 ```
 
 > [!Note]
 > The library mmdetection3d has a CUDA dependency but is not required to run the models. The container uses an image with CUDA to compile the library. You can run `export CUDA_VISIBLE_DEVICES=""` in the container to only use the CPU.
+> The Docker file dockerfile.cpu is for running the model in performance and accuracy mode and no longer requires mmdetection3d. The accuracy checker still has the mmdetection3d dependency and will require a separate docker build for now.
 
 
 ## Run the model in performance mode
@@ -33,5 +34,11 @@ python main.py --dataset nuscenes --dataset-path ./data --checkpoint ./data/bevf
 ```
 cd /mlperf_automotive/automotive/camera-3d-detection
 python main.py --dataset nuscenes --dataset-path ./data --checkpoint ./data/bevformer_tiny.onnx --config ./projects/configs/bevformer/bevformer_tiny.py --scene-file ./data/scene_lengths.pkl --accuracy
+```
+
+```
+cd mlperf_automotive/automotive/camera-3d-detection
+docker build -t bevformer_accuracy -f dockerfile .
+docker run -it -v ./mlperf_automotive:/mlperf_automotive -v <path to nuscenes dataset>:/mlperf_automotive/automotive/camera-3d-detection/data --rm bevformer_accuracy
 python accuracy_nuscenes.py --mlperf-accuracy-file ./output/mlperf_log_accuracy.json --config projects/configs/bevformer/bevformer_tiny.py --nuscenes-dir ./data
 ```
