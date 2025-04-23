@@ -101,7 +101,6 @@ def get_args():
     parser.add_argument("--qps", type=int, help="target qps")
     parser.add_argument("--checkpoint", help="Path to model weights")
     parser.add_argument("--config", help="bevformer configuration file path")
-    parser.add_argument("--scene-file", help="file with list of scene lengths")
     parser.add_argument(
         "--dtype",
         default="fp32",
@@ -307,7 +306,7 @@ def main():
 
     # find backend
     dataset_path = os.path.abspath(args.dataset_path)
-    scene_file = os.path.abspath(args.scene_file)
+    scene_file = os.path.join(dataset_path, "scene_lengths.pkl")
     cfg.data_root = dataset_path
     backend = get_backend(
         # TODO: pass model, inference and backend arguments
