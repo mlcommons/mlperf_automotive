@@ -100,7 +100,7 @@ class Nuscenes(Dataset):
         for t in self.pipeline:
             input_dict = t(input_dict)
         return input_dict
-    
+
     def quaternion_yaw(self, q: Quaternion) -> float:
         # From nuScenes devkit
         v = np.dot(q.rotation_matrix, np.array([1, 0, 0]))
