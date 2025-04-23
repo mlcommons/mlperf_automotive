@@ -24,25 +24,13 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-import torch
 from torch.utils.data import Dataset
-from torch.utils.data.dataloader import default_collate
 import os
 import pickle
-from nuscenes.eval.common.utils import quaternion_yaw, Quaternion
+from pyquaternion import Quaternion
 import numpy as np
 from custom import LoadMultiViewImageFromFiles, NormalizeMultiviewImage, MultiScaleFlipAug3D, RandomScaleImageMultiViewImage, PadMultiViewImage
 from formatting import DefaultFormatBundle
-
-
-def collate_fn(batch):
-    items = list(zip(*batch))
-    items[0] = default_collate([i for i in items[0] if torch.is_tensor(i)])
-    items[1] = list([i for i in items[1] if i])
-    items[2] = list([i for i in items[2] if i])
-    items[3] = default_collate([i for i in items[3] if torch.is_tensor(i)])
-    items[4] = default_collate([i for i in items[4] if torch.is_tensor(i)])
-    return items
 
 
 class Nuscenes(Dataset):
@@ -112,6 +100,12 @@ class Nuscenes(Dataset):
         for t in self.pipeline:
             input_dict = t(input_dict)
         return input_dict
+    
+    def quaternion_yaw(self, q: Quaternion) -> float:
+        # From nuScenes devkit
+        v = np.dot(q.rotation_matrix, np.array([1, 0, 0]))
+        yaw = np.arctan2(v[1], v[0])
+        return yaw
 
     def get_data_info(self, index):
         info = self.data_infos[index]
@@ -165,7 +159,7 @@ class Nuscenes(Dataset):
         can_bus = input_dict['can_bus']
         can_bus[:3] = translation
         can_bus[3:7] = rotation
-        patch_angle = quaternion_yaw(rotation) / np.pi * 180
+        patch_angle = self.quaternion_yaw(rotation) / np.pi * 180
         if patch_angle < 0:
             patch_angle += 360
         can_bus[-2] = patch_angle / 180 * np.pi
@@ -191,21 +185,6 @@ class PostProcessNuscenes:
         for idx in range(len(content_id)):
             processed_results.append([])
             detection_num = len(results[idx][0])
-            if detection_num == 0:
-                processed_results[idx].append([
-                    -1,
-                    -1,
-                    -1,
-                    -1,
-                    -1,
-                    -1,
-                    -1,
-                    -1,
-                    -1,
-                    -1,
-                    -1,
-                    content_id[idx]
-                ])
             for detection in range(0, detection_num):
                 processed_results[idx].append([
                     results[idx][0][detection][0],
