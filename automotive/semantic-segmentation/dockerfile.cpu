@@ -18,8 +18,8 @@ RUN pip install torch==2.3.1 torchvision==0.18.1 torchaudio==2.3.1 -f https://do
 
 # install loadgen
 RUN cd /tmp && \
-    git clone --recursive https://github.com/mlcommons/inference && \
-    cd inference/loadgen && \
+    git clone --recursive https://github.com/mlcommons/mlperf_automotive && \
+    cd mlperf_automotive/loadgen && \
     pip install pybind11 && \
     CFLAGS="-std=c++14" python setup.py install && \
     rm -rf mlperf
@@ -34,5 +34,6 @@ RUN apt-get update
 RUN apt-get install -y libgl1-mesa-glx
 RUN pip install onnx
 RUN pip install onnxruntime
+RUN pip install ijson
 
 

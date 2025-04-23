@@ -16,17 +16,14 @@ import sys
 import threading
 import time
 from queue import Queue
-
+import importlib
 import mlperf_loadgen as lg
 import numpy as np
 import torch
 import pickle
 import dataset
-import mmcv
 import torch
-from mmcv import Config, DictAction
-from mmdet.datasets import replace_ImageToTensor
-import nuscenes_dataset
+import nuscenes_inf
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("main")
@@ -36,9 +33,9 @@ MILLI_SEC = 1000
 
 SUPPORTED_DATASETS = {
     "nuscenes": (
-        nuscenes_dataset.Nuscenes,
+        nuscenes_inf.Nuscenes,
         dataset.preprocess,
-        nuscenes_dataset.PostProcessNuscenes(),
+        nuscenes_inf.PostProcessNuscenes(),
         {}  # "image_size": [3, 1024, 1024]},
     )
 }
@@ -303,47 +300,11 @@ def main():
     args = get_args()
 
     log.info(args)
-    cfg = Config.fromfile(args.config)
-    if cfg.get('custom_imports', None):
-        from mmcv.utils import import_modules_from_strings
-        import_modules_from_strings(**cfg['custom_imports'])
-    if hasattr(cfg, 'plugin'):
-        if cfg.plugin:
-            import importlib
-            if hasattr(cfg, 'plugin_dir'):
-                plugin_dir = cfg.plugin_dir
-                _module_dir = os.path.dirname(plugin_dir)
-                _module_dir = _module_dir.split('/')
-                _module_path = _module_dir[0]
+    spec = importlib.util.spec_from_file_location(
+        'bevformer_tiny', str(args.config))
+    cfg = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(cfg)
 
-                for m in _module_dir[1:]:
-                    _module_path = _module_path + '.' + m
-                print(_module_path)
-                plg_lib = importlib.import_module(_module_path)
-            else:
-                # import dir is the dirpath for the config file
-                _module_dir = os.path.dirname(args.config)
-                _module_dir = _module_dir.split('/')
-                _module_path = _module_dir[0]
-                for m in _module_dir[1:]:
-                    _module_path = _module_path + '.' + m
-                print(_module_path)
-                plg_lib = importlib.import_module(_module_path)
-    if isinstance(cfg.data.test, dict):
-        cfg.data.test.test_mode = True
-        samples_per_gpu = cfg.data.test.pop('samples_per_gpu', 1)
-        if samples_per_gpu > 1:
-            # Replace 'ImageToTensor' to 'DefaultFormatBundle'
-            cfg.data.test.pipeline = replace_ImageToTensor(
-                cfg.data.test.pipeline)
-    elif isinstance(cfg.data.test, list):
-        for ds_cfg in cfg.data.test:
-            ds_cfg.test_mode = True
-        samples_per_gpu = max(
-            [ds_cfg.pop('samples_per_gpu', 1) for ds_cfg in cfg.data.test])
-        if samples_per_gpu > 1:
-            for ds_cfg in cfg.data.test:
-                ds_cfg.pipeline = replace_ImageToTensor(ds_cfg.pipeline)
     # find backend
     cfg.data_root = args.dataset_path
     backend = get_backend(
