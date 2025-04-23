@@ -5,6 +5,7 @@ This is the reference implementation for the ABTF semantic segmentation benchmar
 | model | accuracy | resolution | dataset | model source | precision |
 | ---- | ---- | ---- | ---- | ---- | ---- |
 | DeepLabv3+ | 0.8959 mIOU | 4MP | Cognata | https://github.com/rod409/pp/tree/main/deeplabv3plus | fp32 |
+| DeepLabv3+ | 0.9242 mIOU | 8MP | Cognata | https://github.com/rod409/pp/tree/main/deeplabv3plus | fp32 |
 
 ## Downloading the dataset and model checkpoints
 Contact [MLCommons](https://mlcommons.org/datasets/cognata) to access the cognata dataset. Access requires MLCommons membership and signing the EULA. The dataset download also contains the DeepLabv3+ onnx and PyTorch model checkpoints.
@@ -55,5 +56,6 @@ python accuracy_cognata.py --mlperf-accuracy-file ./output/mlperf_log_accuracy.j
 
 > [!Note]
 > The flag --image-size needs to be the same in main.py and accuracy_cognata.py for correctness.
+> Removing the --image-size flag will default to 8MP.
 
 
