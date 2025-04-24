@@ -4,7 +4,7 @@ This is the reference implementation for the ABTF camera-based 3D object detecti
 
 | model | accuracy | dataset | model source | precision |
 | ---- | ---- | ---- | ---- | ---- |
-| BEVFormer (tiny) | 0.2694 mAP/0.3788 NDS | Nuscenes | https://github.com/rod409/BEVFormer | fp32 |
+| BEVFormer (tiny) | 0.2683556 mAP/0.37884288 NDS | Nuscenes | https://github.com/rod409/BEVFormer | fp32 |
 
 ## Downloading the dataset and model checkpoints
 
