@@ -44,7 +44,7 @@ python main.py --backend onnx --checkpoint /cognata/deeplabv3+.onnx --dataset-pa
 
 Using PyTorch
 ```
-python main.py --checkpoint /cognata/latest_deeplabv3plusresnet50_cognata_os16_it100000.pth --dataset-path /cognata/ --dataset cognata --image-size 1440 2560
+python main.py --checkpoint /cognata/latest_deeplabv3plus_resnet50_cognata_os16_it100000.pth --dataset-path /cognata/ --dataset cognata --image-size 1440 2560
 ```
 
 ## Run the model in accuracy mode and run the accuracy checker
