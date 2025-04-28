@@ -7,6 +7,8 @@ This is the reference implementation for the ABTF semantic segmentation benchmar
 | DeepLabv3+ | 0.8959 mIOU | 4MP | Cognata | https://github.com/rod409/pp/tree/main/deeplabv3plus | fp32 |
 | DeepLabv3+ | 0.9242 mIOU | 8MP | Cognata | https://github.com/rod409/pp/tree/main/deeplabv3plus | fp32 |
 
+Achieved a 99% latency of 0.655460115 and 3.825409272 seconds on an Nvidia L4 GPU at 4MP and 8MP respectively.
+
 ## Downloading the dataset and model checkpoints
 Contact [MLCommons](https://mlcommons.org/datasets/cognata) to access the cognata dataset. Access requires MLCommons membership and signing the EULA. The dataset download also contains the DeepLabv3+ onnx and PyTorch model checkpoints.
 After downloading the datasets extract the compressed files.
