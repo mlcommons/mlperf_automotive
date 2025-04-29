@@ -4,7 +4,7 @@ This is the reference implementation for the ABTF camera-based 3D object detecti
 
 | model | accuracy | dataset | model source | precision |
 | ---- | ---- | ---- | ---- | ---- |
-| BEVFormer (tiny) | 0.2694 mAP/0.3788 NDS | Nuscenes | https://github.com/rod409/BEVFormer | fp32 |
+| BEVFormer (tiny) | 0.2683556 mAP/0.37884288 NDS | Nuscenes | https://github.com/rod409/BEVFormer | fp32 |
 
 ## Downloading the dataset and model checkpoints
 
@@ -16,7 +16,7 @@ Contact [MLCommons](https://docs.google.com/forms/d/e/1FAIpQLSdUsbqaGcoIAxoNVrxp
 git clone -b v0.5abtf git@github.com:mlcommons/mlperf_automotive.git
 cd mlperf_automotive/automotive/camera-3d-detection
 docker build -t bevformer_inference -f dockerfile.cpu .
-docker run -it -v ./mlperf_automotive:/mlperf_automotive -v <path to nuscenes dataset>:/mlperf_automotive/automotive/camera-3d-detection/data --rm bevformer_inference
+docker run -it -v ./mlperf_automotive:/mlperf_automotive -v <path to nuscenes dataset>:/nuscenes_data --rm bevformer_inference
 ```
 
 > [!Note]
@@ -27,15 +27,16 @@ docker run -it -v ./mlperf_automotive:/mlperf_automotive -v <path to nuscenes da
 ## Run the model in performance mode
 ```
 cd /mlperf_automotive/automotive/camera-3d-detection
-python main.py --dataset nuscenes --dataset-path ./data --checkpoint ./data/bevformer_tiny.onnx --config ./projects/configs/bevformer/bevformer_tiny.py --scene-file ./data/scene_lengths.pkl
+python main.py --dataset nuscenes --dataset-path /nuscenes_data  --checkpoint /nuscenes_data/bevformer_tiny.onnx --config ./projects/configs/bevformer/bevformer_tiny.py
 ```
 
-## Run in accuracy model and accuracy checker
+## Run in accuracy mode
 ```
 cd /mlperf_automotive/automotive/camera-3d-detection
-python main.py --dataset nuscenes --dataset-path ./data --checkpoint ./data/bevformer_tiny.onnx --config ./projects/configs/bevformer/bevformer_tiny.py --scene-file ./data/scene_lengths.pkl --accuracy
+python main.py --dataset nuscenes --dataset-path /nuscenes_data --checkpoint /nuscenes_data/bevformer_tiny.onnx --config ./projects/configs/bevformer/bevformer_tiny.py --accuracy
 ```
-
+## Run the accuracy checker
+This assumes you generated the mlperf accuracy log in an output folder within the benchmark directory. Modify accordingly. For the accuracy checker mount the dataset to a data directory as shown below.
 ```
 cd mlperf_automotive/automotive/camera-3d-detection
 docker build -t bevformer_accuracy -f dockerfile .
