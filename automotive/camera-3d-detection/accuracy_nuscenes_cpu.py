@@ -12,6 +12,7 @@ from eval.evaluate import NuScenesEvaluate
 import nuscenes_inf
 import os
 
+
 def get_args():
     """Parse commandline."""
     parser = argparse.ArgumentParser()
@@ -94,7 +95,11 @@ def main():
         results.extend(result_list)
 
     nusc_data = nuscenes_inf.Nuscenes(cfg=None, dataset_path=args.nuscenes_dir)
-    nusc_eval = NuScenesEvaluate(data_infos=nusc_data.data_infos, data_root=os.path.join(args.nuscenes_dir, 'nuscenes'))
+    nusc_eval = NuScenesEvaluate(
+        data_infos=nusc_data.data_infos,
+        data_root=os.path.join(
+            args.nuscenes_dir,
+            'nuscenes'))
     print(nusc_eval.evaluate(results=result_list))
 
 

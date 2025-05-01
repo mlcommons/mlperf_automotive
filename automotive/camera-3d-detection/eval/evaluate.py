@@ -11,6 +11,7 @@ from . import nuscnes_eval as ne
 from tqdm import tqdm
 import torch
 
+
 def gravity_center(boxes):
     """torch.Tensor: A tensor with center of each box."""
     bottom_center = boxes[:, :3]
@@ -18,6 +19,7 @@ def gravity_center(boxes):
     gravity_center[:, :2] = bottom_center[:, :2]
     gravity_center[:, 2] = bottom_center[:, 2] + boxes[:, 5] * 0.5
     return gravity_center
+
 
 def output_to_nusc_box(detection):
     """Convert the output to the box class in the nuScenes.
@@ -37,8 +39,8 @@ def output_to_nusc_box(detection):
     labels = detection['labels_3d'].numpy()
 
     box_gravity_center = gravity_center(box3d).numpy()
-    box_dims = box3d[:,3:6].numpy()
-    box_yaw = box3d[:,6].numpy()
+    box_dims = box3d[:, 3:6].numpy()
+    box_yaw = box3d[:, 6].numpy()
     # TODO: check whether this is necessary
     # with dir_offset & dir_limit in the head
     box_yaw = -box_yaw - np.pi / 2
@@ -60,6 +62,7 @@ def output_to_nusc_box(detection):
             velocity=velocity)
         box_list.append(box)
     return box_list
+
 
 def lidar_nusc_box_to_global(info,
                              boxes,
@@ -97,6 +100,7 @@ def lidar_nusc_box_to_global(info,
         box.translate(np.array(info['ego2global_translation']))
         box_list.append(box)
     return box_list
+
 
 class NuScenesEvaluate():
     NameMapping = {
@@ -155,8 +159,20 @@ class NuScenesEvaluate():
         'vel_err': 'mAVE',
         'attr_err': 'mAAE'
     }
-    CLASSES = ('car', 'truck', 'construction_vehicle', 'bus', 'trailer', 'barrier', 'motorcycle', 'bicycle', 'pedestrian', 'traffic_cone')
-    def __init__(self, modality=None, eval_version='detection_cvpr_2019', data_infos=None, version='v1.0-trainval', data_root='./data/', overlap_test=False):
+    CLASSES = (
+        'car',
+        'truck',
+        'construction_vehicle',
+        'bus',
+        'trailer',
+        'barrier',
+        'motorcycle',
+        'bicycle',
+        'pedestrian',
+        'traffic_cone')
+
+    def __init__(self, modality=None, eval_version='detection_cvpr_2019', data_infos=None,
+                 version='v1.0-trainval', data_root='./data/', overlap_test=False):
         self.eval_version = eval_version
         self.modality = modality
         self.version = version
@@ -170,49 +186,49 @@ class NuScenesEvaluate():
                 use_radar=False,
                 use_map=False,
                 use_external=True
-                )
+            )
         self.data_infos = data_infos
-    
+
     def evaluate(self,
-                    results,
-                    jsonfile_prefix=None,
-                    result_names=['pts_bbox']):
-            """Evaluation in nuScenes protocol.
+                 results,
+                 jsonfile_prefix=None,
+                 result_names=['pts_bbox']):
+        """Evaluation in nuScenes protocol.
 
-            Args:
-                results (list[dict]): Testing results of the dataset.
-                metric (str | list[str]): Metrics to be evaluated.
-                logger (logging.Logger | str | None): Logger used for printing
-                    related information during evaluation. Default: None.
-                jsonfile_prefix (str | None): The prefix of json files. It includes
-                    the file path and the prefix of filename, e.g., "a/b/prefix".
-                    If not specified, a temp file will be created. Default: None.
-                show (bool): Whether to visualize.
-                    Default: False.
-                out_dir (str): Path to save the visualization results.
-                    Default: None.
-                pipeline (list[dict], optional): raw data loading for showing.
-                    Default: None.
+        Args:
+            results (list[dict]): Testing results of the dataset.
+            metric (str | list[str]): Metrics to be evaluated.
+            logger (logging.Logger | str | None): Logger used for printing
+                related information during evaluation. Default: None.
+            jsonfile_prefix (str | None): The prefix of json files. It includes
+                the file path and the prefix of filename, e.g., "a/b/prefix".
+                If not specified, a temp file will be created. Default: None.
+            show (bool): Whether to visualize.
+                Default: False.
+            out_dir (str): Path to save the visualization results.
+                Default: None.
+            pipeline (list[dict], optional): raw data loading for showing.
+                Default: None.
 
-            Returns:
-                dict[str, float]: Results of each evaluation metric.
-            """
-            result_files, tmp_dir = self.format_results(results, jsonfile_prefix)
+        Returns:
+            dict[str, float]: Results of each evaluation metric.
+        """
+        result_files, tmp_dir = self.format_results(results, jsonfile_prefix)
 
-            if isinstance(result_files, dict):
-                results_dict = dict()
-                for name in result_names:
-                    print('Evaluating bboxes of {}'.format(name))
-                    ret_dict = self._evaluate_single(result_files[name])
-                results_dict.update(ret_dict)
-            elif isinstance(result_files, str):
-                results_dict = self._evaluate_single(result_files)
+        if isinstance(result_files, dict):
+            results_dict = dict()
+            for name in result_names:
+                print('Evaluating bboxes of {}'.format(name))
+                ret_dict = self._evaluate_single(result_files[name])
+            results_dict.update(ret_dict)
+        elif isinstance(result_files, str):
+            results_dict = self._evaluate_single(result_files)
 
-            if tmp_dir is not None:
-                tmp_dir.cleanup()
+        if tmp_dir is not None:
+            tmp_dir.cleanup()
 
-            return results_dict
-    
+        return results_dict
+
     def _evaluate_single(self,
                          result_path,
                          logger=None,
@@ -311,7 +327,7 @@ class NuScenesEvaluate():
                 result_files.update(
                     {name: self._format_bbox(results_, tmp_file_)})
         return result_files, tmp_dir
-    
+
     def _format_bbox(self, results, jsonfile_prefix=None):
         """Convert the results to the standard format.
 

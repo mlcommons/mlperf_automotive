@@ -49,8 +49,8 @@ from nuscenes.eval.detection.data_classes import DetectionMetrics, DetectionMetr
 from nuscenes.utils.geometry_utils import view_points
 
 
-
 Axis = Any
+
 
 def class_tp_curve(md_list: DetectionMetricDataList,
                    metrics: DetectionMetrics,
@@ -74,9 +74,14 @@ def class_tp_curve(md_list: DetectionMetricDataList,
     md = md_list[(detection_name, dist_th_tp)]
     min_recall_ind = round(100 * min_recall)
     if min_recall_ind <= md.max_recall_ind:
-        # For traffic_cone and barrier only a subset of the metrics are plotted.
-        rel_metrics = [m for m in TP_METRICS if not np.isnan(metrics.get_label_tp(detection_name, m))]
-        ylimit = max([max(getattr(md, metric)[min_recall_ind:md.max_recall_ind + 1]) for metric in rel_metrics]) * 1.1
+        # For traffic_cone and barrier only a subset of the metrics are
+        # plotted.
+        rel_metrics = [
+            m for m in TP_METRICS if not np.isnan(
+                metrics.get_label_tp(
+                    detection_name, m))]
+        ylimit = max([max(getattr(md, metric)[min_recall_ind:md.max_recall_ind + 1])
+                     for metric in rel_metrics]) * 1.1
     else:
         ylimit = 1.0
 
@@ -92,7 +97,8 @@ def class_tp_curve(md_list: DetectionMetricDataList,
 
         # Plot only if we have valid data.
         if tp is not np.nan and min_recall_ind <= md.max_recall_ind:
-            recall, error = md.recall[:md.max_recall_ind + 1], getattr(md, metric)[:md.max_recall_ind + 1]
+            recall, error = md.recall[:md.max_recall_ind +
+                                      1], getattr(md, metric)[:md.max_recall_ind + 1]
         else:
             recall, error = [], []
 
@@ -102,7 +108,8 @@ def class_tp_curve(md_list: DetectionMetricDataList,
         elif min_recall_ind > md.max_recall_ind:
             label = '{}: nan'.format(PRETTY_TP_METRICS[metric])
         else:
-            label = '{}: {:.2f} ({})'.format(PRETTY_TP_METRICS[metric], tp, TP_METRICS_UNITS[metric])
+            label = '{}: {:.2f} ({})'.format(
+                PRETTY_TP_METRICS[metric], tp, TP_METRICS_UNITS[metric])
         if metric == 'trans_err':
             label += f' ({md.max_recall_ind})'  # add recall
             print(f'Recall: {detection_name}: {md.max_recall_ind/100}')
@@ -116,7 +123,8 @@ def class_tp_curve(md_list: DetectionMetricDataList,
 
 
 class DetectionBox_modified(DetectionBox):
-    def __init__(self, *args, token=None, visibility=None, index=None, **kwargs):
+    def __init__(self, *args, token=None,
+                 visibility=None, index=None, **kwargs):
         '''
         add annotation token
         '''
@@ -156,16 +164,20 @@ class DetectionBox_modified(DetectionBox):
             velocity=tuple(content['velocity']),
             ego_translation=(0.0, 0.0, 0.0) if 'ego_translation' not in content
             else tuple(content['ego_translation']),
-            num_pts=-1 if 'num_pts' not in content else int(content['num_pts']),
+            num_pts=-
+            1 if 'num_pts' not in content else int(content['num_pts']),
             detection_name=content['detection_name'],
-            detection_score=-1.0 if 'detection_score' not in content else float(content['detection_score']),
+            detection_score=-
+            1.0 if 'detection_score' not in content else float(
+                content['detection_score']),
             attribute_name=content['attribute_name'],
             visibility=content['visibility'],
             index=content['index'],
         )
 
 
-def center_in_image(box, intrinsic: np.ndarray, imsize: Tuple[int, int], vis_level: int = BoxVisibility.ANY) -> bool:
+def center_in_image(box, intrinsic: np.ndarray,
+                    imsize: Tuple[int, int], vis_level: int = BoxVisibility.ANY) -> bool:
     """
     Check if a box is visible inside an image without accounting for occlusions.
     :param box: The box to be checked.
@@ -178,12 +190,14 @@ def center_in_image(box, intrinsic: np.ndarray, imsize: Tuple[int, int], vis_lev
     center_3d = box.center.reshape(3, 1)
     center_img = view_points(center_3d, intrinsic, normalize=True)[:2, :]
 
-    visible = np.logical_and(center_img[0, :] > 0, center_img[0, :] < imsize[0])
+    visible = np.logical_and(
+        center_img[0, :] > 0, center_img[0, :] < imsize[0])
     visible = np.logical_and(visible, center_img[1, :] < imsize[1])
     visible = np.logical_and(visible, center_img[1, :] > 0)
     visible = np.logical_and(visible, center_3d[2, :] > 1)
 
-    in_front = center_3d[2, :] > 0.1  # True if a corner is at least 0.1 meter in front of the camera.
+    # True if a corner is at least 0.1 meter in front of the camera.
+    in_front = center_3d[2, :] > 0.1
 
     if vis_level == BoxVisibility.ALL:
         return all(visible) and all(in_front)
@@ -209,12 +223,14 @@ def exist_corners_in_image_but_not_all(box, intrinsic: np.ndarray, imsize: Tuple
     corners_3d = box.corners()
     corners_img = view_points(corners_3d, intrinsic, normalize=True)[:2, :]
 
-    visible = np.logical_and(corners_img[0, :] > 0, corners_img[0, :] < imsize[0])
+    visible = np.logical_and(
+        corners_img[0, :] > 0, corners_img[0, :] < imsize[0])
     visible = np.logical_and(visible, corners_img[1, :] < imsize[1])
     visible = np.logical_and(visible, corners_img[1, :] > 0)
     visible = np.logical_and(visible, corners_3d[2, :] > 1)
 
-    in_front = corners_3d[2, :] > 0.1  # True if a corner is at least 0.1 meter in front of the camera.
+    # True if a corner is at least 0.1 meter in front of the camera.
+    in_front = corners_3d[2, :] > 0.1
 
     if any(visible) and not all(visible) and all(in_front):
         return True
@@ -237,7 +253,10 @@ def load_gt(nusc: NuScenes, eval_split: str, box_cls, verbose: bool = False):
         attribute_map = {a['token']: a['name'] for a in nusc.attribute}
 
     if verbose:
-        print('Loading annotations for {} split from nuScenes version: {}'.format(eval_split, nusc.version))
+        print(
+            'Loading annotations for {} split from nuScenes version: {}'.format(
+                eval_split,
+                nusc.version))
     # Read out all sample_tokens in DB.
     sample_tokens_all = [s['token'] for s in nusc.sample]
     assert len(sample_tokens_all) > 0, "Error: Database has no samples!"
@@ -249,13 +268,16 @@ def load_gt(nusc: NuScenes, eval_split: str, box_cls, verbose: bool = False):
     version = nusc.version
     if eval_split in {'train', 'val', 'train_detect', 'train_track'}:
         assert version.endswith('trainval'), \
-            'Error: Requested split {} which is not compatible with NuScenes version {}'.format(eval_split, version)
+            'Error: Requested split {} which is not compatible with NuScenes version {}'.format(
+                eval_split, version)
     elif eval_split in {'mini_train', 'mini_val'}:
         assert version.endswith('mini'), \
-            'Error: Requested split {} which is not compatible with NuScenes version {}'.format(eval_split, version)
+            'Error: Requested split {} which is not compatible with NuScenes version {}'.format(
+                eval_split, version)
     elif eval_split == 'test':
         assert version.endswith('test'), \
-            'Error: Requested split {} which is not compatible with NuScenes version {}'.format(eval_split, version)
+            'Error: Requested split {} which is not compatible with NuScenes version {}'.format(
+                eval_split, version)
     else:
         raise ValueError('Error: Requested split {} which this function cannot map to the correct NuScenes version.'
                          .format(eval_split))
@@ -294,10 +316,12 @@ def load_gt(nusc: NuScenes, eval_split: str, box_cls, verbose: bool = False):
         sample_boxes = []
         for sample_annotation_token in sample_annotation_tokens:
 
-            sample_annotation = nusc.get('sample_annotation', sample_annotation_token)
+            sample_annotation = nusc.get(
+                'sample_annotation', sample_annotation_token)
             if box_cls == DetectionBox_modified:
                 # Get label name in detection task and filter unused labels.
-                detection_name = category_to_detection_name(sample_annotation['category_name'])
+                detection_name = category_to_detection_name(
+                    sample_annotation['category_name'])
                 if detection_name is None:
                     continue
 
@@ -309,7 +333,8 @@ def load_gt(nusc: NuScenes, eval_split: str, box_cls, verbose: bool = False):
                 elif attr_count == 1:
                     attribute_name = attribute_map[attr_tokens[0]]
                 else:
-                    raise Exception('Error: GT annotations must not have more than one attribute!')
+                    raise Exception(
+                        'Error: GT annotations must not have more than one attribute!')
 
                 sample_boxes.append(
                     box_cls(
@@ -318,10 +343,13 @@ def load_gt(nusc: NuScenes, eval_split: str, box_cls, verbose: bool = False):
                         translation=sample_annotation['translation'],
                         size=sample_annotation['size'],
                         rotation=sample_annotation['rotation'],
-                        velocity=nusc.box_velocity(sample_annotation['token'])[:2],
-                        num_pts=sample_annotation['num_lidar_pts'] + sample_annotation['num_radar_pts'],
+                        velocity=nusc.box_velocity(
+                            sample_annotation['token'])[:2],
+                        num_pts=sample_annotation['num_lidar_pts'] +
+                        sample_annotation['num_radar_pts'],
                         detection_name=detection_name,
-                        detection_score=-1.0,  # GT samples do not have a score.
+                        detection_score=-1.0,
+                        # GT samples do not have a score.
                         attribute_name=attribute_name,
                         visibility=sample_annotation['visibility_token'],
                         index=index_map[sample_token]
@@ -330,12 +358,14 @@ def load_gt(nusc: NuScenes, eval_split: str, box_cls, verbose: bool = False):
             elif box_cls == TrackingBox:
                 assert False
             else:
-                raise NotImplementedError('Error: Invalid box_cls %s!' % box_cls)
+                raise NotImplementedError(
+                    'Error: Invalid box_cls %s!' % box_cls)
 
         all_annotations.add_boxes(sample_token, sample_boxes)
 
     if verbose:
-        print("Loaded ground truth annotations for {} samples.".format(len(all_annotations.sample_tokens)))
+        print("Loaded ground truth annotations for {} samples.".format(
+            len(all_annotations.sample_tokens)))
 
     return all_annotations
 
@@ -404,7 +434,8 @@ def filter_eval_boxes_by_visibility(
     return eval_boxes
 
 
-def filter_by_sample_token(ori_eval_boxes, valid_sample_tokens=[],  verbose=False):
+def filter_by_sample_token(
+        ori_eval_boxes, valid_sample_tokens=[], verbose=False):
     eval_boxes = copy.deepcopy(ori_eval_boxes)
     for sample_token in eval_boxes.sample_tokens:
         if sample_token not in valid_sample_tokens:
@@ -445,7 +476,9 @@ def filter_eval_boxes_by_overlap(nusc: NuScenes,
                 '''
                 sample_data_token = sample_record['data'][cam]
                 sd_record = nusc.get('sample_data', sample_data_token)
-                cs_record = nusc.get('calibrated_sensor', sd_record['calibrated_sensor_token'])
+                cs_record = nusc.get(
+                    'calibrated_sensor',
+                    sd_record['calibrated_sensor_token'])
                 sensor_record = nusc.get('sensor', cs_record['sensor_token'])
                 pose_record = nusc.get('ego_pose', sd_record['ego_pose_token'])
                 cam_intrinsic = np.array(cs_record['camera_intrinsic'])
@@ -461,7 +494,8 @@ def filter_eval_boxes_by_overlap(nusc: NuScenes,
                 new_box.translate(-np.array(cs_record['translation']))
                 new_box.rotate(Quaternion(cs_record['rotation']).inverse)
 
-                if center_in_image(new_box, cam_intrinsic, imsize, vis_level=BoxVisibility.ANY):
+                if center_in_image(new_box, cam_intrinsic,
+                                   imsize, vis_level=BoxVisibility.ANY):
                     count += 1
                 # if exist_corners_in_image_but_not_all(new_box, cam_intrinsic, imsize, vis_level=BoxVisibility.ANY):
                 #    count += 1
@@ -470,7 +504,7 @@ def filter_eval_boxes_by_overlap(nusc: NuScenes,
                 with open('center_overlap.txt', 'a') as f:
                     try:
                         f.write(box.token + '\n')
-                    except:
+                    except BaseException:
                         pass
                 filtered_boxes.append(box)
         anns_filter += len(filtered_boxes)
@@ -521,7 +555,8 @@ class NuScenesEval_custom(NuScenesEval):
         self.eval_mask = eval_mask
         self.data_infos = data_infos
         # Check result file exists.
-        assert os.path.exists(result_path), 'Error: The result file does not exist!'
+        assert os.path.exists(
+            result_path), 'Error: The result file does not exist!'
 
         # Make dirs.
         self.plot_dir = os.path.join(self.output_dir, 'plots')
@@ -535,7 +570,11 @@ class NuScenesEval_custom(NuScenesEval):
             print('Initializing nuScenes detection evaluation')
         self.pred_boxes, self.meta = load_prediction(self.result_path, self.cfg.max_boxes_per_sample, DetectionBox,
                                                      verbose=verbose)
-        self.gt_boxes = load_gt(self.nusc, self.eval_set, DetectionBox_modified, verbose=verbose)
+        self.gt_boxes = load_gt(
+            self.nusc,
+            self.eval_set,
+            DetectionBox_modified,
+            verbose=verbose)
         print(self.cfg.max_boxes_per_sample)
         assert set(self.pred_boxes.sample_tokens) == set(self.gt_boxes.sample_tokens), \
             "Samples in split doesn't match samples in predictions."
@@ -548,15 +587,19 @@ class NuScenesEval_custom(NuScenesEval):
 
         if verbose:
             print('Filtering predictions')
-        self.pred_boxes = filter_eval_boxes(nusc, self.pred_boxes, self.cfg.class_range, verbose=verbose)
+        self.pred_boxes = filter_eval_boxes(
+            nusc, self.pred_boxes, self.cfg.class_range, verbose=verbose)
         if verbose:
             print('Filtering ground truth annotations')
-        self.gt_boxes = filter_eval_boxes(nusc, self.gt_boxes, self.cfg.class_range, verbose=verbose)
+        self.gt_boxes = filter_eval_boxes(
+            nusc, self.gt_boxes, self.cfg.class_range, verbose=verbose)
 
         if self.overlap_test:
-            self.pred_boxes = filter_eval_boxes_by_overlap(self.nusc, self.pred_boxes)
+            self.pred_boxes = filter_eval_boxes_by_overlap(
+                self.nusc, self.pred_boxes)
 
-            self.gt_boxes = filter_eval_boxes_by_overlap(self.nusc, self.gt_boxes, verbose=True)
+            self.gt_boxes = filter_eval_boxes_by_overlap(
+                self.nusc, self.gt_boxes, verbose=True)
 
         self.all_gt = copy.deepcopy(self.gt_boxes)
         self.all_preds = copy.deepcopy(self.pred_boxes)
@@ -590,15 +633,19 @@ class NuScenesEval_custom(NuScenesEval):
                 'token': '4',
                 'level': 'v80-100'}]'''
 
-                self.gt_boxes = filter_eval_boxes_by_visibility(self.all_gt, visibility, verbose=True)
+                self.gt_boxes = filter_eval_boxes_by_visibility(
+                    self.all_gt, visibility, verbose=True)
 
         elif type_ == 'ord':
 
-            valid_tokens = [key for (key, value) in self.index_map.items() if value == index]
+            valid_tokens = [
+                key for (
+                    key,
+                    value) in self.index_map.items() if value == index]
             self.gt_boxes = filter_by_sample_token(self.all_gt, valid_tokens)
-            self.pred_boxes = filter_by_sample_token(self.all_preds, valid_tokens)
+            self.pred_boxes = filter_by_sample_token(
+                self.all_preds, valid_tokens)
         self.sample_tokens = self.gt_boxes.sample_tokens
-
 
     def evaluate(self) -> Tuple[DetectionMetrics, DetectionMetricDataList]:
         """
@@ -619,7 +666,12 @@ class NuScenesEval_custom(NuScenesEval):
         # self.cfg.dist_fcn_callable
         for class_name in self.cfg.class_names:
             for dist_th in self.cfg.dist_ths:
-                md = accumulate(self.gt_boxes, self.pred_boxes, class_name, self.cfg.dist_fcn_callable, dist_th)
+                md = accumulate(
+                    self.gt_boxes,
+                    self.pred_boxes,
+                    class_name,
+                    self.cfg.dist_fcn_callable,
+                    dist_th)
                 metric_data_list.set(class_name, dist_th, md)
 
         # -----------------------------------
@@ -632,12 +684,17 @@ class NuScenesEval_custom(NuScenesEval):
             # Compute APs.
             for dist_th in self.cfg.dist_ths:
                 metric_data = metric_data_list[(class_name, dist_th)]
-                ap = calc_ap(metric_data, self.cfg.min_recall, self.cfg.min_precision)
+                ap = calc_ap(
+                    metric_data,
+                    self.cfg.min_recall,
+                    self.cfg.min_precision)
                 metrics.add_label_ap(class_name, dist_th, ap)
             # Compute TP metrics.
             for metric_name in TP_METRICS:
-                metric_data = metric_data_list[(class_name, self.cfg.dist_th_tp)]
-                if class_name in ['traffic_cone'] and metric_name in ['attr_err', 'vel_err', 'orient_err']:
+                metric_data = metric_data_list[(
+                    class_name, self.cfg.dist_th_tp)]
+                if class_name in ['traffic_cone'] and metric_name in [
+                        'attr_err', 'vel_err', 'orient_err']:
                     tp = np.nan
                 elif class_name in ['barrier'] and metric_name in ['attr_err', 'vel_err']:
                     tp = np.nan
@@ -650,7 +707,8 @@ class NuScenesEval_custom(NuScenesEval):
 
         return metrics, metric_data_list
 
-    def render(self, metrics: DetectionMetrics, md_list: DetectionMetricDataList) -> None:
+    def render(self, metrics: DetectionMetrics,
+               md_list: DetectionMetricDataList) -> None:
         """
         Renders various PR and TP curves.
         :param metrics: DetectionMetrics instance.
@@ -682,7 +740,10 @@ if __name__ == "__main__":
     # Settings.
     parser = argparse.ArgumentParser(description='Evaluate nuScenes detection results.',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('result_path', type=str, help='The submission as a JSON file.')
+    parser.add_argument(
+        'result_path',
+        type=str,
+        help='The submission as a JSON file.')
     parser.add_argument('--output_dir', type=str, default='~/nuscenes-metrics',
                         help='Folder to store result metrics, graphs and example visualizations.')
     parser.add_argument('--eval_set', type=str, default='val',
@@ -724,7 +785,9 @@ if __name__ == "__main__":
     for vis in ['1', '2', '3', '4']:
         nusc_eval.update_gt(type_='vis', visibility=vis)
         print(f'================ {vis} ===============')
-        nusc_eval.main(plot_examples=plot_examples_, render_curves=render_curves_)
-    #for index in range(1, 41):
+        nusc_eval.main(
+            plot_examples=plot_examples_,
+            render_curves=render_curves_)
+    # for index in range(1, 41):
     #    nusc_eval.update_gt(type_='ord', index=index)
     #
