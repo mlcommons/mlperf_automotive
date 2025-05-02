@@ -141,13 +141,6 @@ def get_args():
         type=int,
         help="mlperf multi-stream samples per query",
     )
-    parser.add_argument(
-        "--image-size",
-        type=int,
-        nargs=2,
-        metavar=("HEIGHT", "WIDTH"),
-        default=(2160, 3840),
-        help="image size as two integers: width and height")
     args = parser.parse_args()
 
     # don't use defaults in argparser. Instead we default to a dict, override that with a profile
@@ -309,17 +302,7 @@ def main():
     args = get_args()
 
     log.info(args)
-    image_size = args.image_size
-    val_transform = et.ExtCompose([
-        et.ExtResize((image_size[0], image_size[1])),
-        et.ExtToTensor(),
-        et.ExtNormalize(mean=[0.485, 0.456, 0.406],
-                        std=[0.229, 0.224, 0.225]),
-    ])
-
     files = read_dataset_csv("val_set.csv")
-    files = [{'img': os.path.join(args.dataset_path, f['img']), 'label': os.path.join(
-        args.dataset_path, f['label'])} for f in files]
     # find backend
     backend = get_backend(
         # TODO: pass model, inference and backend arguments
@@ -347,9 +330,7 @@ def main():
 
     # dataset to use
     dataset_class, pre_proc, post_proc, kwargs = SUPPORTED_DATASETS[args.dataset]
-    ds = dataset_class(  # self, files, transform=None
-        files=files,
-        transform=val_transform)
+    ds = dataset_class(args.dataset_path, length=len(files))
 
     final_results = {
         "runtime": model.name(),
@@ -383,7 +364,7 @@ def main():
     for i in range(5):
         input = ds.get_samples([0])
         _ = backend.predict(input[0])
-
+    ds.unload_query_samples([0])
     scenario = SCENARIO_MAP[args.scenario]
     runner_map = {
         lg.TestScenario.SingleStream: RunnerBase,

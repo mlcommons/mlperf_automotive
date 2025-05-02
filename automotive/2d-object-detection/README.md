@@ -6,6 +6,8 @@ This is the reference implementation for the ABTF camera-based 3D object detecti
 | ---- | ---- | ---- | ---- | ---- |
 | SSD-ResNet50 | 0.7146 mAP | Cognata | https://github.com/mlcommons/abtf-ssd-pytorch | fp32 |
 
+Achieved a 99% latency of 0.862741101 seconds on an Nvidia L4 GPU.
+
 ## Downloading the dataset and model checkpoints
 Contact [MLCommons](https://mlcommons.org/datasets/cognata) to access the cognata dataset. Access requires MLCommons membership and signing the EULA. The dataset download also contains the SSD model checkpoints.
 After downloading the datasets extract the compressed files.

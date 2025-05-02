@@ -4,6 +4,7 @@ import cv2
 from copy import deepcopy
 import numbers
 import warnings
+import os
 
 
 class LoadMultiViewImageFromFiles(object):
@@ -17,9 +18,11 @@ class LoadMultiViewImageFromFiles(object):
         color_type (str): Color type of the file. Defaults to 'unchanged'.
     """
 
-    def __init__(self, to_float32=False, color_type='unchanged'):
+    def __init__(self, to_float32=False, data_root='./data',
+                 color_type='unchanged'):
         self.to_float32 = to_float32
         self.color_type = color_type
+        self.data_root = data_root
 
     def __call__(self, results):
         """Call function to load multi-view image from files.
@@ -40,6 +43,12 @@ class LoadMultiViewImageFromFiles(object):
                 - img_norm_cfg (dict): Normalization configuration of images.
         """
         filename = results['img_filename']
+        filename = [
+            os.path.join(
+                self.data_root,
+                os.path.relpath(
+                    name,
+                    './data')) for name in filename]
         # img is of shape (h, w, c, num_views)
         img = np.stack(
             [np.array(Image.open(name))[:, :, ::-1] for name in filename], axis=-1)

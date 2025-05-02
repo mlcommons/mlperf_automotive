@@ -19,8 +19,8 @@ RUN apt-get update && apt-get install -y python3 python3-pip libgl1 && \
 RUN pip install torch==2.5.1 torchvision==0.20.1 torchaudio==2.5.1 --index-url https://download.pytorch.org/whl/cpu
 # install loadgen
 RUN cd /tmp && \
-    git clone -b automotive-loadgen  --recursive https://github.com/mlcommons/inference && \
-    cd inference/loadgen && \
+    git clone --recursive https://github.com/mlcommons/mlperf_automotive && \
+    cd mlperf_automotive/loadgen && \
     pip install pybind11 && \
     CFLAGS="-std=c++14" python setup.py install && \
     rm -rf mlperf
@@ -30,4 +30,4 @@ RUN pip install onnx
 RUN pip install onnxruntime
 RUN pip install pillow
 RUN pip install opencv-python
-RUN pip install nuscenes-devkit
+RUN pip install pyquaternion

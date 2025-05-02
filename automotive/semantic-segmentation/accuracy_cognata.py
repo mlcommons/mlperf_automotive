@@ -57,16 +57,8 @@ def main():
     metrics = StreamSegMetrics(num_classes)
     metrics.reset()
     files = read_dataset_csv("val_set.csv")
-    files = [{'img': os.path.join(args.dataset_path, f['img']), 'label': os.path.join(
-        args.dataset_path, f['label'])} for f in files]
     image_size = args.image_size
-    val_transform = et.ExtCompose([
-        et.ExtResize((image_size[0], image_size[1])),
-        et.ExtToTensor(),
-        et.ExtNormalize(mean=[0.485, 0.456, 0.406],
-                        std=[0.229, 0.224, 0.225]),
-    ])
-    val_loader = Cognata(files, transform=val_transform)
+    val_loader = Cognata(args.dataset_path, length=len(files))
     with open(args.mlperf_accuracy_file, "r") as f:
         for j in ijson.items(f, 'item'):
             idx = j['qsl_idx']
@@ -74,14 +66,14 @@ def main():
             if idx in seen:
                 continue
             seen.add(idx)
-            _, target = val_loader.get_item(idx)
+            item = val_loader.load_item(idx)
 
             prediction = np.frombuffer(
                 bytes.fromhex(
                     j['data']),
                 np.uint8)
             metrics.update(
-                target.cpu().to(
+                item['label'].cpu().to(
                     dtype=torch.uint8).numpy().reshape(
                     1, image_size[0], image_size[1]), prediction.reshape(
                     1, image_size[0], image_size[1]))
