@@ -20,7 +20,7 @@ class _SimpleSegmentationModel(nn.Module):
             size=input_shape,
             mode='bilinear',
             align_corners=False)
-        return x
+        return x.max(dim=1)[1]
 
 
 class IntermediateLayerGetter(nn.ModuleDict):

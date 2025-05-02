@@ -38,5 +38,4 @@ class BackendDeploy(backend.Backend):
 
     def predict(self, input):
         outputs = self.model(input.to(device=self.device))
-        preds = outputs.detach().max(dim=1)[1]
-        return preds
+        return outputs.detach()
