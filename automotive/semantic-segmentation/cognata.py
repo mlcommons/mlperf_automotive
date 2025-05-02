@@ -7,6 +7,7 @@ import pickle
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("cognata")
 
+
 class Cognata(dataset.Dataset):
     def __init__(self, data_root, length):
         self.data_root = data_root
@@ -21,7 +22,7 @@ class Cognata(dataset.Dataset):
         with open(file_path, 'rb') as f:
             item = pickle.load(f)
         return item
-    
+
     def load_query_samples(self, sample_list):
         for sample in sample_list:
             self.preloaded[sample] = self.load_item(sample)
