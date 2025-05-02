@@ -22,7 +22,8 @@ class BackendDeploy(backend.Backend):
         return "NCHW"
 
     def load(self):
-        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device(
+            "cuda:0" if torch.cuda.is_available() else "cpu")
         model = network.modeling.__dict__['deeplabv3plus_resnet50'](
             num_classes=self.num_classes, output_stride=self.output_stride)
         checkpoint = torch.load(

@@ -6,24 +6,31 @@ import pickle
 from tqdm import tqdm
 from multiprocessing import Pool
 
+
 class Process():
-    def __init__(self, dataset_root, image_size, files, val_transform, output, prefix='val'):
+    def __init__(self, dataset_root, image_size, files,
+                 val_transform, output, prefix='val'):
         self.dataset_root = dataset_root
         self.image_size = image_size
         self.ds = cognata_raw.Cognata(files=files, transform=val_transform)
         self.preprocessed_directory = output
         self.prefix = prefix
         os.makedirs(self.preprocessed_directory, exist_ok=True)
+
     def process_item(self, i):
         img, label = self.ds.get_item(i)
-        output_data = {'img': img, 'label': label}      
-        output_file = os.path.join(self.preprocessed_directory, f"{self.prefix}_{i}.pkl")
+        output_data = {'img': img, 'label': label}
+        output_file = os.path.join(
+            self.preprocessed_directory,
+            f"{self.prefix}_{i}.pkl")
         with open(output_file, 'wb') as f:
             pickle.dump(output_data, f)
 
+
 def main():
-    parser = argparse.ArgumentParser(description="Preprocess semantic segmentation dataset.")
-    parser.add_argument('--dataset-root', type=str, required=True, 
+    parser = argparse.ArgumentParser(
+        description="Preprocess semantic segmentation dataset.")
+    parser.add_argument('--dataset-root', type=str, required=True,
                         help="Path to the root directory of the dataset.")
     parser.add_argument(
         "--image-size",
@@ -36,7 +43,7 @@ def main():
                         help="path to csv containing cognata file paths.")
     parser.add_argument('--workers', type=int, default=4,
                         help="Number of workers to use for preprocessing.")
-    parser.add_argument('--output', type=str, required=True, 
+    parser.add_argument('--output', type=str, required=True,
                         help="output directory for pkl files.")
     parser.add_argument('--calibration-set', action='store_true',
                         help="Flag to indicate if the calibration set is being processed.")
@@ -59,8 +66,23 @@ def main():
         prefix = 'calib'
     else:
         prefix = 'val'
-    proc = Process(dataset_root, image_size, files, val_transform, args.output, prefix)
+    proc = Process(
+        dataset_root,
+        image_size,
+        files,
+        val_transform,
+        args.output,
+        prefix)
     with Pool(args.workers) as pool:
-        list(tqdm(pool.imap(proc.process_item, range(len(files))), desc="Preprocessing dataset", total=len(files)))
+        list(
+            tqdm(
+                pool.imap(
+                    proc.process_item,
+                    range(
+                        len(files))),
+                desc="Preprocessing dataset",
+                total=len(files)))
+
+
 if __name__ == "__main__":
     main()

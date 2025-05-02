@@ -125,8 +125,5 @@ class Cognata():
         target = self.encode_target(target)
         return image, torch.from_numpy(target)
 
-
     def __len__(self):
         return len(self.files)
-
-
