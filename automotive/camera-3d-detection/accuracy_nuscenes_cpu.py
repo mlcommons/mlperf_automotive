@@ -9,7 +9,7 @@ import numpy as np
 # pylint: disable=missing-docstring
 import torch
 from eval.evaluate import NuScenesEvaluate
-import nuscenes_inf
+from tools import nuscenes_raw
 import os
 
 
@@ -94,7 +94,7 @@ def main():
             result_list.append(result_dict)
         results.extend(result_list)
 
-    nusc_data = nuscenes_inf.Nuscenes(cfg=None, dataset_path=args.nuscenes_dir)
+    nusc_data = nuscenes_raw.Nuscenes(dataset_path=args.nuscenes_dir)
     nusc_eval = NuScenesEvaluate(
         data_infos=nusc_data.data_infos,
         data_root=os.path.join(

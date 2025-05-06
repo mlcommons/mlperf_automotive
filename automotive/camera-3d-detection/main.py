@@ -24,6 +24,7 @@ import pickle
 import dataset
 import torch
 import nuscenes_inf
+from tools import nuscenes_raw
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("main")
@@ -67,6 +68,10 @@ def get_args():
         "--dataset-path",
         required=True,
         help="path to the dataset")
+    parser.add_argument(
+        "--nuscenes-root",
+        help="path to the dataset",
+        default="/nuscenes_data")
     parser.add_argument(
         "--profile", choices=SUPPORTED_PROFILES.keys(), help="standard profiles"
     )
@@ -306,8 +311,9 @@ def main():
 
     # find backend
     dataset_path = os.path.abspath(args.dataset_path)
-    scene_file = os.path.join(dataset_path, "scene_lengths.pkl")
-    cfg.data_root = dataset_path
+    scene_file = os.path.join(args.nuscenes_root, "scene_lengths.pkl")
+    nr = nuscenes_raw.Nuscenes('/nuscenes_data')
+    
     backend = get_backend(
         # TODO: pass model, inference and backend arguments
         args.backend,
@@ -332,8 +338,10 @@ def main():
     model = backend.load()
 
     # dataset to use
+    with open(scene_file, "rb") as f:
+        scene_lengths = pickle.load(f)
     dataset_class, pre_proc, post_proc, kwargs = SUPPORTED_DATASETS[args.dataset]
-    ds = dataset_class(cfg=cfg, dataset_path=dataset_path)
+    ds = dataset_class(dataset_path, sum(scene_lengths))
 
     final_results = {
         "runtime": model.name(),
@@ -427,8 +435,7 @@ def main():
         if args.performance_sample_count
         else min(count, 500)
     )
-    with open(scene_file, "rb") as f:
-        scene_lengths = pickle.load(f)
+
     sut = lg.ConstructSUT(issue_queries, flush_queries)
     qsl = lg.ConstructGroupedQSL(
         scene_lengths, performance_sample_count, ds.load_query_samples, ds.unload_query_samples
