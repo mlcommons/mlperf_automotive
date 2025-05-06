@@ -8,7 +8,7 @@ import json
 import os
 import pprint
 import numpy as np
-from cognata import collate_fn, Cognata, prepare_cognata, train_val_split
+from cognata import Cognata, prepare_cognata
 import cognata_labels
 from transform import SSDTransformer
 import importlib
@@ -29,6 +29,10 @@ def get_args():
         "--dataset-path",
         required=True,
         help="cognata dataset directory")
+    parser.add_argument(
+        "--cognata-root-path",
+        help="path to the cognata root",
+        default="/cognata")
     parser.add_argument(
         "--verbose",
         action="store_true",
@@ -64,21 +68,11 @@ def main():
         label_info = cognata_labels.label_info
     else:
         _, label_map, label_info = prepare_cognata(
-            args.dataset_path, folders, cameras)
+            args.cognata_root_path, folders, cameras)
     files = read_dataset_csv("val_set.csv")
-    files = [{'img': os.path.join(args.dataset_path, f['img']), 'ann': os.path.join(
+    files = [{'img': os.path.join(args.cognata_root_path, f['img']), 'ann': os.path.join(
         args.dataset_path, f['ann'])} for f in files]
-    dboxes = generate_dboxes(config.model, model="ssd")
-    image_size = config.model['image_size']
-    val_set = Cognata(
-        label_map,
-        label_info,
-        files,
-        ignore_classes,
-        SSDTransformer(
-            dboxes,
-            image_size,
-            val=True))
+    val_set = Cognata(args.dataset_path, len(files))
     preds = []
     targets = []
     for j in results:
@@ -115,7 +109,7 @@ def main():
         for id in ids:
             preds.append({'boxes': torch.tensor(predictions[id]['dts']), 'labels': torch.tensor(
                 predictions[id]['labels']), 'scores': torch.tensor(predictions[id]['scores'])})
-            _, _, _, _, _, gt_boxes = val_set.get_item(id)
+            gt_boxes = val_set.load_item(id)['gt_boxes']
             targets.append(
                 {'boxes': gt_boxes[:, :4], 'labels': gt_boxes[:, 4].to(dtype=torch.int32)})
     metric = MeanAveragePrecision(
