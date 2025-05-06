@@ -34,12 +34,13 @@ import ast
 import random
 import pickle
 
+
 class Cognata(dataset.Dataset):
     def __init__(self, data_root, length):
         self.data_root = data_root
         self.preloaded = {}
         self.length = length
-    
+
     def __len__(self):
         return self.length
 
@@ -65,7 +66,7 @@ class Cognata(dataset.Dataset):
 
     def get_item(self, idx):
         return self.preloaded[idx]
-    
+
     def load_item(self, index, prefix='val'):
         file_path = os.path.join(self.data_root, f'{prefix}_{index}.pkl')
         with open(file_path, 'rb') as f:

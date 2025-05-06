@@ -32,6 +32,7 @@ import csv
 import ast
 import random
 
+
 class Cognata(Dataset):
     def __init__(self, label_map, label_info, files,
                  ignore_classes=[2, 25, 31], transform=None):
@@ -83,6 +84,7 @@ class Cognata(Dataset):
             image, (height, width), boxes, labels = self.transform(
                 img, (height, width), boxes, labels, max_num=500)
         return image, idx, (height, width), boxes, labels, gt_boxes
+
 
 def object_labels(files, ignore_classes):
     counter = 1
@@ -150,4 +152,3 @@ def train_val_split(files, calibration_length=200):
     calibration_index = len(files) - calibration_length
     return {'train': files[:val_index], 'val': files[val_index:calibration_index],
             'calibration': files[calibration_index:]}
-
