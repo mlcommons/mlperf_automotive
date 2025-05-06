@@ -54,10 +54,10 @@ def main():
         prefix)
     with Pool(args.workers) as pool:
         list(tqdm(pool.imap(
-                    proc.process_item,
-                    range(proc.num_items())),
-                desc="Preprocessing dataset",
-                total=proc.num_items()))
+            proc.process_item,
+            range(proc.num_items())),
+            desc="Preprocessing dataset",
+            total=proc.num_items()))
 
 
 if __name__ == "__main__":

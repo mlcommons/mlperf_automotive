@@ -44,13 +44,13 @@ class Nuscenes(Dataset):
 
     def get_list(self):
         raise NotImplementedError("Dataset:get_list")
-    
+
     def load_item(self, index, prefix='val'):
         file_path = os.path.join(self.data_root, f'{prefix}_{index}.pkl')
         with open(file_path, 'rb') as f:
             item = pickle.load(f)
         return item
-    
+
     def load_query_samples(self, sample_list):
         for sample in sample_list:
             self.preloaded[sample] = self.load_item(sample)
@@ -70,9 +70,10 @@ class Nuscenes(Dataset):
 
     def get_item(self, index):
         return self.preloaded[index]
-    
+
     def get_item_count(self):
         return self.length
+
 
 class PostProcessNuscenes:
     def __init__(
