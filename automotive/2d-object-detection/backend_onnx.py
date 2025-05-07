@@ -31,7 +31,7 @@ class BackendOnnx(backend.Backend):
         if self.config.dataset['use_label_file']:
             label_map = cognata_labels.label_map
         else:
-            _, label_map, _ = prepare_cognata(data_path, folders, cameras) 
+            _, label_map, _ = prepare_cognata(data_path, folders, cameras)
         self.num_classes = len(label_map.keys())
         self.checkpoint = checkpoint
         self.encoder = Encoder(dboxes)
