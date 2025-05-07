@@ -10,17 +10,7 @@ This is the reference implementation for the ABTF semantic segmentation benchmar
 Achieved a 99% latency of 0.655460115 and 3.825409272 seconds on an Nvidia L4 GPU at 4MP and 8MP respectively.
 
 ## Downloading the dataset and model checkpoints
-Contact [MLCommons](https://mlcommons.org/datasets/cognata) to access the cognata dataset. Access requires MLCommons membership and signing the EULA. The dataset download also contains the DeepLabv3+ onnx and PyTorch model checkpoints.
-After downloading the datasets extract the compressed files.
-
-In addition to Cognata, there is preprocessed data for the semantic segmentation labels. When you download the dataset all files are compressed. You can extract the entire dataset using the following commands. This will extract both the dataset and preprocessed labels.
-```
-cd <your path to cognata>
-for f in *.tar.gz; do tar -xzvf "$f"; done
-```
-> [!Note]
-> The instructions to process the data yourself can be found on the [source repo](https://github.com/rod409/pp/tree/main/deeplabv3plus).
-
+Contact [MLCommons](https://mlcommons.org/datasets/cognata) to access the cognata dataset. Access requires MLCommons membership and signing the EULA. The dataset download also contains the DeepLabv3+ onnx and PyTorch model checkpoints. You do not need the whole dataset to run the benchmark. Within mlc_cognata_dataset you can download the model checkpoints and val_seg folder. val_seg contains the preprocessed data. There are two onnx checkpoints along with one pytorch checkpoint. The onnx checkpoints are labeled deeplabv3+_8mp.onnx and deeplabv3+_dynamic.onnx. Dynamic refers to dynamic input resolutions so that will work on different image resolutions. 8mp is for 8MP images. The pytorch version is latest_deeplabv3plus_resnet50_cognata_os16_it100000.pth that will work on different image resolutions. 
 
 ## Build and run the Docker container
 CPU only
@@ -41,23 +31,35 @@ docker run -it -v ./mlperf_automotive:/mlperf_automotive -v <path to cognata>:/c
 ## Run the model in performance mode
 Using the ONNX backend
 ```
-python main.py --backend onnx --checkpoint /cognata/deeplabv3+.onnx --dataset-path /cognata/ --dataset cognata --image-size 1440 2560
+python main.py --backend onnx --checkpoint /cognata/deeplabv3+_8mp.onnx --dataset-path /cognata/val_seg --dataset cognata
 ```
 
 Using PyTorch
 ```
-python main.py --checkpoint /cognata/latest_deeplabv3plus_resnet50_cognata_os16_it100000.pth --dataset-path /cognata/ --dataset cognata --image-size 1440 2560
+python main.py --checkpoint /cognata/latest_deeplabv3plus_resnet50_cognata_os16_it100000.pth --dataset-path /cognata/val_seg --dataset cognata 
 ```
 
 ## Run the model in accuracy mode and run the accuracy checker
 Add the --accuracy flag to run in accuracy mode.
 ```
-python main.py --backend onnx --checkpoint /cognata/deeplabv3+.onnx --dataset-path /cognata/ --dataset cognata --image-size 1440 2560 --accuracy
-python accuracy_cognata.py --mlperf-accuracy-file ./output/mlperf_log_accuracy.json --dataset-path /cognata/ --image-size 1440 2560
+python main.py --backend onnx --checkpoint /cognata/deeplabv3+_8mp.onnx --dataset-path /cognata/val_seg --dataset cognata --accuracy
+```
+Run the accuracy checker
+```
+python accuracy_cognata.py --mlperf-accuracy-file ./output/mlperf_log_accuracy.json --dataset-path /cognata/val_seg 
 ```
 
-> [!Note]
-> The flag --image-size needs to be the same in main.py and accuracy_cognata.py for correctness.
-> Removing the --image-size flag will default to 8MP.
+## Preprocessing data
+If you wanted to preprocess the dataset yourself you can use preprocess.py within the docker container. You will need to download the entire cognata dataset and extract the compressed files first. Then run the preprocessing script.
 
+In addition to Cognata, there is segmentation ground truth data for the semantic segmentation labels. When you download the dataset all files are compressed. You can extract the entire dataset using the following commands. This will extract both the dataset and preprocessed labels.
+```
+cd <your path to cognata>
+for f in *.tar.gz; do tar -xzvf "$f"; done
 
+Run the preprocessing script.
+```
+python preprocess.py --dataset-root /cognata/ --workers <num of processes> --output /cognata/val_seg
+```
+
+You can add the --image-size flag for different resolutions. In the accuracy checker you will need to include --image-size with them same dimensions used during preprocessing.

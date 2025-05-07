@@ -28,9 +28,10 @@ class BackendOnnx(backend.Backend):
         dboxes = generate_dboxes(self.config.model, model="ssd")
         folders = self.config.dataset['folders']
         cameras = self.config.dataset['cameras']
-        _, label_map, _ = prepare_cognata(data_path, folders, cameras)
         if self.config.dataset['use_label_file']:
             label_map = cognata_labels.label_map
+        else:
+            _, label_map, _ = prepare_cognata(data_path, folders, cameras) 
         self.num_classes = len(label_map.keys())
         self.checkpoint = checkpoint
         self.encoder = Encoder(dboxes)

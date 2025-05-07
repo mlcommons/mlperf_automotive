@@ -51,8 +51,8 @@ def main():
                         help="Path to the root directory of the dataset.")
     parser.add_argument('--csv-file', type=str, default="val_set.csv",
                         help="path to csv containing cognata file paths.")
-    parser.add_argument('--workers', type=int, default=4,
-                        help="Number of workers to use for preprocessing.")
+    #parser.add_argument('--workers', type=int, default=4,
+    #                    help="Number of workers to use for preprocessing.")
     parser.add_argument('--output', type=str, required=True,
                         help="output directory for pkl files.")
     parser.add_argument('--calibration-set', action='store_true',

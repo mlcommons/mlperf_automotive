@@ -312,8 +312,6 @@ def main():
     log.info(args)
 
     files = read_dataset_csv("val_set.csv")
-    files = [{'img': os.path.join(args.dataset_path, f['img']), 'ann': os.path.join(
-        args.dataset_path, f['ann'])} for f in files]
     # find backend
     backend = get_backend(
         # TODO: pass model, inference and backend arguments

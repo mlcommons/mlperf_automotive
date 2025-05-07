@@ -33,10 +33,6 @@ def get_args():
         "--output-file",
         default="openimages-results.json",
         help="path to output file")
-    parser.add_argument(
-        "--use-inv-map",
-        action="store_true",
-        help="use inverse label map")
     parser.add_argument("--config", help="config file")
     parser.add_argument(
         "--image-size",
