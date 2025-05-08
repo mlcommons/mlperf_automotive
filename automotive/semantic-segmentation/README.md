@@ -56,7 +56,7 @@ In addition to Cognata, there is segmentation ground truth data for the semantic
 ```
 cd <your path to cognata>
 for f in *.tar.gz; do tar -xzvf "$f"; done
-
+```
 Run the preprocessing script.
 ```
 python preprocess.py --dataset-root /cognata/ --workers <num of processes> --output /cognata/val_seg
