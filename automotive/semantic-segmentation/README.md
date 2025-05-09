@@ -2,10 +2,11 @@
 
 This is the reference implementation for the ABTF semantic segmentation benchmark. The reference uses ONNX as a backend. A pytorch implementation is provided as well.
 
+This model requires a 99.9% latency target and a 99.9% accuracy constraint of the reference.
+
 | model | accuracy | resolution | dataset | model source | precision |
 | ---- | ---- | ---- | ---- | ---- | ---- |
-| DeepLabv3+ | 0.8959 mIOU | 4MP | Cognata | https://github.com/rod409/pp/tree/main/deeplabv3plus | fp32 |
-| DeepLabv3+ | 0.9242 mIOU | 8MP | Cognata | https://github.com/rod409/pp/tree/main/deeplabv3plus | fp32 |
+| DeepLabv3+ |  0.924355 mIOU | 8MP | Cognata | https://github.com/rod409/pp/tree/main/deeplabv3plus | fp32 |
 
 Achieved a 99% latency of 0.655460115 and 3.825409272 seconds on an Nvidia L4 GPU at 4MP and 8MP respectively.
 
