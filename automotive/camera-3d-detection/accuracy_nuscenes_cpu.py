@@ -55,9 +55,9 @@ def main():
     predictions = {}
     ids = []
     post_proc = post_process.PostProcess(
-            num_classes=10, max_num=300, pc_range=[
-                -51.2, -51.2, -5.0, 51.2, 51.2, 3.0], post_center_range=[
-                -61.2, -61.2, -10.0, 61.2, 61.2, 10.0], score_threshold=None)
+        num_classes=10, max_num=300, pc_range=[
+            -51.2, -51.2, -5.0, 51.2, 51.2, 3.0], post_center_range=[
+            -61.2, -61.2, -10.0, 61.2, 61.2, 10.0], score_threshold=None)
     for j in results:
         idx = j['qsl_idx']
         # de-dupe in case loadgen sends the same image multiple times
@@ -72,16 +72,21 @@ def main():
         # image_id
         prediction = np.frombuffer(bytes.fromhex(j['data']), np.float32)
         # reformat to stacked tensors
-        prediction = torch.from_numpy(prediction.copy().reshape(2, 6, 1, 900, 10))
+        prediction = torch.from_numpy(
+            prediction.copy().reshape(
+                2, 6, 1, 900, 10))
         result = post_proc.process(prediction[0], prediction[1])[0]
         if idx not in predictions:
             ids.append(idx)
-        predictions[idx] = {'bboxes': result[0], 'scores': result[1], 'labels': result[2]}
+        predictions[idx] = {
+            'bboxes': result[0],
+            'scores': result[1],
+            'labels': result[2]}
 
     sorted_predictions = []
     for i in range(len(predictions)):
         sorted_predictions.append([predictions[i]['bboxes'],
-            predictions[i]['scores'], predictions[i]['labels']])
+                                   predictions[i]['scores'], predictions[i]['labels']])
     result_list = []
     for i in range(len(sorted_predictions)):
         for bboxes, scores, labels in [sorted_predictions[i]]:

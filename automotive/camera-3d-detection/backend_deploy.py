@@ -73,7 +73,7 @@ class BackendDeploy(backend.Backend):
         bev_embed = torch.from_numpy(result[0])
         outputs_classes = torch.from_numpy(result[1])
         outputs_coords = torch.from_numpy(result[2])
-        #result = self.post_process.process(outputs_classes, outputs_coords)
+        # result = self.post_process.process(outputs_classes, outputs_coords)
         self.prev_bev = bev_embed
         self.prev_frame_info["prev_pos"] = tmp_pos
         self.prev_frame_info["prev_angle"] = tmp_angle
