@@ -17,6 +17,12 @@ def get_args():
         type=int,
         help="number of items in calibration dataset",
     )
+    parser.add_argument(
+        "--validation-size",
+        default=6000,
+        type=int,
+        help="number of items in validation dataset",
+    )
     args = parser.parse_args()
     return args
 
@@ -41,7 +47,7 @@ def main():
         for file in file_set:
             file['img'] = file['img'].replace(args.dataset_path, '')
             file['ann'] = file['ann'].replace(args.dataset_path, '')
-    write_data_to_csv('val_set.csv', files['val'])
+    write_data_to_csv('val_set.csv', files['val'][:args.validation_size])
     write_data_to_csv('calibration_set.csv', files['calibration'])
 
 

@@ -72,6 +72,10 @@ def get_args():
         required=True,
         help="path to the dataset")
     parser.add_argument(
+        "--cognata-root-path",
+        help="path to the cognata root",
+        default="/cognata")
+    parser.add_argument(
         "--profile", choices=SUPPORTED_PROFILES.keys(), help="standard profiles"
     )
     parser.add_argument(
@@ -100,7 +104,7 @@ def get_args():
     parser.add_argument(
         "--model-name",
         help="Name of the model",
-        default="pointpainting")
+        default="ssd")
     parser.add_argument("--output", default="output", help="test results")
     parser.add_argument("--qps", type=int, help="target qps")
     parser.add_argument("--checkpoint", help="Path to model weights")
@@ -306,29 +310,14 @@ def main():
     args = get_args()
 
     log.info(args)
-    config = importlib.import_module('config.' + args.config)
-    image_size = config.model['image_size']
-    dboxes = generate_dboxes(config.model, model="ssd")
-    transformer = SSDTransformer(dboxes, image_size, val=True)
-    folders = config.dataset['folders']
-    cameras = config.dataset['cameras']
-
-    if config.dataset['use_label_file']:
-        label_map = cognata_labels.label_map
-        label_info = cognata_labels.label_info
-    else:
-        _, label_map, label_info = prepare_cognata(
-            args.dataset_path, folders, cameras)
 
     files = read_dataset_csv("val_set.csv")
-    files = [{'img': os.path.join(args.dataset_path, f['img']), 'ann': os.path.join(
-        args.dataset_path, f['ann'])} for f in files]
     # find backend
     backend = get_backend(
         # TODO: pass model, inference and backend arguments
         args.backend,
         config=args.config,
-        data_path=args.dataset_path,
+        data_path=args.cognata_root_path,
         checkpoint=args.checkpoint,
         nms_threshold=0.5
     )
@@ -351,12 +340,7 @@ def main():
 
     # dataset to use
     dataset_class, pre_proc, post_proc, kwargs = SUPPORTED_DATASETS[args.dataset]
-    ds = dataset_class(
-        label_map=label_map,
-        label_info=label_info,
-        files=files,
-        ignore_classes=[2, 25, 31],
-        transform=transformer)
+    ds = dataset_class(args.dataset_path, len(files))
 
     final_results = {
         "runtime": model.name(),

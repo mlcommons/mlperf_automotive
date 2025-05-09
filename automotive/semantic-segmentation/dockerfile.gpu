@@ -10,6 +10,7 @@ RUN cd /tmp && \
 
 RUN pip install Cython
 RUN pip install scikit-image
+RUN pip install scikit-learn
 RUN pip install tqdm
 RUN pip install torchinfo
 RUN pip install torchmetrics
@@ -18,4 +19,3 @@ RUN apt-get install -y libgl1-mesa-glx
 RUN pip install onnx
 RUN pip install onnxruntime
 RUN pip install ijson
-
