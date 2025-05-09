@@ -11,6 +11,7 @@ import torch
 from eval.evaluate import NuScenesEvaluate
 from tools import nuscenes_raw
 import os
+import post_process
 
 
 def get_args():
@@ -53,6 +54,10 @@ def main():
     seen = set()
     predictions = {}
     ids = []
+    post_proc = post_process.PostProcess(
+            num_classes=10, max_num=300, pc_range=[
+                -51.2, -51.2, -5.0, 51.2, 51.2, 3.0], post_center_range=[
+                -61.2, -61.2, -10.0, 61.2, 61.2, 10.0], score_threshold=None)
     for j in results:
         idx = j['qsl_idx']
         # de-dupe in case loadgen sends the same image multiple times
@@ -65,25 +70,18 @@ def main():
         # id, box[0], box[1], box[2], box[3], score, detection_class
         # note that id is a index into instances_val2017.json, not the actual
         # image_id
-        data = np.frombuffer(bytes.fromhex(j['data']), np.float32)
-
-        for i in range(0, len(data), 12):
-            box = [float(x) for x in data[i:i + 9]]
-            score = float(data[i + 9])
-            label = int(data[i + 10])
-            id = int(data[i + 11])
-            if id not in predictions:
-                predictions[id] = {
-                    'bboxes': [], 'labels': [], 'scores': []}
-                ids.append(id)
-            predictions[id]['bboxes'].append(box)
-            predictions[id]['labels'].append(label)
-            predictions[id]['scores'].append(score)
+        prediction = np.frombuffer(bytes.fromhex(j['data']), np.float32)
+        # reformat to stacked tensors
+        prediction = torch.from_numpy(prediction.copy().reshape(2, 6, 1, 900, 10))
+        result = post_proc.process(prediction[0], prediction[1])[0]
+        if idx not in predictions:
+            ids.append(idx)
+        predictions[idx] = {'bboxes': result[0], 'scores': result[1], 'labels': result[2]}
 
     sorted_predictions = []
     for i in range(len(predictions)):
-        sorted_predictions.append([torch.tensor(predictions[i]['bboxes']), torch.tensor(
-            predictions[i]['scores']), torch.tensor(predictions[i]['labels'])])
+        sorted_predictions.append([predictions[i]['bboxes'],
+            predictions[i]['scores'], predictions[i]['labels']])
     result_list = []
     for i in range(len(sorted_predictions)):
         for bboxes, scores, labels in [sorted_predictions[i]]:

@@ -27,10 +27,7 @@ SOFTWARE.
 from torch.utils.data import Dataset
 import os
 import pickle
-from pyquaternion import Quaternion
-import numpy as np
-from custom import LoadMultiViewImageFromFiles, NormalizeMultiviewImage, MultiScaleFlipAug3D, RandomScaleImageMultiViewImage, PadMultiViewImage
-from formatting import DefaultFormatBundle
+import torch
 
 
 class Nuscenes(Dataset):
@@ -90,23 +87,7 @@ class PostProcessNuscenes:
         self.content_ids.extend(content_id)
         processed_results = []
         for idx in range(len(content_id)):
-            processed_results.append([])
-            detection_num = len(results[idx][0])
-            for detection in range(0, detection_num):
-                processed_results[idx].append([
-                    results[idx][0][detection][0],
-                    results[idx][0][detection][1],
-                    results[idx][0][detection][2],
-                    results[idx][0][detection][3],
-                    results[idx][0][detection][4],
-                    results[idx][0][detection][5],
-                    results[idx][0][detection][6],
-                    results[idx][0][detection][7],
-                    results[idx][0][detection][8],
-                    results[idx][1][detection],
-                    results[idx][2][detection],
-                    content_id[idx]
-                ])
+            processed_results.append(torch.stack(results).cpu())
         return processed_results
 
     def start(self):
