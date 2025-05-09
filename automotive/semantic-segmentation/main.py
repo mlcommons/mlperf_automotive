@@ -96,7 +96,7 @@ def get_args():
     parser.add_argument(
         "--model-name",
         help="Name of the model",
-        default="deeplabv3+")
+        default="deeplabv3plus")
     parser.add_argument("--output", default="output", help="test results")
     parser.add_argument("--qps", type=int, help="target qps")
     parser.add_argument("--checkpoint", help="Path to model weights")
