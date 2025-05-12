@@ -58,7 +58,11 @@ class Nuscenes(Dataset):
                 flip=False,
                 transforms=transforms))
 
-        with open(os.path.join(dataset_path, 'nuscenes', 'nuscenes_infos_temporal_val.pkl'), 'rb') as f:
+        if split == 'train':
+            info_path = 'nuscenes_infos_temporal_train.pkl'
+        else:
+            info_path = 'nuscenes_infos_temporal_val.pkl'
+        with open(os.path.join(dataset_path, 'nuscenes', info_path), 'rb') as f:
             data = pickle.load(f)
             self.data_infos = list(
                 sorted(
