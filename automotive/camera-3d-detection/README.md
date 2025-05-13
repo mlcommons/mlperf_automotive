@@ -2,13 +2,15 @@
 
 This is the reference implementation for the ABTF camera-based 3D object detection benchmark. The reference uses ONNX as a backend.
 
+This model requires a 99.9% latency target and a 99% accuracy constraint of the reference model.
+
 | model | accuracy | dataset | model source | precision |
 | ---- | ---- | ---- | ---- | ---- |
 | BEVFormer (tiny) | 0.2683556 mAP/0.37884288 NDS | Nuscenes | https://github.com/rod409/BEVFormer | fp32 |
 
 ## Downloading the dataset and model checkpoints
 
-Contact [MLCommons](https://docs.google.com/forms/d/e/1FAIpQLSdUsbqaGcoIAxoNVrxpnkUKT03S1GbbPcUIAP3hKOeV7BCgKQ/viewform) support for accessing the NuScenes dataset. This includes preprocessed data as well as the model checkpoint. The preprocessed data is located in nuscenes_data/val_3d and is used for the model during performance and accuracy mode. You will need to download the entire dataset for the accuracy checker.
+Contact [MLCommons](https://docs.google.com/forms/d/e/1FAIpQLSdUsbqaGcoIAxoNVrxpnkUKT03S1GbbPcUIAP3hKOeV7BCgKQ/viewform) support for accessing the NuScenes dataset. This includes preprocessed data as well as the model checkpoint. The preprocessed data is located in nuscenes_data/val_3d.tar.gz and is used for the model during performance and accuracy mode. You will need to download the entire dataset for the accuracy checker. After downloading extract all compressed files located under nuscenes_data and nuscenes_data/nuscenes.
 
 ## Build and run the Docker container
 

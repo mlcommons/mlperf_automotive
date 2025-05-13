@@ -79,7 +79,7 @@ def main():
     else:
         _, label_map, label_info = prepare_cognata(
             args.dataset_root, folders, cameras)
-    files = read_dataset_csv("val_set.csv")
+    files = read_dataset_csv(args.csv_file)
     files = [{'img': os.path.join(args.dataset_root, f['img']), 'ann': os.path.join(
         args.dataset_root, f['ann'])} for f in files]
     if args.calibration_set:
