@@ -22,7 +22,8 @@ class BackendDeploy(backend.Backend):
         return "NCHW"
 
     def load(self):
-        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device(
+            "cuda:0" if torch.cuda.is_available() else "cpu")
         model = network.modeling.__dict__['deeplabv3plus_resnet50'](
             num_classes=self.num_classes, output_stride=self.output_stride)
         checkpoint = torch.load(
@@ -30,12 +31,11 @@ class BackendDeploy(backend.Backend):
                 'cuda' if torch.cuda.is_available() else 'cpu'))
         model.load_state_dict(checkpoint["model_state"])
         model.eval()
-        model.to(device)
+        model.to(device=self.device)
         model.eval()
         self.model = model
         return self
 
     def predict(self, input):
-        outputs = self.model(input)
-        preds = outputs.detach().max(dim=1)[1]
-        return preds
+        outputs = self.model(input.to(device=self.device))
+        return outputs.detach()

@@ -31,3 +31,5 @@ RUN pip install onnxruntime
 RUN pip install pillow
 RUN pip install opencv-python
 RUN pip install pyquaternion
+RUN pip install tqdm
+RUN pip install nuscenes-devkit

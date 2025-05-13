@@ -34,5 +34,5 @@ class BackendOnnx(backend.Backend):
         model_input = inputs
         input_data = {self.input_img_name: to_numpy(model_input)}
         output = self.ort_sess.run(None, input_data)
-        preds = torch.from_numpy(output[0]).detach().max(dim=1)[1]
+        preds = torch.from_numpy(output[0])
         return preds
