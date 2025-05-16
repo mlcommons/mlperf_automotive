@@ -25,7 +25,7 @@ class Cognata(dataset.Dataset):
 
     def load_query_samples(self, sample_list):
         for sample in sample_list:
-            self.preloaded[sample] = self.load_item(sample)
+            self.preloaded[sample] = self.load_item(sample)['img']
 
     def unload_query_samples(self, sample_list):
         for sample in sample_list:
@@ -33,12 +33,10 @@ class Cognata(dataset.Dataset):
 
     def get_samples(self, id_list):
         data = []
-        labels = []
         for id in id_list:
             item = self.get_item(id)
             data.append(item['img'])
-            labels.append(item['label'])
-        return torch.stack(data), torch.stack(labels)
+        return torch.stack(data), None
 
     def __len__(self):
         return self.length
