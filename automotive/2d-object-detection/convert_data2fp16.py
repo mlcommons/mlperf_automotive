@@ -9,10 +9,16 @@ from utils import read_dataset_csv
 import os
 from tqdm import tqdm
 
+
 def main():
-    parser = argparse.ArgumentParser(description="Convert fp32 tensors in pkl files to fp16.")
-    parser.add_argument("input", help="Input .pkl file or folder containing .pkl files")
-    parser.add_argument("output", help="Output .pkl file or folder for converted files")
+    parser = argparse.ArgumentParser(
+        description="Convert fp32 tensors in pkl files to fp16.")
+    parser.add_argument(
+        "input",
+        help="Input .pkl file or folder containing .pkl files")
+    parser.add_argument(
+        "output",
+        help="Output .pkl file or folder for converted files")
     args = parser.parse_args()
 
     files = read_dataset_csv("val_set.csv")
@@ -27,6 +33,7 @@ def main():
         item['gt_boxes'] = item['gt_boxes'].to(torch.float16)
         with open(os.path.join(output_path, f'val_{i}.pkl'), 'wb') as f:
             pickle.dump(item, f)
+
 
 if __name__ == "__main__":
     main()
