@@ -55,10 +55,10 @@ MODEL_CONFIG = {
             "ssd": ("mAP", .7179 * 0.999)
         },
         "accuracy-upper-limit": {
-            
+
         },
         "accuracy-delta-perc": {
-            
+
         },
         "performance-sample-count": {
             # TODO: Update or remove performance sample counts
