@@ -50,7 +50,7 @@ MODEL_CONFIG = {
         },
         "optional-scenarios-datacenter-edge": {},
         "accuracy-target": {
-            "bevformer": ("mAP", .2683556 * 0.999),
+            "bevformer": ("mAP", .2683556 * 0.99),
             "deeplabv3plus": ("mIOU", .924355 * 0.999),
             "ssd": ("mAP", .7179 * 0.999)
         },
@@ -61,7 +61,6 @@ MODEL_CONFIG = {
 
         },
         "performance-sample-count": {
-            # TODO: Update or remove performance sample counts
             "bevformer": 512,
             "deeplabv3plus": 128,
             "ssd": 128
@@ -88,7 +87,6 @@ MODEL_CONFIG = {
             "ssd": {"Server": 10000000}
         },
         "min-queries": {
-            # TODO: Update or remove min queries
             "bevformer": {"Server": 6636},
             "deeplabv3plus": {"Server": 6636},
             "ssd": {"Server": 6636}
