@@ -50,9 +50,9 @@ MODEL_CONFIG = {
         },
         "optional-scenarios-datacenter-edge": {},
         "accuracy-target": {
-            "bevformer": ("mAP", .2683556 * 0.99, "NDS", .37884288 * 0.99),
-            "deeplabv3plus": ("mIOU", .924355 * 0.99),
-            "ssd": ("mAP", .7179 * 0.99)
+            "bevformer": ("mAP", .2683556 * 0.999),
+            "deeplabv3plus": ("mIOU", .924355 * 0.999),
+            "ssd": ("mAP", .7179 * 0.999)
         },
         "accuracy-upper-limit": {
             
@@ -62,9 +62,9 @@ MODEL_CONFIG = {
         },
         "performance-sample-count": {
             # TODO: Update or remove performance sample counts
-            "bevformer": 1024,
-            "deeplabv3plus": 1024,
-            "ssd": 1024
+            "bevformer": 512,
+            "deeplabv3plus": 128,
+            "ssd": 128
         },
         # model_mapping.json is expected in the root directory of the
         # submission folder for open submissions and so the below dictionary is
@@ -89,9 +89,9 @@ MODEL_CONFIG = {
         },
         "min-queries": {
             # TODO: Update or remove min queries
-            "bevformer": {"Server": 1024},
-            "deeplabv3plus": {"Server": 1024},
-            "ssd": {"Server": 1024}
+            "bevformer": {"Server": 6636},
+            "deeplabv3plus": {"Server": 6636},
+            "ssd": {"Server": 6636}
         },
     },
 }
@@ -776,6 +776,7 @@ def check_performance_dir(
     scenario = mlperf_log["effective_scenario"]
     constant_gen = mlperf_log["effective_server_constant_gen"]
     grouped_qsl = mlperf_log["effective_use_grouped_qsl"]
+    target_latency_percentile = mlperf_log["effective_target_latency_percentile"]
 
     res = float(mlperf_log[RESULT_FIELD_NEW[version][scenario]])
 
@@ -858,6 +859,15 @@ def check_performance_dir(
             fname,
             True,
             constant_gen,
+        )
+        is_valid = False
+
+    if target_latency_percentile != 0.999:
+        log.error(
+            "%s target_latency_percentile is required to be 0.999, expected=%s, found=%s",
+            fname,
+            "0.999",
+            target_latency_percentile,
         )
         is_valid = False
 
