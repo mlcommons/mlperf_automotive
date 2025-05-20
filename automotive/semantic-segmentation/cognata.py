@@ -35,7 +35,7 @@ class Cognata(dataset.Dataset):
         data = []
         for id in id_list:
             item = self.get_item(id)
-            data.append(item['img'])
+            data.append(item)
         return torch.stack(data), None
 
     def __len__(self):
