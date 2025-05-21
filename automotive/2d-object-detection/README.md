@@ -9,7 +9,14 @@ This is the reference implementation for the ABTF camera-based 3D object detecti
 Achieved a 99% latency of 0.862741101 seconds on an Nvidia L4 GPU.
 
 ## Downloading the dataset and model checkpoints
-Contact [MLCommons](https://mlcommons.org/datasets/cognata) to access the cognata dataset. Access requires MLCommons membership and signing the EULA. The dataset download also contains the SSD model checkpoints. You do not need the entire dataset, the mlc_cognata_dataset folder, to run the benchmark. You can download the preprocessed validation data val_2d.tar.gz along with model checkpoints ssd_resent50.onnx and baseline_8MP_ss_scales_fm1_5x5_all.pth. All our under the mlc_cognata_dataset directory. You should have a cognata directory with the model checkpoints and the val_2d folder extracted directly within it.
+Contact [MLCommons](https://mlcommons.org/datasets/cognata) to access the cognata dataset. Access requires MLCommons membership and signing the EULA. The dataset download also contains the SSD model checkpoints. You do not need the entire dataset to run the benchmark. The mlc_cognata_dataset/preprocess_2d folder cotnains validation and calibration data, to run the benchmark. The model checkpoints are located under the mlc_cognata/dataset_model_checkpoint_ssd fodler. You should have a cognata directory with the model checkpoints and the val_2d folder extracted directly within it.
+
+```
+├── cognata
+│   ├── baseline_8MP_ss_scales_fm1_5x5_all_ep60.pth
+│   ├── ssd_resnet50.onnx
+│   ├── val_2d
+```
 
 
 ## Build and run the Docker container

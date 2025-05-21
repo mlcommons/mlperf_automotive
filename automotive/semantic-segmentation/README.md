@@ -8,10 +8,17 @@ This model requires a 99.9% latency target and a 99.9% accuracy constraint of th
 | ---- | ---- | ---- | ---- | ---- | ---- |
 | DeepLabv3+ |  0.924355 mIOU | 8MP | Cognata | https://github.com/rod409/pp/tree/main/deeplabv3plus | fp32 |
 
-Achieved a 99% latency of 0.655460115 and 3.825409272 seconds on an Nvidia L4 GPU at 4MP and 8MP respectively.
 
 ## Downloading the dataset and model checkpoints
-Contact [MLCommons](https://mlcommons.org/datasets/cognata) to access the cognata dataset. Access requires MLCommons membership and signing the EULA. The dataset download also contains the DeepLabv3+ onnx and PyTorch model checkpoints. You do not need the whole dataset to run the benchmark. Within mlc_cognata_dataset you can download the model checkpoints and val_seg.tar.gz preprocessed data. Extract val_seg after downloading. There are two onnx checkpoints along with one pytorch checkpoint. The onnx checkpoints are labeled deeplabv3+_8mp.onnx and deeplabv3+_dynamic.onnx. Dynamic refers to dynamic input resolutions so that will work on different image resolutions. 8mp is for 8MP images. The pytorch version is latest_deeplabv3plus_resnet50_cognata_os16_it100000.pth that will work on different image resolutions. 
+Contact [MLCommons](https://mlcommons.org/datasets/cognata) to access the cognata dataset. Access requires MLCommons membership and signing the EULA. The dataset download also contains the DeepLabv3+ onnx and PyTorch model checkpoints. You do not need the whole dataset to run the benchmark. Within mlc_cognata_dataset you can download the model checkpoints under mlc_cognata_dataset/model_checkpoint_deeplab. The preprocessed data is located under mlc_cognata_dataset/preprocessed_seg. Extract val_seg after downloading. There are two onnx checkpoints along with one pytorch checkpoint. The onnx checkpoints are labeled deeplabv3+_8mp.onnx and deeplabv3+_dynamic.onnx. Dynamic refers to dynamic input resolutions so that will work on different image resolutions. 8mp is for 8MP images. The pytorch version is latest_deeplabv3plus_resnet50_cognata_os16_it100000.pth that will work on different image resolutions. After downloading and extracting you should have the following folder structure.
+
+```
+├── cognata
+│   ├── deeplabv3+_dyn.onnx
+│   ├── deeplabv3+_8mp.onnx
+│   ├── latest_deeplabv3plus_resnet50_cognata_os16_it100000.pth
+│   ├── val_seg
+```
 
 ## Build and run the Docker container
 CPU only
