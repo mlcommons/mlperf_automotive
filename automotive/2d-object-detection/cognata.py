@@ -49,7 +49,12 @@ class Cognata(dataset.Dataset):
 
     def load_query_samples(self, sample_list):
         for sample in sample_list:
-            self.preloaded[sample] = self.load_item(sample)
+            item = self.load_item(sample)
+            self.preloaded[sample] = {
+                'img': item['img'],
+                'idx': item['idx'],
+                'img_size': item['img_size'],
+            }
 
     def unload_query_samples(self, sample_list):
         for sample in sample_list:
@@ -57,12 +62,10 @@ class Cognata(dataset.Dataset):
 
     def get_samples(self, id_list):
         data = []
-        labels = []
         for id in id_list:
             item = self.get_item(id)
             data.append((item['img'], item['idx'], item['img_size']))
-            labels.append((item['boxes'], item['labels'], item['gt_boxes']))
-        return data, labels
+        return data, None
 
     def get_item(self, idx):
         return self.preloaded[idx]

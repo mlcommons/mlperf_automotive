@@ -10,7 +10,21 @@ This model requires a 99.9% latency target and a 99% accuracy constraint of the 
 
 ## Downloading the dataset and model checkpoints
 
-Contact [MLCommons](https://docs.google.com/forms/d/e/1FAIpQLSdUsbqaGcoIAxoNVrxpnkUKT03S1GbbPcUIAP3hKOeV7BCgKQ/viewform) support for accessing the NuScenes dataset. This includes preprocessed data as well as the model checkpoint. The preprocessed data is located in nuscenes_data/val_3d.tar.gz and is used for the model during performance and accuracy mode. You will need to download the entire dataset for the accuracy checker. After downloading extract all compressed files located under nuscenes_data and nuscenes_data/nuscenes.
+Contact [MLCommons](https://docs.google.com/forms/d/e/1FAIpQLSdUsbqaGcoIAxoNVrxpnkUKT03S1GbbPcUIAP3hKOeV7BCgKQ/viewform) support for accessing the NuScenes dataset. This includes preprocessed data as well as the model checkpoints. The preprocessed data is located in nuscenes_data/preprocessed/val_3d.tar.gz and is used for the model during performance and accuracy mode. nuscenes_data/nuscenes_min.tar.gz contains minimal data needed to run the accuracy checker. The nuscenes folder contains the entire dataset and is not needed to run the benchmark. The model checkpoints are located in model_checkpoint_beformer. After downloading and extracting all compressed files you should have a directory structure that looks like the following.
+
+```
+├── bevformer_tiny.onnx
+├── nuscenes
+│   ├── maps
+│   ├── nuscenes_infos_temporal_val.pkl
+│   └── v1.0-trainval
+├── scene_lengths.pkl
+├── scene_lengths.txt
+├── scene_starts.pkl
+├── scene_starts.txt
+└── val_3d
+```
+
 
 ## Build and run the Docker container
 
@@ -40,7 +54,6 @@ python main.py --dataset nuscenes --dataset-path /nuscenes_data/val_3d --checkpo
 This assumes you generated the mlperf accuracy log in an output folder within the benchmark directory. Modify accordingly.
 ```
 cd mlperf_automotive/automotive/camera-3d-detection
-docker run -it -v ./mlperf_automotive:/mlperf_automotive -v <path to nuscenes dataset>:/nuscenes_data --rm bevformer_accuracy
 python accuracy_nuscenes_cpu.py --mlperf-accuracy-file ./output/mlperf_log_accuracy.json --config projects/configs/bevformer/bevformer_tiny.py --nuscenes-dir /nuscenes_data/
 ```
 
