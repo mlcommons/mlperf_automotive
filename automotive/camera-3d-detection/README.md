@@ -48,7 +48,7 @@ python main.py --dataset nuscenes --dataset-path /nuscenes_data/val_3d --checkpo
 ```
 
 > [!Note]
-> If you mounted the main nuscenes directory differently than the instructions you can add the flag --nuscenes-dir and specify the location.
+> If you mounted the main nuscenes directory differently than the instructions you can add the flag --nuscenes-root and specify the location.
 
 ## Run the accuracy checker
 This assumes you generated the mlperf accuracy log in an output folder within the benchmark directory. Modify accordingly.
