@@ -312,7 +312,6 @@ def main():
     # find backend
     dataset_path = os.path.abspath(args.dataset_path)
     scene_file = os.path.join(args.nuscenes_root, "scene_lengths.pkl")
-    nr = nuscenes_raw.Nuscenes('/nuscenes_data')
 
     backend = get_backend(
         # TODO: pass model, inference and backend arguments
