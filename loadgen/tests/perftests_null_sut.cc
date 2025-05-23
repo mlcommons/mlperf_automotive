@@ -113,7 +113,7 @@ class SystemUnderTestNullStdAsync : public mlperf::SystemUnderTest {
 
 /// \brief Tests server traffic using SystemUnderTestNullStdAsync.
 /// \ingroup LoadgenTestsPerformance
-void TestServerStdAsync() {
+void TestConstantStreamStdAsync() {
   SystemUnderTestNullStdAsync null_std_async_sut;
   QuerySampleLibraryNull null_qsl;
 
@@ -122,7 +122,7 @@ void TestServerStdAsync() {
   log_settings.log_output.copy_summary_to_stdout = true;
 
   mlperf::TestSettings ts;
-  ts.scenario = mlperf::TestScenario::Server;
+  ts.scenario = mlperf::TestScenario::ConstantStream;
   ts.server_target_qps = 2000000;
   ts.min_duration_ms = 100;
 
@@ -202,7 +202,7 @@ class SystemUnderTestNullPool : public mlperf::SystemUnderTest {
 
 /// \brief Tests server traffic using SystemUnderTestNullPool.
 /// \ingroup LoadgenTestsPerformance
-void TestServerPool() {
+void TestConstantStreamPool() {
   SystemUnderTestNullPool null_pool;
   QuerySampleLibraryNull null_qsl;
 
@@ -211,7 +211,7 @@ void TestServerPool() {
   log_settings.log_output.copy_summary_to_stdout = true;
 
   mlperf::TestSettings ts;
-  ts.scenario = mlperf::TestScenario::Server;
+  ts.scenario = mlperf::TestScenario::ConstantStream;
   ts.server_target_qps = 2000000;
   ts.min_duration_ms = 100;
 
@@ -224,7 +224,7 @@ void TestServerPool() {
 
 int main(int argc, char* argv[]) {
   perf_tests::TestSingleStream();
-  perf_tests::TestServerStdAsync();
-  perf_tests::TestServerPool();
+  perf_tests::TestConstantStreamStdAsync();
+  perf_tests::TestConstantStreamPool();
   return 0;
 }

@@ -73,7 +73,7 @@ TestSettingsInternal::TestSettingsInternal(
       target_latency_percentile =
           requested.multi_stream_target_latency_percentile;
       break;
-    case TestScenario::Server:
+    case TestScenario::ConstantStream:
       if (requested.server_target_qps >= 0.0) {
         target_qps = requested.server_target_qps;
       } else {
@@ -233,8 +233,8 @@ std::string ToString(TestScenario scenario) {
     case TestScenario::MultiStream:
       return "Multi Stream";
 #endif
-    case TestScenario::Server:
-      return "Server";
+    case TestScenario::ConstantStream:
+      return "ConstantStream";
     case TestScenario::Offline:
       return "Offline";
   }
@@ -290,7 +290,7 @@ void LogRequestedTestSettings(const TestSettings &s) {
         MLPERF_LOG(detail, "requested_multi_stream_samples_per_query",
                    s.multi_stream_samples_per_query);
         break;
-      case TestScenario::Server:
+      case TestScenario::ConstantStream:
         MLPERF_LOG(detail, "requested_server_target_qps", s.server_target_qps);
         MLPERF_LOG(detail, "requested_server_target_latency_ns",
                    s.server_target_latency_ns);
@@ -377,7 +377,7 @@ void LogRequestedTestSettings(const TestSettings &s) {
         detail("multi_stream_samples_per_query : ",
                s.multi_stream_samples_per_query);
         break;
-      case TestScenario::Server:
+      case TestScenario::ConstantStream:
         detail("server_target_qps : ", s.server_target_qps);
         detail("server_target_latency_ns : ", s.server_target_latency_ns);
         detail("server_target_latency_percentile : ",
@@ -734,9 +734,9 @@ int TestSettings::FromConfig(const std::string &path, const std::string &model,
     use_token_latencies = (val == 1) ? true : false;
   }
   if (use_token_latencies) {
-    lookupkv(model, "Server", "ttft_latency", &server_ttft_latency, nullptr,
+    lookupkv(model, "ConstantStream", "ttft_latency", &server_ttft_latency, nullptr,
              1000 * 1000);
-    lookupkv(model, "Server", "tpot_latency", &server_tpot_latency, nullptr,
+    lookupkv(model, "ConstantStream", "tpot_latency", &server_tpot_latency, nullptr,
              1000 * 1000);
   }
 
@@ -762,10 +762,10 @@ int TestSettings::FromConfig(const std::string &path, const std::string &model,
   lookupkv(model, "MultiStream", "samples_per_query",
            &multi_stream_samples_per_query, nullptr, 1);
 
-  // keys that apply to Server
-  lookupkv(model, "Server", "target_latency_percentile", nullptr,
+  // keys that apply to ConstantStream
+  lookupkv(model, "ConstantStream", "target_latency_percentile", nullptr,
            &server_target_latency_percentile, 0.01);
-  lookupkv(model, "Server", "target_latency", &server_target_latency_ns,
+  lookupkv(model, "ConstantStream", "target_latency", &server_target_latency_ns,
            nullptr, 1000 * 1000);
 
   // keys that can be overriden in user.conf (the provided values still need to
@@ -780,11 +780,11 @@ int TestSettings::FromConfig(const std::string &path, const std::string &model,
   if (lookupkv(model, scenario, "sample_concatenate_permutation", &val,
                nullptr))
     sample_concatenate_permutation = (val == 1) ? true : false;
-  if (lookupkv(model, "Server", "coalesce_queries", &val, nullptr))
+  if (lookupkv(model, "ConstantStream", "coalesce_queries", &val, nullptr))
     server_coalesce_queries = (val == 0) ? false : true;
-  if (lookupkv(model, "Server", "max_async_queries", &val, nullptr))
+  if (lookupkv(model, "ConstantStream", "max_async_queries", &val, nullptr))
     server_max_async_queries = int(val);
-  if (lookupkv(model, "Server", "constant_gen", &val, nullptr))
+  if (lookupkv(model, "ConstantStream", "constant_gen", &val, nullptr))
     server_constant_gen = (val == 0) ? false : true;
 
   lookupkv(model, scenario, "min_duration", &min_duration_ms, nullptr);
@@ -797,7 +797,7 @@ int TestSettings::FromConfig(const std::string &path, const std::string &model,
            &single_stream_expected_latency_ns, 1000 * 1000);
   lookupkv(model, "MultiStream", "target_latency", nullptr,
            &multi_stream_expected_latency_ns, 1000 * 1000);
-  lookupkv(model, "Server", "target_qps", nullptr, &server_target_qps);
+  lookupkv(model, "ConstantStream", "target_qps", nullptr, &server_target_qps);
   lookupkv(model, "Offline", "target_qps", 0, &offline_expected_qps);
 
   if (lookupkv(model, scenario, "print_timestamps", &val, nullptr))

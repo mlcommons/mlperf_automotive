@@ -86,7 +86,7 @@ PerfClock::time_point QueryMetadata::WaitForAllSamplesCompletedWithTimestamp() {
   return all_samples_done_time;
 }
 
-// When server_coalesce_queries is set to true in Server scenario, we
+// When server_coalesce_queries is set to true in ConstantStream scenario, we
 // sometimes coalesce multiple queries into one query. This is done by moving
 // the other query's sample into current query, while maintaining their
 // original scheduled_time.
@@ -168,7 +168,7 @@ struct QueryScheduler<TestScenario::MultiStream> {
 
 /// \brief Schedules queries for issuance in the server scenario.
 template <>
-struct QueryScheduler<TestScenario::Server> {
+struct QueryScheduler<TestScenario::ConstantStream> {
   QueryScheduler(const TestSettingsInternal& /*settings*/,
                  const PerfClock::time_point start)
       : start(start) {}
@@ -252,7 +252,7 @@ void IssueQueryController::RegisterThread() {
 
     // Start issuing queries.
     if (thread_idx <= num_threads) {
-      IssueQueriesInternal<TestScenario::Server, true>(num_threads, thread_idx);
+      IssueQueriesInternal<TestScenario::ConstantStream, true>(num_threads, thread_idx);
       {
         std::lock_guard<std::mutex> lock(mtx);
         thread_complete[thread_idx] = true;
@@ -303,7 +303,7 @@ void IssueQueryController::StartIssueQueries(IssueQueryState* s) {
   state->start_for_power = std::chrono::system_clock::now();
   state->start_time = PerfClock::now();
 
-  if (scenario != TestScenario::Server || num_threads == 0) {
+  if (scenario != TestScenario::ConstantStream || num_threads == 0) {
     // Usually, we just use the same thread to issue queries.
     IssueQueriesInternal<scenario, false>(1, 0);
   } else {
@@ -333,7 +333,7 @@ template void IssueQueryController::StartIssueQueries<
     TestScenario::MultiStream>(IssueQueryState* s);
 template void IssueQueryController::StartIssueQueries<TestScenario::Offline>(
     IssueQueryState* s);
-template void IssueQueryController::StartIssueQueries<TestScenario::Server>(
+template void IssueQueryController::StartIssueQueries<TestScenario::ConstantStream>(
     IssueQueryState* s);
 template void IssueQueryController::StartIssueQueries<
     TestScenario::SingleStream>(IssueQueryState* s);
@@ -381,7 +381,7 @@ void IssueQueryController::IssueQueriesInternal(size_t query_stride,
   // We can never run out of generated queries in the server scenario,
   // since the duration depends on the scheduled query time and not
   // the actual issue time.
-  bool ran_out_of_generated_queries = scenario != TestScenario::Server;
+  bool ran_out_of_generated_queries = scenario != TestScenario::ConstantStream;
   // This is equal to the sum of numbers of samples issued.
   size_t expected_latencies = 0;
 
@@ -393,10 +393,10 @@ void IssueQueryController::IssueQueriesInternal(size_t query_stride,
         MakeScopedTracer([](AsyncTrace& trace) { trace("SampleLoop"); });
     last_now = query_scheduler.Wait(&query);
 
-    // If in Server scenario and server_coalesce_queries is enabled, multiple
+    // If in ConstantStream scenario and server_coalesce_queries is enabled, multiple
     // queries are coalesed into one big query if the current time has already
     // passed the scheduled time of multiple queries.
-    if (scenario == TestScenario::Server &&
+    if (scenario == TestScenario::ConstantStream &&
         settings.requested.server_coalesce_queries) {
       auto current_query_idx = queries_idx;
       for (; queries_idx + query_stride < queries_count;
@@ -429,7 +429,7 @@ void IssueQueryController::IssueQueriesInternal(size_t query_stride,
     queries_issued_per_iter++;
     queries_issued += queries_issued_per_iter;
 
-    if (scenario == TestScenario::Server &&
+    if (scenario == TestScenario::ConstantStream &&
         settings.requested.server_coalesce_queries) {
       // Set the query back to its clean state.
       query.Decoalesce();
@@ -442,7 +442,7 @@ void IssueQueryController::IssueQueriesInternal(size_t query_stride,
     }
 
     auto duration = (last_now - start);
-    if (scenario == TestScenario::Server) {
+    if (scenario == TestScenario::ConstantStream) {
       if (settings.max_async_queries != 0) {
         // Checks if there are too many outstanding queries.
         size_t queries_issued_total{0};
@@ -545,9 +545,9 @@ void IssueQueryController::IssueQueriesInternal(size_t query_stride,
   {
     std::lock_guard<std::mutex> lock(state->mtx);
     state->ran_out_of_generated_queries |= ran_out_of_generated_queries;
-    // In Server scenario and when max_async_queries != 0, we would have set
+    // In ConstantStream scenario and when max_async_queries != 0, we would have set
     // state->queries_issued when we check max_async_queries in the loop.
-    if (!(scenario == TestScenario::Server && settings.max_async_queries != 0 &&
+    if (!(scenario == TestScenario::ConstantStream && settings.max_async_queries != 0 &&
           multi_thread)) {
       state->queries_issued += queries_issued;
     }

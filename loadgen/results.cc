@@ -45,10 +45,10 @@ void PerformanceSummary::ProcessLatencies() {
 
   query_count = pr.queries_issued;
 
-  // Count the number of overlatency queries. Only for Server scenario. Since in
+  // Count the number of overlatency queries. Only for ConstantStream scenario. Since in
   // this scenario the number of samples per query is 1, sample_latencies are
   // used.
-  if (settings.scenario == TestScenario::Server) {
+  if (settings.scenario == TestScenario::ConstantStream) {
     QuerySampleLatency max_latency = settings.target_latency.count() + 1;
     overlatency_query_count =
         pr.sample_latencies.end() -
@@ -135,7 +135,7 @@ void PerformanceSummary::ProcessTokenLatencies() {
             .time_per_output_token_arr[sample_count * lp.percentile];
   }
 
-  if (settings.scenario == TestScenario::Server) {
+  if (settings.scenario == TestScenario::ConstantStream) {
     // TODO: Maybe another target latency needs to be added?
     QuerySampleLatency max_latency = settings.target_latency.count() + 1;
     overlatency_first_token_count =
@@ -270,7 +270,7 @@ bool PerformanceSummary::EarlyStopping(
       }
       break;
     }
-    case TestScenario::Server: {
+    case TestScenario::ConstantStream: {
       int64_t t =
           std::count_if((*sample_latencies).begin(), (*sample_latencies).end(),
                         [=](auto const& latency) {
@@ -338,7 +338,7 @@ bool PerformanceSummary::MinDurationMet(std::string* recommendation) {
     case TestScenario::Offline:
       min_duration_met = pr.max_latency >= min_duration;
       break;
-    case TestScenario::Server:
+    case TestScenario::ConstantStream:
       min_duration_met = pr.final_query_scheduled_time >= min_duration;
       break;
     case TestScenario::SingleStream:
@@ -357,7 +357,7 @@ bool PerformanceSummary::MinDurationMet(std::string* recommendation) {
           "Decrease the expected latency so the loadgen pre-generates more "
           "queries.";
       break;
-    case TestScenario::Server:
+    case TestScenario::ConstantStream:
       *recommendation =
           "Increase the target QPS so the loadgen pre-generates more queries.";
       break;
@@ -379,7 +379,7 @@ bool PerformanceSummary::MinSamplesMet() {
 }
 
 bool PerformanceSummary::HasPerfConstraints() {
-  return settings.scenario == TestScenario::Server;
+  return settings.scenario == TestScenario::ConstantStream;
 }
 
 bool PerformanceSummary::PerfConstraintsMet(std::string* recommendation) {
@@ -389,7 +389,7 @@ bool PerformanceSummary::PerfConstraintsMet(std::string* recommendation) {
     case TestScenario::SingleStream:
     case TestScenario::MultiStream:
       break;
-    case TestScenario::Server:
+    case TestScenario::ConstantStream:
       ProcessLatencies();
       if (!settings.use_token_latencies) {
         if (target_latency_percentile.sample_latency >
@@ -452,7 +452,7 @@ void PerformanceSummary::LogSummary(AsyncSummary& summary) {
               target_latency_percentile.query_latency);
       break;
     }
-    case TestScenario::Server: {
+    case TestScenario::ConstantStream: {
       // Subtract 1 from sample count since the start of the final sample
       // represents the open end of the time range: i.e. [begin, end).
       // This makes sense since:
@@ -496,7 +496,7 @@ void PerformanceSummary::LogSummary(AsyncSummary& summary) {
         summary("Tokens per second: ", tokens_per_second);
         break;
       }
-      case TestScenario::Server:
+      case TestScenario::ConstantStream:
         double tps_as_completed =
             token_count / pr.final_query_all_samples_done_time;
         summary("Completed tokens per second: ",
@@ -519,7 +519,7 @@ void PerformanceSummary::LogSummary(AsyncSummary& summary) {
         summary("Tokens per second (inferred): ", tokens_per_second);
         break;
       }
-      case TestScenario::Server:
+      case TestScenario::ConstantStream:
         double tps_as_completed = settings.token_latency_scaling_factor *
                                   (sample_count - 1) /
                                   pr.final_query_all_samples_done_time;
@@ -589,7 +589,7 @@ void PerformanceSummary::LogSummary(AsyncSummary& summary) {
   }
   // Early stopping results
   if (settings.scenario == TestScenario::SingleStream ||
-      settings.scenario == TestScenario::Server ||
+      settings.scenario == TestScenario::ConstantStream ||
       settings.scenario == TestScenario::MultiStream) {
     if (!settings.use_token_latencies) {
       summary("Early Stopping Result:");
@@ -614,7 +614,7 @@ void PerformanceSummary::LogSummary(AsyncSummary& summary) {
     summary("QPS w/ loadgen overhead         : " + DoubleToString(qps_w_lg));
     summary("QPS w/o loadgen overhead        : " + DoubleToString(qps_wo_lg));
     summary("");
-  } else if (settings.scenario == TestScenario::Server) {
+  } else if (settings.scenario == TestScenario::ConstantStream) {
     // Scheduled samples per second as an additional stat
     double qps_as_scheduled =
         (sample_count - 1) / pr.final_query_scheduled_time;
@@ -652,7 +652,7 @@ void PerformanceSummary::LogSummary(AsyncSummary& summary) {
       summary("TPS w/ loadgen overhead         : " + DoubleToString(tps_w_lg));
       summary("TPS w/o loadgen overhead        : " + DoubleToString(tps_wo_lg));
 
-    } else if (settings.scenario == TestScenario::Server) {
+    } else if (settings.scenario == TestScenario::ConstantStream) {
       double tps_as_completed =
           token_count / pr.final_query_all_samples_done_time;
       summary("Completed tokens per second                 : ",
@@ -780,7 +780,7 @@ void PerformanceSummary::LogDetail(AsyncDetail& detail) {
   }
   // Report number of queries
   MLPERF_LOG(detail, "result_query_count", query_count);
-  if (settings.scenario == TestScenario::Server) {
+  if (settings.scenario == TestScenario::ConstantStream) {
     MLPERF_LOG(detail, "result_overlatency_query_count",
                overlatency_query_count);
   }
@@ -816,7 +816,7 @@ void PerformanceSummary::LogDetail(AsyncDetail& detail) {
                  early_stopping_latency_ms);
       break;
     }
-    case TestScenario::Server: {
+    case TestScenario::ConstantStream: {
       // Subtract 1 from sample count since the start of the final sample
       // represents the open end of the time range: i.e. [begin, end).
       // This makes sense since:
@@ -895,7 +895,7 @@ void PerformanceSummary::LogDetail(AsyncDetail& detail) {
 
   if (settings.infer_token_latencies) {
     switch (settings.scenario) {
-      case TestScenario::Server: {
+      case TestScenario::ConstantStream: {
         double completed_tokens_per_second =
             (sample_count - 1) * settings.token_latency_scaling_factor /
             pr.final_query_all_samples_done_time;

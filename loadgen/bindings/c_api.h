@@ -83,7 +83,7 @@ void StartTest(void* sut, void* qsl, const TestSettings& settings,
                const std::string& audit_config_filename);
 
 ///
-/// \brief Register a thread for query issuing in Server scenario.
+/// \brief Register a thread for query issuing in ConstantStream scenario.
 /// \details This is the C entry point. See mlperf::RegisterIssueQueryThread for
 /// the C++ entry point.
 ///

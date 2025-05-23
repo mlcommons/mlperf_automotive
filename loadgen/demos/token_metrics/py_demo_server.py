@@ -108,7 +108,7 @@ def get_args():
 def main():
     args = get_args()
     settings = mlperf_loadgen.TestSettings()
-    settings.scenario = mlperf_loadgen.TestScenario.Server
+    settings.scenario = mlperf_loadgen.TestScenario.ConstantStream
     if args.mode == "performance":
         settings.mode = mlperf_loadgen.TestMode.PerformanceOnly
     else:

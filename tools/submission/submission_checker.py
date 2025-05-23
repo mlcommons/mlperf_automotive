@@ -32,21 +32,21 @@ MODEL_CONFIG = {
             "ssd",
         ],
         "required-scenarios-datacenter": {
-            "bevformer": ["Server", "SingleStream"],
-            "deeplabv3plus": ["Server", "SingleStream"],
-            "ssd": ["Server", "SingleStream"]
+            "bevformer": ["ConstantStream", "SingleStream"],
+            "deeplabv3plus": ["ConstantStream", "SingleStream"],
+            "ssd": ["ConstantStream", "SingleStream"]
         },
         "optional-scenarios-datacenter": {},
         "required-scenarios-edge": {
-            "bevformer": ["Server", "SingleStream"],
-            "deeplabv3plus": ["Server", "SingleStream"],
-            "ssd": ["Server", "SingleStream"]
+            "bevformer": ["ConstantStream", "SingleStream"],
+            "deeplabv3plus": ["ConstantStream", "SingleStream"],
+            "ssd": ["ConstantStream", "SingleStream"]
         },
         "optional-scenarios-edge": {},
         "required-scenarios-datacenter-edge": {
-            "bevformer": ["Server", "SingleStream"],
-            "deeplabv3plus": ["Server", "SingleStream"],
-            "ssd": ["Server", "SingleStream"]
+            "bevformer": ["ConstantStream", "SingleStream"],
+            "deeplabv3plus": ["ConstantStream", "SingleStream"],
+            "ssd": ["ConstantStream", "SingleStream"]
         },
         "optional-scenarios-datacenter-edge": {},
         "accuracy-target": {
@@ -82,14 +82,14 @@ MODEL_CONFIG = {
         },
         "ignore_errors": [],
         "latency-constraint": {
-            "bevformer": {"Server": 10000000},
-            "deeplabv3plus": {"Server": 10000000},
-            "ssd": {"Server": 10000000}
+            "bevformer": {"ConstantStream": 10000000},
+            "deeplabv3plus": {"ConstantStream": 10000000},
+            "ssd": {"ConstantStream": 10000000}
         },
         "min-queries": {
-            "bevformer": {"Server": 6636},
-            "deeplabv3plus": {"Server": 6636},
-            "ssd": {"Server": 6636}
+            "bevformer": {"ConstantStream": 6636},
+            "deeplabv3plus": {"ConstantStream": 6636},
+            "ssd": {"ConstantStream": 6636}
         },
     },
 }
@@ -139,7 +139,7 @@ OFFLINE_MIN_SPQ_SINCE_V4 = {
 SCENARIO_MAPPING = {
     "singlestream": "SingleStream",
     "multistream": "MultiStream",
-    "server": "Server",
+    "server": "ConstantStream",
     "offline": "Offline",
 }
 
@@ -147,7 +147,7 @@ RESULT_FIELD = {
     "Offline": "Samples per second",
     "SingleStream": "90th percentile latency (ns)",
     "MultiStream": "Samples per query",
-    "Server": "Scheduled samples per second",
+    "ConstantStream": "Scheduled samples per second",
 }
 
 RESULT_FIELD_NEW = {
@@ -155,7 +155,7 @@ RESULT_FIELD_NEW = {
         "Offline": "result_samples_per_second",
         "SingleStream": "early_stopping_latency_ss",
         "MultiStream": "early_stopping_latency_ms",
-        "Server": "result_completed_samples_per_sec",
+        "ConstantStream": "result_completed_samples_per_sec",
     },
 }
 
@@ -426,7 +426,7 @@ class Config:
         return True
 
     def uses_early_stopping(self, scenario):
-        return scenario in ["Server", "SingleStream", "MultiStream"]
+        return scenario in ["ConstantStream", "SingleStream", "MultiStream"]
 
     def requires_equal_issue(self, model, division):
         return (
@@ -510,7 +510,7 @@ def get_args():
     )
     parser.add_argument(
         "--scenarios-to-skip",
-        help="Delimited list input of scenarios to skip. i.e. if you only have Offline results, pass in 'Server'",
+        help="Delimited list input of scenarios to skip. i.e. if you only have Offline results, pass in 'ConstantStream'",
         type=str,
     )
     args = parser.parse_args()
@@ -743,6 +743,8 @@ def get_performance_metric(
         is_valid = True
     scenario = mlperf_log["effective_scenario"]
 
+    log.info("%s, %s", version, scenario)
+
     res = float(mlperf_log[RESULT_FIELD_NEW[version][scenario]])
     inferred = False
     if scenario_fixed != scenario:
@@ -842,7 +844,7 @@ def check_performance_dir(
             schedule_rng_seed,
         )
         is_valid = False
-    if scenario == "Server" and not constant_gen:
+    if scenario == "ConstantStream" and not constant_gen:
         log.error(
             "%s constant_gen is set to false, expected=%s, found=%s",
             fname,
@@ -884,7 +886,7 @@ def check_performance_dir(
                 early_stopping_result,
             )
 
-        # If the scenario has a target latency (Server scenario), check
+        # If the scenario has a target latency (ConstantStream scenario), check
         # that the target latency that was passed to the early stopping
         # is less than the target latency.
         target_latency = config.latency_constraint.get(
@@ -1076,8 +1078,8 @@ def get_power_metric(config, scenario_fixed, log_path, is_valid, res):
     else:
         avg_power = sum(power_list) / len(power_list)
         power_duration = (power_end - power_begin).total_seconds()
-        if scenario_fixed in ["Offline", "Server"]:
-            # In Offline and Server scenarios, the power metric is in W.
+        if scenario_fixed in ["Offline", "ConstantStream"]:
+            # In Offline and ConstantStream scenarios, the power metric is in W.
             power_metric = avg_power
             avg_power_efficiency = res / avg_power
 
@@ -1311,52 +1313,52 @@ def check_results_dir(
         special_unit_dict = {
             "gptj-99": {
                 "Offline": "Tokens/s",
-                "Server": "Tokens/s",
+                "ConstantStream": "Tokens/s",
             },
             "gptj-99.9": {
                 "Offline": "Tokens/s",
-                "Server": "Tokens/s",
+                "ConstantStream": "Tokens/s",
             },
             "llama2-70b-99": {
                 "Offline": "Tokens/s",
-                "Server": "Tokens/s",
+                "ConstantStream": "Tokens/s",
             },
             "llama2-70b-99.9": {
                 "Offline": "Tokens/s",
-                "Server": "Tokens/s",
+                "ConstantStream": "Tokens/s",
             },
             "llama2-70b-interactive-99": {
                 "Offline": "Tokens/s",
-                "Server": "Tokens/s",
+                "ConstantStream": "Tokens/s",
             },
             "llama2-70b-interactive-99.9": {
                 "Offline": "Tokens/s",
-                "Server": "Tokens/s",
+                "ConstantStream": "Tokens/s",
             },
             "llama3.1-405b": {
                 "Offline": "Tokens/s",
-                "Server": "Tokens/s",
+                "ConstantStream": "Tokens/s",
             },
             "mixtral-8x7b": {
                 "Offline": "Tokens/s",
-                "Server": "Tokens/s",
+                "ConstantStream": "Tokens/s",
             },
             "llama3.1-405b": {
                 "Offline": "Tokens/s",
-                "Server": "Tokens/s",
+                "ConstantStream": "Tokens/s",
             },
         }
         unit_dict = {
             "SingleStream": "Latency (ms)",
             "MultiStream": "Latency (ms)",
             "Offline": "Samples/s",
-            "Server": "Queries/s",
+            "ConstantStream": "Queries/s",
         }
         power_unit_dict = {
             "SingleStream": "millijoules",
             "MultiStream": "millijoules",
             "Offline": "Watts",
-            "Server": "Watts",
+            "ConstantStream": "Watts",
         }
         if config.version == "v4.0":
             unit = unit_dict[scenario_fixed]

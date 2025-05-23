@@ -52,7 +52,7 @@ SUPPORTED_PROFILES = {
 SCENARIO_MAP = {
     "SingleStream": lg.TestScenario.SingleStream,
     "MultiStream": lg.TestScenario.MultiStream,
-    "Server": lg.TestScenario.Server,
+    "ConstantStream": lg.TestScenario.ConstantStream,
     "Offline": lg.TestScenario.Offline,
 }
 
@@ -369,7 +369,7 @@ def main():
     runner_map = {
         lg.TestScenario.SingleStream: RunnerBase,
         lg.TestScenario.MultiStream: QueueRunner,
-        lg.TestScenario.Server: QueueRunner,
+        lg.TestScenario.ConstantStream: QueueRunner,
         lg.TestScenario.Offline: QueueRunner,
     }
     runner = runner_map[scenario](
