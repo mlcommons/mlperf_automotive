@@ -24,7 +24,6 @@ import pickle
 import dataset
 import torch
 import nuscenes_inf
-from tools import nuscenes_raw
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("main")
