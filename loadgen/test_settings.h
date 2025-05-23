@@ -56,7 +56,7 @@ namespace mlperf {
 ///  + Internal LoadGen latency between queries is not included in the
 ///    latency results.
 ///  + **Final performance result is:** a percentile of the query latency.
-/// * **Server**
+/// * **ConstantStream**
 ///  + Sends queries with a single sample.
 ///  + Queries have a random poisson (non-uniform) arrival rate that, when
 ///    averaged, hits the target QPS.
@@ -76,7 +76,7 @@ namespace mlperf {
 enum class TestScenario {
   SingleStream,
   MultiStream,
-  Server,
+  ConstantStream,
   Offline,
 };
 
@@ -93,7 +93,7 @@ enum class TestScenario {
 ///  + Runs the performance traffic for the given scenario, as described in
 ///    the comments for TestScenario.
 /// * **FindPeakPerformance**
-///  + Determines the maximumum QPS for the Server scenario.
+///  + Determines the maximumum QPS for the ConstantStream scenario.
 ///  + Not applicable for SingleStream, MultiStream or Offline scenarios.
 ///
 enum class TestMode {
@@ -135,14 +135,14 @@ struct TestSettings {
   /**@}*/
 
   // ==================================
-  /// \name Server-specific
+  /// \name ConstantStream-specific
   /**@{*/
   /// \brief The average QPS of the poisson distribution.
   /// \details note: This field is used as a FindPeakPerformance's lower bound.
   /// When you run FindPeakPerformanceMode, you should make sure that this value
   /// satisfies performance constraints.
   double server_target_qps = 1;
-  /// \brief The latency constraint for the Server scenario.
+  /// \brief The latency constraint for the ConstantStream scenario.
   uint64_t server_target_latency_ns = 100000000;
   /// \brief The latency percentile for server mode. This value is combined with
   /// server_target_latency_ns to determine if a run is valid.
@@ -215,7 +215,7 @@ struct TestSettings {
   /// \brief Affects the order in which samples from the performance set will
   /// be included in queries.
   uint64_t sample_index_rng_seed = 0;
-  /// \brief Affects the poisson arrival process of the Server scenario.
+  /// \brief Affects the poisson arrival process of the ConstantStream scenario.
   /// \details Different seeds will appear to "jitter" the queries
   /// differently in time, but should not affect the average issued QPS.
   uint64_t schedule_rng_seed = 0;
