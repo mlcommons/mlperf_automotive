@@ -29,8 +29,10 @@ import csv
 import torch
 import pickle
 
+
 def to_numpy(tensor):
     return tensor.detach().cpu().numpy() if tensor.requires_grad else tensor.cpu().numpy()
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Create calibration data.")
@@ -38,29 +40,36 @@ def parse_args():
     parser.add_argument(
         "--onnx-path", required=True, type=str, help="Input onnx model without Q/DQ nodes."
     )
-    parser.add_argument("--output", default=None, help="Path to save calibration data.")
-    parser.add_argument("--verbose", action="store_true", help="If verbose, print all the debug info.")
     parser.add_argument(
-    "--dataset-path",
-    required=True,
-    help="path to the dataset")
+        "--output",
+        default=None,
+        help="Path to save calibration data.")
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="If verbose, print all the debug info.")
+    parser.add_argument(
+        "--dataset-path",
+        required=True,
+        help="path to the dataset")
     args = parser.parse_args()
     return args
 
 
 def generate_calibration_indices(calibration_list):
-        calibration_indexes = []
-        for row in calibration_list:
-            # Assuming the first column is the index
-            start = int(row[0])
-            indices = range(start,start + int(row[1]))
-            calibration_indexes.extend(indices)
-        return calibration_indexes
+    calibration_indexes = []
+    for row in calibration_list:
+        # Assuming the first column is the index
+        start = int(row[0])
+        indices = range(start, start + int(row[1]))
+        calibration_indexes.extend(indices)
+    return calibration_indexes
 
 
 def main():
     args = parse_args()
-    spec = importlib.util.spec_from_file_location('bevformer_tiny', str(args.config))
+    spec = importlib.util.spec_from_file_location(
+        'bevformer_tiny', str(args.config))
     cfg = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(cfg)
     dataset = nuscenes_inf.Nuscenes(cfg, args.dataset_path, 'train')
@@ -72,7 +81,7 @@ def main():
     input_can_bus_name = ort_sess.get_inputs()[3].name
     input_lidar2img_name = ort_sess.get_inputs()[4].name
     calibration_file = "calibration_list.csv"
-    calibration_list= []
+    calibration_list = []
     with open(calibration_file, 'r') as f:
         reader = csv.reader(f)
         calibration_header = next(reader)  # Read the header
