@@ -84,7 +84,7 @@ def main():
             -51.2, -51.2, -5.0, 51.2, 51.2, 3.0], post_center_range=[
             -61.2, -61.2, -10.0, 61.2, 61.2, 10.0], score_threshold=None)
 
-
+    os.makedirs(args.output, exist_ok=True)
     prev_bev = torch.zeros(cfg.bev_h_ * cfg.bev_w_, 1, cfg._dim_)
     prev_frame_info = {
         "scene_token": None,
@@ -120,6 +120,9 @@ def main():
                       input_lidar2img_name: np.expand_dims(lidar2img, 0),
                       }
         calibration_input.append(input_data)
+        output_file = os.path.join(args.output, f"calib_{idx}.pkl")
+        with open(output_file, 'wb') as f:
+            pickle.dump(input_data, f)
         result = ort_sess.run(None, input_data)
         bev_embed = torch.from_numpy(result[0])
         outputs_classes = torch.from_numpy(result[1])
@@ -128,9 +131,6 @@ def main():
         prev_bev = bev_embed
         prev_frame_info["prev_pos"] = tmp_pos
         prev_frame_info["prev_angle"] = tmp_angle
-    # Save the dictionary to an .npz file
-    pickle.dump(calibration_input, open(args.output, 'wb'))
-    print(f"Calibration data saved to {args.output}")
 
 
 if __name__ == "__main__":
