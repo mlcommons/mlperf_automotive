@@ -6,7 +6,7 @@ This model requires a 99.9% latency target and a 99% accuracy constraint of the 
 
 | model | accuracy | dataset | model source | precision |
 | ---- | ---- | ---- | ---- | ---- |
-| BEVFormer (tiny) | 0.2683556 mAP/0.37884288 NDS | Nuscenes | https://github.com/rod409/BEVFormer | fp32 |
+| BEVFormer (tiny) | 0.2683556 mAP | Nuscenes | https://github.com/rod409/BEVFormer | fp32 |
 
 ## Downloading the dataset and model checkpoints
 
