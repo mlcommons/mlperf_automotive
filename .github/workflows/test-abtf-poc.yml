@@ -1,0 +1,93 @@
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: MLPerf inference ABTF POC Test
+
+on:
+  pull_request_target:
+    branches: [ "main", "poc" ]
+    paths:
+      - '.github/workflows/test-abtf-poc.yml'
+      - '**'
+      - '!**.md'
+env:
+  PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+  PR_URL: ${{ github.event.pull_request.head.repo.html_url }}
+jobs:
+  build_ubuntu:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+        python-version: [ "3.9", "3.13" ]
+        backend: [ "pytorch" ]
+        implementation: [ "python" ]
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        pip install mlc-scripts
+
+    - name: Test MLPerf Inference ABTF POC using ${{ matrix.backend }} on docker
+      run: |
+        mlcr run-abtf,inference,_poc-demo --test_query_count=5 --adr.compiler.tags=gcc --quiet --docker --docker_dt  -v --adr.inference-src.tags=_repo.$PR_URL,_branch.$PR_HEAD_REF --adr.loadgen.tags=_no-compilation-warnings
+
+  build_macos:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, macos-13]
+        python-version: [ "3.9", "3.12" ]
+        backend: [ "pytorch" ]
+        implementation: [ "python" ]
+        exclude:
+        - os: windows-latest
+          python-version: "3.9"
+        - os: windows-latest
+          python-version: "3.12"
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        pip install mlc-scripts
+    - name: Test MLPerf Inference ABTF POC using ${{ matrix.backend }} natively
+      run: |
+        mlcr run-abtf,inference,_poc-demo --test_query_count=5 --quiet --env.MLC_MLPERF_LOADGEN_BUILD_FROM_SRC=off  -v --adr.inference-src.tags=_repo.$PR_URL,_branch.$PR_HEAD_REF --adr.loadgen.tags=_no-compilation-warnings
+
+  build_windows:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest]
+        python-version: [ "3.11" ]
+        backend: [ "pytorch" ]
+        implementation: [ "python" ]
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        git config --system core.longpaths true
+        pip install mlc-scripts
+    - name: Test MLPerf Inference ABTF POC using ${{ matrix.backend }} natively
+      run: |
+        mlcr run-abtf,inference,_poc-demo --test_query_count=5 --quiet --env.MLC_MLPERF_LOADGEN_BUILD_FROM_SRC=off  -v --adr.inference-src.tags=_repo.$PR_URL,_branch.$PR_HEAD_REF --adr.loadgen.tags=_no-compilation-warnings
+
+    
+  
