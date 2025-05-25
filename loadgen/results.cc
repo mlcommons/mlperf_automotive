@@ -45,9 +45,9 @@ void PerformanceSummary::ProcessLatencies() {
 
   query_count = pr.queries_issued;
 
-  // Count the number of overlatency queries. Only for ConstantStream scenario. Since in
-  // this scenario the number of samples per query is 1, sample_latencies are
-  // used.
+  // Count the number of overlatency queries. Only for ConstantStream scenario.
+  // Since in this scenario the number of samples per query is 1,
+  // sample_latencies are used.
   if (settings.scenario == TestScenario::ConstantStream) {
     QuerySampleLatency max_latency = settings.target_latency.count() + 1;
     overlatency_query_count =
