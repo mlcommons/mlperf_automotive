@@ -98,14 +98,14 @@ struct TestSettingsInternal {
 namespace find_peak_performance {
 
 constexpr char const *kNotSupportedMsg =
-    "Finding peak performance is only supported in Server scenarios.";
+    "Finding peak performance is only supported in ConstantStream scenarios.";
 
 template <TestScenario scenario>
 TestSettingsInternal MidOfBoundaries(
     const TestSettingsInternal &lower_bound_settings,
     const TestSettingsInternal &upper_bound_settings) {
   TestSettingsInternal mid_settings = lower_bound_settings;
-  if (scenario == TestScenario::Server) {
+  if (scenario == TestScenario::ConstantStream) {
     assert(lower_bound_settings.target_qps < upper_bound_settings.target_qps);
     mid_settings.target_qps =
         lower_bound_settings.target_qps +
@@ -125,7 +125,7 @@ TestSettingsInternal MidOfBoundaries(
 template <TestScenario scenario>
 bool IsFinished(const TestSettingsInternal &lower_bound_settings,
                 const TestSettingsInternal &upper_bound_settings) {
-  if (scenario == TestScenario::Server) {
+  if (scenario == TestScenario::ConstantStream) {
     uint8_t precision = lower_bound_settings.requested
                             .server_find_peak_qps_decimals_of_precision;
     double l =
@@ -147,7 +147,7 @@ bool IsFinished(const TestSettingsInternal &lower_bound_settings,
 
 template <TestScenario scenario>
 std::string ToStringPerformanceField(const TestSettingsInternal &settings) {
-  if (scenario == TestScenario::Server) {
+  if (scenario == TestScenario::ConstantStream) {
     return std::to_string(settings.target_qps);
   } else {
     LogDetail([](AsyncDetail &detail) {
@@ -163,7 +163,7 @@ std::string ToStringPerformanceField(const TestSettingsInternal &settings) {
 
 template <TestScenario scenario>
 void WidenPerformanceField(TestSettingsInternal *settings) {
-  if (scenario == TestScenario::Server) {
+  if (scenario == TestScenario::ConstantStream) {
     settings->target_qps =
         settings->target_qps *
         (1 + settings->requested.server_find_peak_qps_boundary_step_size);

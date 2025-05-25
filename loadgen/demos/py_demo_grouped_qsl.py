@@ -56,7 +56,7 @@ def flush_queries():
 def main(argv):
     del argv
     settings = mlperf_loadgen.TestSettings()
-    settings.scenario = mlperf_loadgen.TestScenario.Server
+    settings.scenario = mlperf_loadgen.TestScenario.ConstantStream
     settings.mode = mlperf_loadgen.TestMode.PerformanceOnly
     settings.server_target_qps = 100
     settings.server_target_latency_ns = 100000000

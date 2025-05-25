@@ -239,7 +239,7 @@ int main(int argc, char** argv) {
 
   // Configure the test settings
   mlperf::TestSettings testSettings;
-  testSettings.scenario = mlperf::TestScenario::Server;
+  testSettings.scenario = mlperf::TestScenario::ConstantStream;
   testSettings.mode = mlperf::TestMode::PerformanceOnly;
   testSettings.server_target_qps = target_qps;
   testSettings.server_target_latency_ns = 10000000;  // 10ms

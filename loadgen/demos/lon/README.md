@@ -13,7 +13,7 @@ Two sides are implemented:
 
 The demo SUT is implemented with a Flask server. the LON node implements a Flask client for network operation.
 
-The test runs in MLPerf Server mode. the SUT is not implementing a benchmark but contains dummy interface to preprocessing, postprocessing and  model calling functions.
+The test runs in MLPerf ConstantStream mode. the SUT is not implementing a benchmark but contains dummy interface to preprocessing, postprocessing and  model calling functions.
 
 ### Setup
 
