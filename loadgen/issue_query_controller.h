@@ -100,7 +100,7 @@ class QueryMetadata {
   PerfClock::time_point WaitForAllSamplesCompletedWithTimestamp();
 
   /// \brief Coalesce multiple queries into one query.
-  /// When server_coalesce_queries is set to true in Server scenario, we
+  /// When server_coalesce_queries is set to true in ConstantStream scenario, we
   /// sometimes coalesce multiple queries into one query. This is done by moving
   /// the other query's sample into current query, while maintaining their
   /// original scheduled_time.
@@ -177,7 +177,7 @@ class IssueQueryController {
 
   /// \brief Kick off the query issuing.
   /// The query issuing will be done on the current thread if there is no
-  /// registered IssueQueryThreads or if it is not in Server scenario.
+  /// registered IssueQueryThreads or if it is not in ConstantStream scenario.
   template <TestScenario scenario>
   void StartIssueQueries(IssueQueryState* s);
 

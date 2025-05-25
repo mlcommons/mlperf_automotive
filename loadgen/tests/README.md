@@ -39,4 +39,4 @@ To run specific tests:
 
     out/Release/mlperf_loadgen_perftests <regex>
     e.g.:
-    out/Release/mlperf_loadgen_tests_basic ServerPool
+    out/Release/mlperf_loadgen_tests_basic ConstantStreamPool

@@ -101,7 +101,7 @@ struct ResponseDelegateDetailed : public ResponseDelegate {
          n_tokens](AsyncLog& log) {
       QueryMetadata* query = sample->query_metadata;
       DurationGeneratorNs sched{query->scheduled_time};
-      if (scenario == TestScenario::Server) {
+      if (scenario == TestScenario::ConstantStream) {
         // Trace the server scenario as a stacked graph via counter events.
         DurationGeneratorNs issued{query->issued_start_time};
         log.TraceCounterEvent("Latency", query->scheduled_time, "issue_delay",
@@ -154,7 +154,7 @@ struct ResponseDelegateDetailed : public ResponseDelegate {
     Log([sample, complete_begin_time, token_data_copy](AsyncLog& log) {
       QueryMetadata* query = sample->query_metadata;
       DurationGeneratorNs sched{query->scheduled_time};
-      if (scenario == TestScenario::Server) {
+      if (scenario == TestScenario::ConstantStream) {
         DurationGeneratorNs issued{query->issued_start_time};
         log.TraceCounterEvent(
             "Token_Latency", query->scheduled_time, "issue_delay",
@@ -181,13 +181,13 @@ struct ResponseDelegateDetailed : public ResponseDelegate {
   void QueryComplete() override {
     // We only need to track outstanding queries in the server scenario to
     // detect when the SUT has fallen too far behind.
-    if (scenario == TestScenario::Server) {
+    if (scenario == TestScenario::ConstantStream) {
       queries_completed.fetch_add(1, std::memory_order_relaxed);
     }
   }
 };
 
-/// \brief Selects the query timestamps for all scenarios except Server.
+/// \brief Selects the query timestamps for all scenarios except ConstantStream.
 template <TestScenario scenario>
 auto ScheduleDistribution(double qps) {
   return [period = std::chrono::duration_cast<std::chrono::nanoseconds>(
@@ -196,9 +196,9 @@ auto ScheduleDistribution(double qps) {
   };
 }
 
-/// \brief Selects the query timestamps for the Server scenario.
+/// \brief Selects the query timestamps for the ConstantStream scenario.
 template <>
-auto ScheduleDistribution<TestScenario::Server>(double qps) {
+auto ScheduleDistribution<TestScenario::ConstantStream>(double qps) {
   // Poisson arrival process corresponds to exponentially distributed
   // interarrival times.
   return [dist = std::exponential_distribution<>(qps)](auto& gen) mutable {
@@ -278,7 +278,7 @@ std::vector<QueryMetadata> GenerateQueries(
   // We should exit before issuing all queries.
   // Does not apply to the server scenario since the duration only
   // depends on the ideal scheduled time, not the actual issue time.
-  const int duration_multiplier = scenario == TestScenario::Server ? 1 : 2;
+  const int duration_multiplier = scenario == TestScenario::ConstantStream ? 1 : 2;
   std::chrono::microseconds gen_duration =
       duration_multiplier * settings.target_duration;
   size_t min_queries = settings.min_query_count;
@@ -335,7 +335,7 @@ std::vector<QueryMetadata> GenerateQueries(
       samples_per_query += pad_size;
     } else if ((scenario != TestScenario::Offline) &&
                (min_queries % loaded_samples.size() != 0)) {
-      // In Server, SingleStream, MultiStream mode, the min_queries should be
+      // In ConstantStream, SingleStream, MultiStream mode, the min_queries should be
       // padded
       size_t pad_size =
           (loaded_samples.size() - min_queries % loaded_samples.size());
@@ -443,7 +443,7 @@ std::vector<QueryMetadata> GenerateQueries(
     }
 
     if (!settings.use_grouped_qsl) {
-      if (settings.server_constant_gen && (scenario == TestScenario::Server)) {
+      if (settings.server_constant_gen && (scenario == TestScenario::ConstantStream)) {
         timestamp += schedule_constant_distribution(schedule_rng);
       } else {
         timestamp += schedule_distribution(schedule_rng);
@@ -1034,7 +1034,7 @@ void RunPerformanceMode(SystemUnderTest* sut, QuerySampleLibrary* qsl,
 /// constraints, 2. Find an upper bound using the function 'FindBoundaries'
 /// based on the lower bound, 3. Find peak performance settings using the
 /// function 'FindPeakPerformanceBinarySearch'. note: Since we can't find a
-/// lower bound programmatically because of the monotonicity issue of Server
+/// lower bound programmatically because of the monotonicity issue of ConstantStream
 /// scenario, rely on user's settings. After resolving this issue, we can
 /// make the function 'FindBoundaries' find a lower bound as well from some
 /// random initial settings.
@@ -1050,7 +1050,7 @@ void FindPeakPerformanceMode(SystemUnderTest* sut, QuerySampleLibrary* qsl,
 #endif
   });
 
-  if (scenario != TestScenario::Server) {
+  if (scenario != TestScenario::ConstantStream) {
     LogDetail([unsupported_scenario = ToString(scenario)](AsyncDetail& detail) {
 #if USE_NEW_LOGGING_FORMAT
       MLPERF_LOG_ERROR(detail, "error_invalid_config",
@@ -1239,8 +1239,8 @@ struct RunFunctions {
         return GetCompileTime<TestScenario::SingleStream>();
       case TestScenario::MultiStream:
         return GetCompileTime<TestScenario::MultiStream>();
-      case TestScenario::Server:
-        return GetCompileTime<TestScenario::Server>();
+      case TestScenario::ConstantStream:
+        return GetCompileTime<TestScenario::ConstantStream>();
       case TestScenario::Offline:
         return GetCompileTime<TestScenario::Offline>();
     }
