@@ -111,7 +111,7 @@ def get_args():
     parser.add_argument("--config", help="config file")
     parser.add_argument(
         "--dtype",
-        default="fp32",
+        default="fp16",
         choices=["fp32", "fp16", "bf16"],
         help="dtype of the model",
     )
@@ -139,7 +139,7 @@ def get_args():
     parser.add_argument("--count", type=int, help="dataset items to use")
     parser.add_argument("--debug", action="store_true", help="debug")
     parser.add_argument(
-        "--performance-sample-count", type=int, help="performance sample count", default=1024
+        "--performance-sample-count", type=int, help="performance sample count", default=128
     )
     parser.add_argument(
         "--max-latency", type=float, help="mlperf max latency in pct tile"
