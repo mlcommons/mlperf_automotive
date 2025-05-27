@@ -55,7 +55,7 @@ python main.py --backend onnx --config baseline_8MP_ss_scales_fm1_5x5_all --data
 ```
 Run the accuracy checker. If you changed the output log location in accuracy mode the modify the file location.
 ```
-python accuracy_cognata.py --config baseline_8MP_ss_scales_fm1_5x5_all --dataset cognata --dataset-path /cognata/val_2d --mlperf-accuracy-file ./output/mlperf_log_accuracy.json
+python accuracy_cognata.py --config baseline_8MP_ss_scales_fm1_5x5_all --dataset-path /cognata/val_2d --mlperf-accuracy-file ./output/mlperf_log_accuracy.json
 ```
 
 ## Preprocessing data
