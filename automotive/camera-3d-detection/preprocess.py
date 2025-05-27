@@ -8,8 +8,11 @@ from multiprocessing import Pool
 import torch
 import numpy as np
 import importlib
+
+
 def to_numpy(tensor):
     return tensor.detach().cpu().numpy() if tensor.requires_grad else tensor.cpu().numpy()
+
 
 class Process():
     def __init__(self, dataset_root, output, cfg, prefix='val'):
@@ -45,10 +48,10 @@ class Process():
             np.float32)
         img = input_dict['img'][0]
         input_data = {'img': np.expand_dims(to_numpy(img), 0),
-                'use_prev_bev': to_numpy(use_prev_bev),
-                'can_bus': can_bus,
-                'lidar2img': np.expand_dims(lidar2img, 0),
-                }
+                      'use_prev_bev': to_numpy(use_prev_bev),
+                      'can_bus': can_bus,
+                      'lidar2img': np.expand_dims(lidar2img, 0),
+                      }
         self.prev_frame_info["prev_pos"] = tmp_pos
         self.prev_frame_info["prev_angle"] = tmp_angle
         output_file = os.path.join(
@@ -70,7 +73,11 @@ def main():
                         help="output directory for pkl files.")
     parser.add_argument('--calibration-set', action='store_true',
                         help="Flag to indicate if the calibration set is being processed.")
-    parser.add_argument("--config", type=str, required=True, help="bevformer configuration file path")
+    parser.add_argument(
+        "--config",
+        type=str,
+        required=True,
+        help="bevformer configuration file path")
     args = parser.parse_args()
 
     dataset_root = args.dataset_root
@@ -90,8 +97,9 @@ def main():
         prefix)
 
     for i in tqdm(range(proc.num_items()), desc="Preprocessing dataset",
-                total=proc.num_items()):
+                  total=proc.num_items()):
         proc.process_item(i)
+
 
 if __name__ == "__main__":
     main()

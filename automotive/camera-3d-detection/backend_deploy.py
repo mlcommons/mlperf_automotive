@@ -18,7 +18,13 @@ class BackendDeploy(backend.Backend):
             "prev_pos": 0,
             "prev_angle": 0,
         }
-        self.prev_bev = np.zeros(shape=(cfg.bev_h_ * cfg.bev_w_, 1, cfg._dim_), dtype=np.float32)
+        self.prev_bev = np.zeros(
+            shape=(
+                cfg.bev_h_ *
+                cfg.bev_w_,
+                1,
+                cfg._dim_),
+            dtype=np.float32)
         self.checkpoint = checkpoint
         self.post_process = PostProcess(
             num_classes=10, max_num=300, pc_range=[
