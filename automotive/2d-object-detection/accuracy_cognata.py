@@ -122,6 +122,7 @@ def main():
         backend='faster_coco_eval')
     metric.update(preds, targets)
     metrics = metric.compute()
+    print(f"mAP: {metrics['map'].item()}")
     pp = pprint.PrettyPrinter(indent=4)
     pp.pprint(metrics)
 
