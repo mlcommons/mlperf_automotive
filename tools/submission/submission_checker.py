@@ -160,25 +160,8 @@ RESULT_FIELD_NEW = {
 }
 
 ACC_PATTERN = {
-    "acc": r"^(?:\{\"accuracy|accuracy)[\": ]*=?\s*([\d\.]+).*",
-    "AUC": r"^AUC=([\d\.]+).*",
-    "mAP": r".*(?:mAP=|'Total':)\s*([\d.]+)",
-    "NDS": r".*(?:NDS=|'Total':)\s*([\d.]+)",
-    "bleu": r"^BLEU\:\s*([\d\.]+).*",
-    "F1": r"^{[\"\']exact_match[\"\']\:\s*[\d\.]+,\s*[\"\']f1[\"\']\:\s*([\d\.]+)}",
-    "WER": r"Word Error Rate\:.*, accuracy=([0-9\.]+)%",
-    "DICE": r"Accuracy\:\s*mean\s*=\s*([\d\.]+).*",
-    "ROUGE1": r".*'rouge1':\s+'?([\d.]+)'?.*",
-    "ROUGE2": r".*'rouge2':\s+'?([\d.]+)'?.*",
-    "ROUGEL": r".*'rougeL':\s+'?([\d.]+)'?.*",
-    "ROUGELSUM": r".*'rougeLsum':\s([\d.]+).*",
-    "GEN_LEN": r".*'gen_len':\s([\d.]+).*",
-    "TOKENS_PER_SAMPLE": r".*'tokens_per_sample':\s([\d.]+).*",
-    "CLIP_SCORE": r".*'CLIP_SCORE':\s+'?([\d.]+).*",
-    "FID_SCORE": r".*'FID_SCORE':\s+'?([\d.]+).*",
-    "gsm8k_accuracy": r".*'gsm8k':\s([\d.]+).*",
-    "mbxp_accuracy": r".*'mbxp':\s([\d.]+).*",
-    "exact_match": r".*'exact_match':\s([\d.]+).*"
+    "mAP": r"mAP:\s*([0-9.]+)",
+    "mIOU": r"Mean IoU:\s*([0-9.]+)"
 }
 
 SYSTEM_DESC_REQUIRED_FIELDS = [
@@ -1079,7 +1062,8 @@ def get_power_metric(config, scenario_fixed, log_path, is_valid, res):
         avg_power = sum(power_list) / len(power_list)
         power_duration = (power_end - power_begin).total_seconds()
         if scenario_fixed in ["Offline", "ConstantStream"]:
-            # In Offline and ConstantStream scenarios, the power metric is in W.
+            # In Offline and ConstantStream scenarios, the power metric is in
+            # W.
             power_metric = avg_power
             avg_power_efficiency = res / avg_power
 
@@ -1101,7 +1085,7 @@ def get_power_metric(config, scenario_fixed, log_path, is_valid, res):
                 samples_per_query = 8
 
             if (scenario_fixed in ["MultiStream"]
-                ) and scenario in ["SingleStream"]:
+                    ) and scenario in ["SingleStream"]:
                 power_metric = (
                     avg_power * power_duration * samples_per_query * 1000 / num_queries
                 )
