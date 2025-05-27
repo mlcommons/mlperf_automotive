@@ -1062,7 +1062,8 @@ def get_power_metric(config, scenario_fixed, log_path, is_valid, res):
         avg_power = sum(power_list) / len(power_list)
         power_duration = (power_end - power_begin).total_seconds()
         if scenario_fixed in ["Offline", "ConstantStream"]:
-            # In Offline and ConstantStream scenarios, the power metric is in W.
+            # In Offline and ConstantStream scenarios, the power metric is in
+            # W.
             power_metric = avg_power
             avg_power_efficiency = res / avg_power
 
@@ -1084,7 +1085,7 @@ def get_power_metric(config, scenario_fixed, log_path, is_valid, res):
                 samples_per_query = 8
 
             if (scenario_fixed in ["MultiStream"]
-                ) and scenario in ["SingleStream"]:
+                    ) and scenario in ["SingleStream"]:
                 power_metric = (
                     avg_power * power_duration * samples_per_query * 1000 / num_queries
                 )
