@@ -160,7 +160,7 @@ RESULT_FIELD_NEW = {
 }
 
 ACC_PATTERN = {
-    "mAP": r".*(?:mAP=|'Total':)\s*([\d.]+)",
+    "mAP": r"mAP:\s*([0-9.]+)",
     "mIOU": r"Mean IoU:\s*([0-9.]+)"
 }
 
