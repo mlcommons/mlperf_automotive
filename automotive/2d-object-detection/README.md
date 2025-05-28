@@ -111,6 +111,14 @@ python main.py --config baseline_8MP_ss_scales_fm1_5x5_all --dataset cognata --d
 ```
 
 ## Run the model in accuracy mode and run the accuracy checker
+
+**MLCFlow run command:**
+
+```
+mlc run script --tags=run-abtf-inference,reference,_v0.5,_accuracy-only --model=ssd  --quiet --device=cpu --implementation=reference --framework=onnxruntime --scenario=SingleStream 
+```
+
+**Traditional run command:**
 Add the --accuracy flag to run in accuracy mode.
 
 ```
