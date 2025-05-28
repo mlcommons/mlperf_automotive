@@ -84,9 +84,7 @@ def main():
 
         # reconstruct from mlperf accuracy log
         # what is written by the benchmark is an array of float32's:
-        # id, box[0], box[1], box[2], box[3], score, detection_class
-        # note that id is a index into instances_val2017.json, not the actual
-        # image_id
+        #box[0], box[1], box[2], box[3], detection_class, score
         data = np.frombuffer(bytes.fromhex(j['data']), np.float32)
         current_id = -1
         predictions = {}
@@ -94,22 +92,22 @@ def main():
         labels = []
         scores = []
         ids = []
-        for i in range(0, len(data), 7):
+        for i in range(0, len(data), 6):
             box = [float(x) for x in data[i:i + 4]]
             label = int(data[i + 4])
             score = float(data[i + 5])
-            image_idx = int(data[i + 6])
-            if image_idx not in predictions:
-                predictions[image_idx] = {
+            #image_idx = int(data[i + 6])
+            if idx not in predictions:
+                predictions[idx] = {
                     'dts': [], 'labels': [], 'scores': []}
-                ids.append(image_idx)
-            predictions[image_idx]['dts'].append(box)
-            predictions[image_idx]['labels'].append(label)
-            predictions[image_idx]['scores'].append(score)
+                ids.append(idx)
+            predictions[idx]['dts'].append(box)
+            predictions[idx]['labels'].append(label)
+            predictions[idx]['scores'].append(score)
         for id in ids:
             preds.append({'boxes': torch.tensor(predictions[id]['dts']), 'labels': torch.tensor(
                 predictions[id]['labels']), 'scores': torch.tensor(predictions[id]['scores'])})
-            gt_boxes = val_set.load_item(id)['gt_boxes']
+            gt_boxes = torch.from_numpy(val_set.load_item(id)['gt_boxes'])
             targets.append(
                 {'boxes': gt_boxes[:, :4], 'labels': gt_boxes[:, 4].to(dtype=torch.int32)})
     metric = MeanAveragePrecision(

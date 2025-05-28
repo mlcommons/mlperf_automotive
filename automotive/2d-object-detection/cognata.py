@@ -52,8 +52,6 @@ class Cognata(dataset.Dataset):
             item = self.load_item(sample)
             self.preloaded[sample] = {
                 'img': item['img'],
-                'idx': item['idx'],
-                'img_size': item['img_size'],
             }
 
     def unload_query_samples(self, sample_list):
@@ -64,7 +62,7 @@ class Cognata(dataset.Dataset):
         data = []
         for id in id_list:
             item = self.get_item(id)
-            data.append((item['img'], item['idx'], item['img_size']))
+            data.append(item['img'])
         return data, None
 
     def get_item(self, idx):
@@ -172,8 +170,7 @@ class PostProcessCognata:
                     -1,
                     -1,
                     -1,
-                    -1,
-                    content_id[idx]
+                    -1
                 ])
             for detection in range(0, detection_num):
                 processed_results[idx].append([
@@ -182,8 +179,7 @@ class PostProcessCognata:
                     results[0][detection][2],
                     results[0][detection][3],
                     results[1][detection],
-                    results[2][detection],
-                    content_id[idx]
+                    results[2][detection]
                 ])
         return processed_results
 
