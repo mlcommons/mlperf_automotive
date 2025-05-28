@@ -3,6 +3,7 @@ import logging
 import dataset
 import torch
 import pickle
+import numpy as np
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("cognata")
@@ -36,7 +37,7 @@ class Cognata(dataset.Dataset):
         for id in id_list:
             item = self.get_item(id)
             data.append(item)
-        return torch.stack(data), None
+        return np.stack(data), None
 
     def __len__(self):
         return self.length

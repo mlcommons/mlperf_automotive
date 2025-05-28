@@ -6,6 +6,8 @@ import pickle
 from tqdm import tqdm
 from multiprocessing import Pool
 
+def to_numpy(tensor):
+    return tensor.detach().cpu().numpy() if tensor.requires_grad else tensor.cpu().numpy()
 
 class Process():
     def __init__(self, dataset_root, image_size, files,
@@ -19,7 +21,7 @@ class Process():
 
     def process_item(self, i):
         img, label = self.ds.get_item(i)
-        output_data = {'img': img, 'label': label}
+        output_data = {'img': to_numpy(img), 'label': to_numpy(label)}
         output_file = os.path.join(
             self.preprocessed_directory,
             f"{self.prefix}_{i}.pkl")

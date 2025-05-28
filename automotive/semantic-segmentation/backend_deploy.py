@@ -3,6 +3,7 @@ import backend
 
 import utils
 import network
+import torch
 
 
 class BackendDeploy(backend.Backend):
@@ -37,5 +38,5 @@ class BackendDeploy(backend.Backend):
         return self
 
     def predict(self, input):
-        outputs = self.model(input.to(device=self.device))
+        outputs = self.model(torch.from_numpy(input).to(device=self.device))
         return outputs.detach()
