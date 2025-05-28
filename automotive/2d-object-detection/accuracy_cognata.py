@@ -69,7 +69,11 @@ def main():
     else:
         _, label_map, label_info = prepare_cognata(
             args.cognata_root_path, folders, cameras)
-    files = read_dataset_csv("val_set.csv")
+    files = read_dataset_csv(
+        os.path.join(
+            os.path.dirname(
+                os.path.abspath(__file__)),
+            "val_set.csv"))
     files = [{'img': os.path.join(args.cognata_root_path, f['img']), 'ann': os.path.join(
         args.dataset_path, f['ann'])} for f in files]
     val_set = Cognata(args.dataset_path, len(files))
@@ -116,6 +120,7 @@ def main():
         backend='faster_coco_eval')
     metric.update(preds, targets)
     metrics = metric.compute()
+    print(f"mAP: {metrics['map'].item()}")
     pp = pprint.PrettyPrinter(indent=4)
     pp.pprint(metrics)
 

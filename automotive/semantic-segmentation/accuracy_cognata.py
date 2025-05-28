@@ -52,7 +52,11 @@ def main():
     num_classes = 19
     metrics = StreamSegMetrics(num_classes)
     metrics.reset()
-    files = read_dataset_csv("val_set.csv")
+    files = read_dataset_csv(
+        os.path.join(
+            os.path.dirname(
+                os.path.abspath(__file__)),
+            "val_set.csv"))
     image_size = args.image_size
     val_loader = Cognata(args.dataset_path, length=len(files))
     with open(args.mlperf_accuracy_file, "r") as f:
