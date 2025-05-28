@@ -84,7 +84,7 @@ def main():
 
         # reconstruct from mlperf accuracy log
         # what is written by the benchmark is an array of float32's:
-        #box[0], box[1], box[2], box[3], detection_class, score
+        # box[0], box[1], box[2], box[3], detection_class, score
         data = np.frombuffer(bytes.fromhex(j['data']), np.float32)
         current_id = -1
         predictions = {}
@@ -96,7 +96,7 @@ def main():
             box = [float(x) for x in data[i:i + 4]]
             label = int(data[i + 4])
             score = float(data[i + 5])
-            #image_idx = int(data[i + 6])
+            # image_idx = int(data[i + 6])
             if idx not in predictions:
                 predictions[idx] = {
                     'dts': [], 'labels': [], 'scores': []}

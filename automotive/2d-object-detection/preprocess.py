@@ -11,8 +11,10 @@ import pickle
 from tqdm import tqdm
 from multiprocessing import Pool
 
+
 def to_numpy(tensor):
     return tensor.detach().cpu().numpy() if tensor.requires_grad else tensor.cpu().numpy()
+
 
 class Process():
     def __init__(self, dataset_root, image_size, files, transformer,
