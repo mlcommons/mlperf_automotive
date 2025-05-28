@@ -75,10 +75,10 @@ mlcr get,dataset,nuscenes,_mlc,_rclone --outdirname=<path_to_download>
 **Using MLCFlow Docker**
 
 ```
-mlc run script --tags=run-abtf-inference,reference,_v0.5,_full --model=bevformer --docker --quiet --env.MLC_USE_DATASET_FROM_HOST=yes --env.MLC_USE_MODEL_FROM_HOST=yes --device=cpu --implementation=reference --framework=onnxruntime --scenario=SingleStream
+mlcr run-abtf-inference,reference,_v0.5,_full --model=bevformer --docker --quiet --env.MLC_USE_DATASET_FROM_HOST=yes --env.MLC_USE_MODEL_FROM_HOST=yes --device=cpu --implementation=reference --framework=onnxruntime --scenario=SingleStream
 ```
 
-**Using traditional approach**
+**Using Native approach**
 
 ```
 git clone git@github.com:mlcommons/mlperf_automotive.git
@@ -92,10 +92,10 @@ docker run -it -v ./mlperf_automotive:/mlperf_automotive -v <path to nuscenes da
 ### Using MLCFlow run command:
 
 ```
-mlc run script --tags=run-abtf-inference,reference,_v0.5,_find-performance --model=bevformer --quiet --device=cpu --implementation=reference --framework=onnxruntime --scenario=SingleStream 
+mlcr run-abtf-inference,reference,_v0.5,_find-performance --model=bevformer --quiet --device=cpu --implementation=reference --framework=onnxruntime --scenario=SingleStream 
 ```
 
-### Using traditional run command:
+### Using Native run command:
 ```
 cd /mlperf_automotive/automotive/camera-3d-detection
 python main.py --dataset nuscenes --dataset-path /nuscenes_data/val_3d  --checkpoint /nuscenes_data/bevformer_tiny.onnx --config ./projects/configs/bevformer/bevformer_tiny.py
@@ -106,10 +106,10 @@ python main.py --dataset nuscenes --dataset-path /nuscenes_data/val_3d  --checkp
 **MLCFlow run command:**
 
 ```
-mlc run script --tags=run-abtf-inference,reference,_v0.5,_accuracy-only --model=bevformer  --quiet --device=cpu --implementation=reference --framework=onnxruntime --scenario=SingleStream 
+mlcr run-abtf-inference,reference,_v0.5,_accuracy-only --model=bevformer  --quiet --device=cpu --implementation=reference --framework=onnxruntime --scenario=SingleStream 
 ```
 
-**Traditional run command:**
+**Native run command:**
 ```
 cd /mlperf_automotive/automotive/camera-3d-detection
 python main.py --dataset nuscenes --dataset-path /nuscenes_data/val_3d --checkpoint /nuscenes_data/bevformer_tiny.onnx --config ./projects/configs/bevformer/bevformer_tiny.py --accuracy

@@ -69,10 +69,10 @@ mlcr get,raw,dataset,cognata,_mlc,_rclone --outdirname=<path_to_download>
 **Using MLCFlow Docker**
 
 ```
-mlc run script --tags=run-abtf-inference,reference,_v0.5,_full --model=deeplabv3plus --docker --quiet --env.MLC_USE_DATASET_FROM_HOST=yes --env.MLC_USE_MODEL_FROM_HOST=yes --device=cpu --implementation=reference --framework=onnxruntime --scenario=SingleStream
+mlcr run-abtf-inference,reference,_v0.5,_full --model=deeplabv3plus --docker --quiet --env.MLC_USE_DATASET_FROM_HOST=yes --env.MLC_USE_MODEL_FROM_HOST=yes --device=cpu --implementation=reference --framework=onnxruntime --scenario=SingleStream
 ```
 
-**Using traditional approach**
+**Using Native approach**
 
 ```
 git clone -b v0.5abtf git@github.com:mlcommons/mlperf_automotive.git
@@ -94,7 +94,7 @@ docker run -it -v ./mlperf_automotive:/mlperf_automotive -v <path to cognata>:/c
 ### Using MLCFlow run command:
 
 ```
-mlc run script --tags=run-abtf-inference,reference,_v0.5,_find-performance --model=deeplabv3plus --quiet --device=cpu --implementation=reference --framework=onnxruntime --scenario=SingleStream 
+mlcr run-abtf-inference,reference,_v0.5,_find-performance --model=deeplabv3plus --quiet --device=cpu --implementation=reference --framework=onnxruntime --scenario=SingleStream 
 ```
 
 ### Using the ONNX backend
@@ -112,10 +112,10 @@ python main.py --checkpoint /cognata/latest_deeplabv3plus_resnet50_cognata_os16_
 **MLCFlow run command:**
 
 ```
-mlc run script --tags=run-abtf-inference,reference,_v0.5,_accuracy-only --model=deeplabv3plus  --quiet --device=cpu --implementation=reference --framework=onnxruntime --scenario=SingleStream 
+mlcr run-abtf-inference,reference,_v0.5,_accuracy-only --model=deeplabv3plus  --quiet --device=cpu --implementation=reference --framework=onnxruntime --scenario=SingleStream 
 ```
 
-**Traditional run command:**
+**Native run command:**
 
 Add the --accuracy flag to run in accuracy mode.
 ```

@@ -71,10 +71,10 @@ mlcr get,raw,dataset,cognata,_mlc,_rclone --outdirname=<path_to_download>
 **Using MLCFlow Docker**
 
 ```
-mlc run script --tags=run-abtf-inference,reference,_v0.5,_full --model=ssd --docker --quiet --env.MLC_USE_DATASET_FROM_HOST=yes --env.MLC_USE_MODEL_FROM_HOST=yes --device=cpu --implementation=reference --framework=onnxruntime --scenario=SingleStream
+mlcr run-abtf-inference,reference,_v0.5,_full --model=ssd --docker --quiet --env.MLC_USE_DATASET_FROM_HOST=yes --env.MLC_USE_MODEL_FROM_HOST=yes --device=cpu --implementation=reference --framework=onnxruntime --scenario=SingleStream
 ```
 
-**Using traditional approach**
+**Using Native approach**
 
 ```
 git clone -b v0.5abtf git@github.com:mlcommons/mlperf_automotive.git
@@ -97,10 +97,10 @@ docker run -it -v <your repo path>/mlperf_automotive:/mlperf_automotive -v <path
 **MLCFlow run command:**
 
 ```
-mlc run script --tags=run-abtf-inference,reference,_v0.5,_find-performance --model=ssd  --quiet --device=cpu --implementation=reference --framework=onnxruntime --scenario=SingleStream 
+mlcr run-abtf-inference,reference,_v0.5,_find-performance --model=ssd  --quiet --device=cpu --implementation=reference --framework=onnxruntime --scenario=SingleStream 
 ```
 
-**Traditional run command:**
+**Native run command:**
 ```
 python main.py --backend onnx --config baseline_8MP_ss_scales_fm1_5x5_all --dataset cognata --dataset-path /cognata/val_2d --checkpoint /cognata/ssd_resnet50.onnx
 ```
@@ -115,10 +115,10 @@ python main.py --config baseline_8MP_ss_scales_fm1_5x5_all --dataset cognata --d
 **MLCFlow run command:**
 
 ```
-mlc run script --tags=run-abtf-inference,reference,_v0.5,_accuracy-only --model=ssd  --quiet --device=cpu --implementation=reference --framework=onnxruntime --scenario=SingleStream 
+mlcr run-abtf-inference,reference,_v0.5,_accuracy-only --model=ssd  --quiet --device=cpu --implementation=reference --framework=onnxruntime --scenario=SingleStream 
 ```
 
-**Traditional run command:**
+**Native run command:**
 Add the --accuracy flag to run in accuracy mode.
 
 ```
