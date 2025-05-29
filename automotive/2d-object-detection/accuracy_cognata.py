@@ -57,25 +57,11 @@ def main():
         results = json.load(f)
 
     seen = set()
-    config = importlib.import_module('config.' + args.config)
-    folders = config.dataset['folders']
-    cameras = config.dataset['cameras']
-    ignore_classes = [2, 25, 31]
-    if 'ignore_classes' in config.dataset:
-        ignore_classes = config.dataset['ignore_classes']
-    if config.dataset['use_label_file']:
-        label_map = cognata_labels.label_map
-        label_info = cognata_labels.label_info
-    else:
-        _, label_map, label_info = prepare_cognata(
-            args.cognata_root_path, folders, cameras)
     files = read_dataset_csv(
         os.path.join(
             os.path.dirname(
                 os.path.abspath(__file__)),
             "val_set.csv"))
-    files = [{'img': os.path.join(args.cognata_root_path, f['img']), 'ann': os.path.join(
-        args.dataset_path, f['ann'])} for f in files]
     val_set = Cognata(args.dataset_path, len(files))
     preds = []
     targets = []
