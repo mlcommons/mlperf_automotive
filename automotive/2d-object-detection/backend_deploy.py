@@ -7,7 +7,7 @@ import importlib
 from utils import generate_dboxes, Encoder
 import cognata_labels
 from model import SSD, ResNet
-
+import numpy as np
 
 class BackendDeploy(backend.Backend):
     def __init__(self, config, data_path,
@@ -60,9 +60,7 @@ class BackendDeploy(backend.Backend):
             img = torch.from_numpy(model_input).to(device)
             ploc, plabel = self.model(img)
             ploc, plabel = ploc.float(), plabel.float()
-            dts = []
-            labels = []
-            scores = []
+            results = []
             for idx in range(ploc.shape[0]):
                 ploc_i = ploc[idx, :, :].unsqueeze(0)
                 plabel_i = plabel[idx, :, :].unsqueeze(0)
@@ -71,8 +69,6 @@ class BackendDeploy(backend.Backend):
                 height, width = self.og_image_size
                 loc, label, prob = [r.cpu().numpy() for r in result]
                 for loc_, label_, prob_ in zip(loc, label, prob):
-                    dts.append([loc_[0] * width, loc_[1] * height,
-                               loc_[2] * width, loc_[3] * height,])
-                    labels.append(label_)
-                    scores.append(prob_)
-        return dts, labels, scores
+                    results.append([loc_[0] * width, loc_[1] * height,
+                               loc_[2] * width, loc_[3] * height, label_, prob_])
+        return np.stack(results)
