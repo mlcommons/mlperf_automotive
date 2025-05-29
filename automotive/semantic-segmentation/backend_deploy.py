@@ -26,7 +26,10 @@ class BackendDeploy(backend.Backend):
     def load(self):
         model = network.modeling.__dict__['deeplabv3plus_resnet50'](
             num_classes=self.num_classes, output_stride=self.output_stride)
-        checkpoint = torch.load(self.checkpoint_file, map_location=torch.device(self.device))
+        checkpoint = torch.load(
+            self.checkpoint_file,
+            map_location=torch.device(
+                self.device))
         model.load_state_dict(checkpoint["model_state"])
         model.eval()
         model.to(device=self.device)
