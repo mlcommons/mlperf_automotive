@@ -19,7 +19,7 @@ def to_numpy(tensor):
 class BackendOnnx(backend.Backend):
     def __init__(
             self, config, data_path,
-            checkpoint, nms_threshold):
+            checkpoint, nms_threshold, device='cpu'):
         super(BackendOnnx, self).__init__()
         self.config = importlib.import_module('config.' + config)
         self.image_size = self.config.model['image_size']

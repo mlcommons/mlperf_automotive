@@ -9,7 +9,7 @@ log = logging.getLogger("backend-onnx")
 
 
 class BackendOnnx(backend.Backend):
-    def __init__(self, model_path, num_classes, output_stride):
+    def __init__(self, model_path, num_classes, output_stride, device='cpu'):
         super(BackendOnnx, self).__init__()
         self.checkpoint = model_path
         self.num_classes = num_classes

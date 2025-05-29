@@ -12,11 +12,12 @@ import numpy as np
 
 class BackendDeploy(backend.Backend):
     def __init__(self, config, data_path,
-                 checkpoint, nms_threshold):
+                 checkpoint, nms_threshold, device='cpu'):
         super(BackendDeploy, self).__init__()
         self.config = importlib.import_module('config.' + config)
         self.image_size = self.config.model['image_size']
         self.og_image_size = self.config.model['og_image_size']
+        self.device = device
         dboxes = generate_dboxes(self.config.model, model="ssd")
         folders = self.config.dataset['folders']
         cameras = self.config.dataset['cameras']
@@ -39,26 +40,23 @@ class BackendDeploy(backend.Backend):
         return "NCHW"
 
     def load(self):
-        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         model = SSD(
             self.config.model,
             backbone=ResNet(
                 self.config.model),
             num_classes=self.num_classes)
-        checkpoint = torch.load(self.checkpoint, map_location=device)
+        checkpoint = torch.load(self.checkpoint, map_location=self.device)
         self.og_image_size = self.config.model['og_image_size']
         model.load_state_dict(checkpoint["model_state_dict"])
-        model.to(device)
+        model.to(self.device)
         model.eval()
         self.model = model
         return self
 
     def predict(self, input):
         with torch.no_grad():
-            device = torch.device(
-                "cuda:0" if torch.cuda.is_available() else "cpu")
             model_input = input[0]
-            img = torch.from_numpy(model_input).to(device)
+            img = torch.from_numpy(model_input).to(self.device)
             ploc, plabel = self.model(img)
             ploc, plabel = ploc.float(), plabel.float()
             results = []
