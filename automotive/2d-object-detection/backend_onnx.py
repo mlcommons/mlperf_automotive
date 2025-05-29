@@ -64,5 +64,5 @@ class BackendOnnx(backend.Backend):
                 loc, label, prob = [r.cpu().numpy() for r in result]
                 for loc_, label_, prob_ in zip(loc, label, prob):
                     results.append([loc_[0] * width, loc_[1] * height,
-                               loc_[2] * width, loc_[3] * height, label_, prob_])
+                                    loc_[2] * width, loc_[3] * height, label_, prob_])
         return np.stack(results)
