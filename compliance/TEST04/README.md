@@ -18,14 +18,7 @@ Test script works best with Python 3.3 or later.
 
 ## Exempt Benchmarks
 This test is not applicable for the following benchmarks whose performance is dependent on variably sized input samples:
- 1. rnnt
- 2. bert
- 3. dlrm-v2
- 4. 3d-unet
- 5. retinanet (while retinanet input images are not variable, computation cost varies significantly due to the variance in qualified detections from the detector heads, which affect the NMS runtime)
- 6. gpt-j
-
-**Warning:** For the stable diffusion benchmark, min_query_count is set to 500 to avoid a longer runtime. For loading benchmark specific configuration variables, you should load the audit configuration from your SUT code. You can do this by calling `settings.FromConfig(audit_config, model_name, scenario)`. This can't happend inside loadgen, because it is agnostic to the model that is being tested.
+ 1. ssd
 
 ## Scenarios
 
@@ -37,7 +30,7 @@ Performance of TEST04 should not be faster than the standard performance run in 
 ## Instructions
 
 ### Part II : Run TEST04
- - Copy provided [audit.config](https://github.com/mlperf/inference/blob/master/v0.7/compliance/nvidia/TEST04/audit.config) file in TEST04 folder to the corresponding benchmark directory from where the test is run
+ - Copy provided [audit.config](https://github.com/mlperf/mlperf_automotive/blob/master/v0.5/compliance/Organzation/TEST04/audit.config) file in TEST04 folder to the corresponding benchmark directory from where the test is run
  - Run the benchmark
  - Verification that audit.config was properly read can be done by checking that loadgen has found audit.config in `mlperf_log_detail.txt`
  - `mlperf_log_detail.txt` and `mlperf_log_summary.txt` files from this run are required to be submitted under TEST04
@@ -58,7 +51,7 @@ Alternatively, the below script can be run which runs the above verification scr
 
  - RESULTS_DIR: Specifies path to the directory containing logs from performance run
  - TEST04_DIR: Specifies path to the directory containing logs from compliance test run with TEST04 audit.config
- - OUTPUT_DIR: Specifies the path to the output directory where compliance logs will be uploaded from, i.e. `inference_results_v0.7/closed/NVIDIA/compliance/GPU/resnet/Offline`
+ - OUTPUT_DIR: Specifies the path to the output directory where compliance logs will be uploaded from, i.e. `automotive_results_v0.5/closed/Organization/compliance/bevformer/SingleStream`
 
 
 Expected outcome:

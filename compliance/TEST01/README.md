@@ -23,7 +23,7 @@ There is an audit.config file for each individual benchmark, located in the benc
 
 
 ## Log size
-In v0.7, the new workloads that have been added can generate significantly more output data than the workloads used in v0.5. Typically, the default mode of operation of the accuracy script is to check the accuracy JSON files using python JSON libraries. In the case that such scripts run out of memory, another fallback mode of operation can be enabled using UNIX-based commandline utilities which can be enabled using the `--unixmode` switch.
+Typically, the default mode of operation of the accuracy script is to check the accuracy JSON files using python JSON libraries. In the case that such scripts run out of memory, another fallback mode of operation can be enabled using UNIX-based commandline utilities which can be enabled using the `--unixmode` switch.
 
 ## Prerequisites
 This script works best with Python 3.3 or later. For `--unixmode`,  the accuracy verification script also require the `wc`,`sed`,`awk`,`head`,`tail`,`grep`, and `md5sum` UNIX commandline utilities.
@@ -35,7 +35,7 @@ Under MLPerf inference rules, certain forms of non-determinism is acceptable, wh
     bash ./create_accuracy_baseline.sh <path to mlperf_log_accuracy.json from the accuracy run> <path to mlperf_log_accuracy.json from the compliance test run>
 
  this script creates a baseline accuracy log called `mlperf_log_accuracy_baseline.json` using only a subset of the results from `mlperf_log_accuracy.json` from the accuracy run that corresponds to the QSL indices contained in `mlperf_log_accuracy.json` in the compliance test run. This provides an apples-to-apples accuracy log comparison between the accuracy run and compliance run.
-The submitter can then run the reference accuracy script on `mlperf_log_accuracy_baseline.json` and the compliance test run's `mlperf_log_accuracy.json` and report the F1/mAP/DICE/WER/Top1%/AUC score. 
+The submitter can then run the reference accuracy script on `mlperf_log_accuracy_baseline.json` and the compliance test run's `mlperf_log_accuracy.json` and report the mAP/IOU score. 
 
 ## Instructions
 
@@ -52,9 +52,9 @@ Run the verification script:
  - RESULTS_DIR: Specifies the path to the corresponding results
    directory that contains the accuracy and performance subdirectories
    containing the submission logs, i.e.
-   `inference_results_v0.7/closed/NVIDIA/results/GPU/resnet/Offline`. The script specifically requires mlperf_log_accuracy.json from the accuracy run and mlperf_log_summary.txt from the performance run.
+   `automotive_results_v0.5/closed/Organization/results/bevformer/SingleStream`. The script specifically requires mlperf_log_accuracy.json from the accuracy run and mlperf_log_summary.txt from the performance run.
   - COMPLIANCE_DIR: Specifies the path to the directory containing the logs from the compliance test run. 
-   - OUTPUT_DIR: Specifies the path to the output directory where compliance logs will be uploaded from,   i.e. `inference_results_v0.7/closed/NVIDIA/compliance/GPU/resnet/Offline`
+   - OUTPUT_DIR: Specifies the path to the output directory where compliance logs will be uploaded from,   i.e. `automotive_results_v0.5/closed/Organization/compliance/bevformer/SingleStream`
 
 Expected outcome:
 

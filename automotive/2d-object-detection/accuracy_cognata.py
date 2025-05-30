@@ -30,10 +30,6 @@ def get_args():
         required=True,
         help="cognata dataset directory")
     parser.add_argument(
-        "--cognata-root-path",
-        help="path to the cognata root",
-        default="/cognata")
-    parser.add_argument(
         "--verbose",
         action="store_true",
         help="verbose messages")
@@ -57,25 +53,11 @@ def main():
         results = json.load(f)
 
     seen = set()
-    config = importlib.import_module('config.' + args.config)
-    folders = config.dataset['folders']
-    cameras = config.dataset['cameras']
-    ignore_classes = [2, 25, 31]
-    if 'ignore_classes' in config.dataset:
-        ignore_classes = config.dataset['ignore_classes']
-    if config.dataset['use_label_file']:
-        label_map = cognata_labels.label_map
-        label_info = cognata_labels.label_info
-    else:
-        _, label_map, label_info = prepare_cognata(
-            args.cognata_root_path, folders, cameras)
     files = read_dataset_csv(
         os.path.join(
             os.path.dirname(
                 os.path.abspath(__file__)),
             "val_set.csv"))
-    files = [{'img': os.path.join(args.cognata_root_path, f['img']), 'ann': os.path.join(
-        args.dataset_path, f['ann'])} for f in files]
     val_set = Cognata(args.dataset_path, len(files))
     preds = []
     targets = []
@@ -88,32 +70,25 @@ def main():
 
         # reconstruct from mlperf accuracy log
         # what is written by the benchmark is an array of float32's:
-        # id, box[0], box[1], box[2], box[3], score, detection_class
-        # note that id is a index into instances_val2017.json, not the actual
-        # image_id
+        # box[0], box[1], box[2], box[3], detection_class, score
         data = np.frombuffer(bytes.fromhex(j['data']), np.float32)
-        current_id = -1
         predictions = {}
-        dts = []
-        labels = []
-        scores = []
         ids = []
-        for i in range(0, len(data), 7):
+        for i in range(0, len(data), 6):
             box = [float(x) for x in data[i:i + 4]]
             label = int(data[i + 4])
             score = float(data[i + 5])
-            image_idx = int(data[i + 6])
-            if image_idx not in predictions:
-                predictions[image_idx] = {
+            if idx not in predictions:
+                predictions[idx] = {
                     'dts': [], 'labels': [], 'scores': []}
-                ids.append(image_idx)
-            predictions[image_idx]['dts'].append(box)
-            predictions[image_idx]['labels'].append(label)
-            predictions[image_idx]['scores'].append(score)
+                ids.append(idx)
+            predictions[idx]['dts'].append(box)
+            predictions[idx]['labels'].append(label)
+            predictions[idx]['scores'].append(score)
         for id in ids:
             preds.append({'boxes': torch.tensor(predictions[id]['dts']), 'labels': torch.tensor(
                 predictions[id]['labels']), 'scores': torch.tensor(predictions[id]['scores'])})
-            gt_boxes = val_set.load_item(id)['gt_boxes']
+            gt_boxes = torch.from_numpy(val_set.load_item(id)['gt_boxes'])
             targets.append(
                 {'boxes': gt_boxes[:, :4], 'labels': gt_boxes[:, 4].to(dtype=torch.int32)})
     metric = MeanAveragePrecision(
