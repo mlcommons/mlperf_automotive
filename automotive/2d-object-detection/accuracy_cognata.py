@@ -30,10 +30,6 @@ def get_args():
         required=True,
         help="cognata dataset directory")
     parser.add_argument(
-        "--cognata-root-path",
-        help="path to the cognata root",
-        default="/cognata")
-    parser.add_argument(
         "--verbose",
         action="store_true",
         help="verbose messages")
