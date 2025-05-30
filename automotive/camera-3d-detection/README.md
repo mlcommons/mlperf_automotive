@@ -16,11 +16,12 @@ You can also do `pip install mlc-scripts` and then use `mlcr` commands for downl
 
 **Important notes when using MLCFlow**
 
-- Currently, the benchmark workflow is tested only for SingleStream-CPU runs.
+- Currently, the benchmark workflow is tested only for SingleStream runs.
 - While not mandatory, it is recommended to follow MLCFlow commands throughout for a seamless experience with MLCFlow automation.
 - If you encounter any issues with automation, please feel free to raise an issue in the [mlperf-automations](https://github.com/mlcommons/mlperf-automations/issues) repository.
 - The dataset and model downloads based on the framework, as well as attaching to the docker container, will be automatically handled by MLCFlow if you are building the docker through the MLCFlow command in the [Build and run the Docker container](#build-and-run-the-docker-container) section.
 - The email account that has access to the model files should be used to login when prompted by RClone for dataset and model downloads.
+- To take a valid benchmark run, provide `--execution_mode=valid` argument. By default, the runs are executed in test mode. 
 
 ## Downloading the dataset and model checkpoints
 
@@ -94,6 +95,8 @@ docker run -it -v ./mlperf_automotive:/mlperf_automotive -v <path to nuscenes da
 ```
 mlcr run-abtf-inference,reference,_v0.5,_find-performance --model=bevformer --quiet --device=cpu --implementation=reference --framework=onnxruntime --scenario=SingleStream 
 ```
+
+- Use `--performance_sample_count` to adjust the performance sample count value. By default, it is set to 1024 in the reference implementation.
 
 ### Using Native run command:
 ```
