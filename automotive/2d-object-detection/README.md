@@ -16,11 +16,12 @@ You can also do `pip install mlc-scripts` and then use `mlcr` commands for downl
 
 **Important notes when using MLCFlow**
 
-- Currently, the benchmark workflow is tested only for SingleStream-CPU runs.
+- Currently, the benchmark workflow is tested only for SingleStream runs.
 - While not mandatory, it is recommended to follow MLCFlow commands throughout for a seamless experience with MLCFlow automation.
 - If you encounter any issues with automation, please feel free to raise an issue in the [mlperf-automations](https://github.com/mlcommons/mlperf-automations/issues) repository.
 - The dataset and model downloads based on the framework, as well as attaching to the docker container, will be automatically handled by MLCFlow if you are building the docker through the MLCFlow command in the [Build and run the Docker container](#build-and-run-the-docker-container) section.
 - The email account that has access to the model files should be used to login when prompted by RClone for dataset and model downloads.
+- To take a valid benchmark run, provide `--execution_mode=valid` argument. By default, the runs are executed in test mode. 
  
 
 ## Downloading the dataset and model checkpoints
@@ -49,12 +50,12 @@ mlcr get,ml-model,ssd,resnet50,_mlc,_rclone,_pytorch --outdirname=<path_to_downl
 
 **Preprocessed Validation**
 ```
-mlcr get,preprocessed,dataset,cognata,_mlc,_2d_object_det,_validation --outdirname=<path_to_download>
+mlcr get,preprocessed,dataset,cognata,_mlc,_2d_obj_det,_validation --outdirname=<path_to_download>
 ```
 
 **Preprocessed Calibration**
 ```
-mlcr get,preprocessed,dataset,cognata,_mlc,_2d_object_det,_calibration --outdirname=<path_to_download>
+mlcr get,preprocessed,dataset,cognata,_mlc,_2d_obj_det,_calibration --outdirname=<path_to_download>
 ```
 
 **Unprocessed**
@@ -84,6 +85,14 @@ docker run -it -v <your repo path>/mlperf_automotive:/mlperf_automotive -v <path
 ```
 
 ### GPU enabled
+
+**Using MLCFlow Docker**
+
+```
+mlcr run-abtf-inference,reference,_v0.5,_full --model=ssd --docker --quiet --env.MLC_USE_DATASET_FROM_HOST=yes --env.MLC_USE_MODEL_FROM_HOST=yes --device=cuda --implementation=reference --framework=pytorch --scenario=SingleStream
+```
+
+**Using Native approach**
 ```
 git clone -b v0.5abtf git@github.com:mlcommons/mlperf_automotive.git
 cd mlperf_automotive/automotive/2d-object-detection
@@ -100,12 +109,24 @@ docker run -it -v <your repo path>/mlperf_automotive:/mlperf_automotive -v <path
 mlcr run-abtf-inference,reference,_v0.5,_find-performance --model=ssd  --quiet --device=cpu --implementation=reference --framework=onnxruntime --scenario=SingleStream 
 ```
 
+- Use `--performance_sample_count` to adjust the value of performance sample count. By default, it is set to 128 in the reference implementation.
+
 **Native run command:**
 ```
 python main.py --backend onnx --config baseline_8MP_ss_scales_fm1_5x5_all --dataset cognata --dataset-path /cognata/val_2d --checkpoint /cognata/ssd_resnet50.onnx
 ```
 
 ### Using PyTorch
+
+**MLCFlow run command:**
+
+```
+mlcr run-abtf-inference,reference,_v0.5,_find-performance --model=ssd  --quiet --device=cpu --implementation=reference --framework=pytorch --scenario=SingleStream 
+```
+
+- Use `--device=gpu` to run on GPU
+
+**Native run command:**
 ```
 python main.py --config baseline_8MP_ss_scales_fm1_5x5_all --dataset cognata --dataset-path /cognata/val_2d --checkpoint /cognata/baseline_8MP_ss_scales_fm1_5x5_all_ep60.pth
 ```
@@ -118,7 +139,11 @@ python main.py --config baseline_8MP_ss_scales_fm1_5x5_all --dataset cognata --d
 mlcr run-abtf-inference,reference,_v0.5,_accuracy-only --model=ssd  --quiet --device=cpu --implementation=reference --framework=onnxruntime --scenario=SingleStream 
 ```
 
+- Use `--device=gpu` to run on GPU
+- Use `--framework=pytorch` to use the PyTorch framework for running the implementation
+
 **Native run command:**
+
 Add the --accuracy flag to run in accuracy mode.
 
 ```
