@@ -1,14 +1,12 @@
 import backend
 import torch
-from cognata import Cognata, prepare_cognata
-from transform import SSDTransformer
+from cognata import prepare_cognata
 import importlib
 from utils import generate_dboxes, Encoder
 import cognata_labels
-from model import SSD, ResNet
 import onnxruntime as ort
 import logging
-
+import numpy as np
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("backend-onnx")
@@ -21,10 +19,11 @@ def to_numpy(tensor):
 class BackendOnnx(backend.Backend):
     def __init__(
             self, config, data_path,
-            checkpoint, nms_threshold):
+            checkpoint, nms_threshold, device='cpu'):
         super(BackendOnnx, self).__init__()
         self.config = importlib.import_module('config.' + config)
         self.image_size = self.config.model['image_size']
+        self.og_image_size = self.config.model['og_image_size']
         dboxes = generate_dboxes(self.config.model, model="ssd")
         folders = self.config.dataset['folders']
         cameras = self.config.dataset['cameras']
@@ -51,28 +50,19 @@ class BackendOnnx(backend.Backend):
     def predict(self, inputs):
         with torch.inference_mode():
             model_input = inputs[0]
-            img = model_input[0].unsqueeze(0)
-            img_id = model_input[1]
-            img_size = model_input[2]
-            input_data = {self.input_img_name: to_numpy(img)}
+            input_data = {self.input_img_name: model_input}
             ploc, plabel = self.ort_sess.run(None, input_data)
             ploc, plabel = torch.from_numpy(
                 ploc).float(), torch.from_numpy(plabel).float()
-            dts = []
-            labels = []
-            scores = []
-            ids = []
+            results = []
             for idx in range(ploc.shape[0]):
                 ploc_i = ploc[idx, :, :].unsqueeze(0)
                 plabel_i = plabel[idx, :, :].unsqueeze(0)
                 result = self.encoder.decode_batch(
                     ploc_i, plabel_i, self.nms_threshold, 500)[0]
-                height, width = img_size
+                height, width = self.og_image_size
                 loc, label, prob = [r.cpu().numpy() for r in result]
                 for loc_, label_, prob_ in zip(loc, label, prob):
-                    dts.append([loc_[0] * width, loc_[1] * height,
-                               loc_[2] * width, loc_[3] * height,])
-                    labels.append(label_)
-                    scores.append(prob_)
-                    ids.append(img_id)
-        return dts, labels, scores, ids
+                    results.append([loc_[0] * width, loc_[1] * height,
+                                    loc_[2] * width, loc_[3] * height, label_, prob_])
+        return np.stack(results)

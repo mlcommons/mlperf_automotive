@@ -73,8 +73,7 @@ def main():
                     j['data']),
                 np.uint8)
             metrics.update(
-                item['label'].cpu().to(
-                    dtype=torch.uint8).numpy().reshape(
+                item['label'].astype(np.uint8).reshape(
                     1, image_size[0], image_size[1]), prediction.reshape(
                     1, image_size[0], image_size[1]))
 

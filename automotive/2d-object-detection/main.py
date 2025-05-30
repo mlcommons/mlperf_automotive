@@ -117,7 +117,7 @@ def get_args():
     )
     parser.add_argument(
         "--device",
-        default="cuda",
+        default="cpu",
         choices=["cuda", "cpu"],
         help="device to run the benchmark",
     )
@@ -319,7 +319,8 @@ def main():
         config=args.config,
         data_path=args.cognata_root_path,
         checkpoint=args.checkpoint,
-        nms_threshold=0.5
+        nms_threshold=0.5,
+        device=args.device,
     )
     if args.dtype == "fp16":
         dtype = torch.float16

@@ -108,7 +108,7 @@ def get_args():
     )
     parser.add_argument(
         "--device",
-        default="cuda",
+        default="cpu",
         choices=["cuda", "cpu"],
         help="device to run the benchmark",
     )
@@ -310,6 +310,7 @@ def main():
         model_path=args.checkpoint,
         num_classes=19,
         output_stride=16,
+        device=args.device,
     )
     if args.dtype == "fp16":
         dtype = torch.float16

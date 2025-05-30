@@ -278,7 +278,8 @@ std::vector<QueryMetadata> GenerateQueries(
   // We should exit before issuing all queries.
   // Does not apply to the server scenario since the duration only
   // depends on the ideal scheduled time, not the actual issue time.
-  const int duration_multiplier = scenario == TestScenario::ConstantStream ? 1 : 2;
+  const int duration_multiplier =
+      scenario == TestScenario::ConstantStream ? 1 : 2;
   std::chrono::microseconds gen_duration =
       duration_multiplier * settings.target_duration;
   size_t min_queries = settings.min_query_count;
@@ -335,8 +336,8 @@ std::vector<QueryMetadata> GenerateQueries(
       samples_per_query += pad_size;
     } else if ((scenario != TestScenario::Offline) &&
                (min_queries % loaded_samples.size() != 0)) {
-      // In ConstantStream, SingleStream, MultiStream mode, the min_queries should be
-      // padded
+      // In ConstantStream, SingleStream, MultiStream mode, the min_queries
+      // should be padded
       size_t pad_size =
           (loaded_samples.size() - min_queries % loaded_samples.size());
       min_queries += pad_size;
@@ -443,7 +444,8 @@ std::vector<QueryMetadata> GenerateQueries(
     }
 
     if (!settings.use_grouped_qsl) {
-      if (settings.server_constant_gen && (scenario == TestScenario::ConstantStream)) {
+      if (settings.server_constant_gen &&
+          (scenario == TestScenario::ConstantStream)) {
         timestamp += schedule_constant_distribution(schedule_rng);
       } else {
         timestamp += schedule_distribution(schedule_rng);
@@ -1034,10 +1036,10 @@ void RunPerformanceMode(SystemUnderTest* sut, QuerySampleLibrary* qsl,
 /// constraints, 2. Find an upper bound using the function 'FindBoundaries'
 /// based on the lower bound, 3. Find peak performance settings using the
 /// function 'FindPeakPerformanceBinarySearch'. note: Since we can't find a
-/// lower bound programmatically because of the monotonicity issue of ConstantStream
-/// scenario, rely on user's settings. After resolving this issue, we can
-/// make the function 'FindBoundaries' find a lower bound as well from some
-/// random initial settings.
+/// lower bound programmatically because of the monotonicity issue of
+/// ConstantStream scenario, rely on user's settings. After resolving this
+/// issue, we can make the function 'FindBoundaries' find a lower bound as well
+/// from some random initial settings.
 template <TestScenario scenario>
 void FindPeakPerformanceMode(SystemUnderTest* sut, QuerySampleLibrary* qsl,
                              const TestSettingsInternal& base_settings,

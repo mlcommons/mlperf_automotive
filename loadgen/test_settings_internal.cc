@@ -734,10 +734,10 @@ int TestSettings::FromConfig(const std::string &path, const std::string &model,
     use_token_latencies = (val == 1) ? true : false;
   }
   if (use_token_latencies) {
-    lookupkv(model, "ConstantStream", "ttft_latency", &server_ttft_latency, nullptr,
-             1000 * 1000);
-    lookupkv(model, "ConstantStream", "tpot_latency", &server_tpot_latency, nullptr,
-             1000 * 1000);
+    lookupkv(model, "ConstantStream", "ttft_latency", &server_ttft_latency,
+             nullptr, 1000 * 1000);
+    lookupkv(model, "ConstantStream", "tpot_latency", &server_tpot_latency,
+             nullptr, 1000 * 1000);
   }
 
   // keys to infer token metrics
