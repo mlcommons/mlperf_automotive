@@ -55,7 +55,7 @@ def define_env(env):
         for category in categories:
             if category == "Edge":
                 scenarios = ["SingleStream", "ConstantStream"]
-                scenarios.remove("ConstantStream") # TODO: Add ConstantStream
+                scenarios.remove("ConstantStream")  # TODO: Add ConstantStream
             if fixed_scenarios:
                 scenarios = [
                     scenario for scenario in scenarios if scenario in fixed_scenarios]
@@ -84,7 +84,8 @@ def define_env(env):
                     content += f"{cur_space2}##### {device} device\n\n"
 
                     # minimum system requirements
-                    # TODO: Add minimum system requirements based on the newly prepocessed dataset
+                    # TODO: Add minimum system requirements based on the newly
+                    # prepocessed dataset
                     content += get_min_system_requirements(
 
                         cur_space2, model, implementation, device
@@ -111,7 +112,7 @@ def define_env(env):
                         if (
                             "99.9" not in model
                         ):  # not showing docker command as it is already done for the 99% variant
-                            
+
                             setup_run_cmd = mlperf_inference_run_command(
                                 spaces + 17,
                                 model,
@@ -367,8 +368,11 @@ def define_env(env):
         # tags for compliance test will be uncommented when the automotive round mandates a compliance run
         # info += f"{pre_space}    - Compliance runs can be enabled by adding `--compliance=yes`.\n\n"
         # to be uncomented after reviewing the constantstream scenario
-        #info += f"{pre_space}    - Number of threads could be adjusted using `--threads=#`, where `#` is the desired number of threads. This option works only if the implementation in use supports threading.\n\n"
-        #info += f"{pre_space}    - Batch size could be adjusted using `--batch_size=#`, where `#` is the desired batch size. This option works only if the implementation in use is supporting the given batch size.\n\n"
+        # info += f"{pre_space}    - Number of threads could be adjusted using `--threads=#`, where `#` is the desired number of threads. This option works only if the implementation in use supports threading.\n\n"
+        # info += f"{pre_space}    - Batch size could be adjusted using
+        # `--batch_size=#`, where `#` is the desired batch size. This option
+        # works only if the implementation in use is supporting the given batch
+        # size.\n\n"
         info += f"{pre_space}    - The maximum duration for a performance run can be disabled by using `--env.MLC_MLPERF_USE_MAX_DURATION=no`.\n\n"
         info += f"{pre_space}    - In valid execution mode, the query count for performance mode can be adjusted using `--env.MLC_MLPERF_LOADGEN_QUERY_COUNT=<query_count>`.\n\n"
 
