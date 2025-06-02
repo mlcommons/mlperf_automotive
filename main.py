@@ -313,25 +313,13 @@ def define_env(env):
                     device_memory = "8GB"
             min_sys_req_content += f"{spaces}* **Device Memory**: {device_memory}\n\n"
         # disk space
-        if "dlrm" in model:
-            disk_space = "500GB"
-        elif "llama2-70b" in model:
-            disk_space = "700GB"
-        elif "mixtral" in model:
-            disk_space = "100GB"
-        elif "retinanet" in model:
-            disk_space = "200GB"
-        elif "pointpainting" in model:
-            disk_space = "To be updated"
-        else:
-            disk_space = "50GB"
+        if "bevformer" in model:
+            disk_space = "350GB"
+        elif "ssd" in model:
+            disk_space = "750GB"
+        elif "deeplabv3plus" in model:
+            disk_space = "1.2TB"
         min_sys_req_content += f"{spaces}* **Disk Space**: {disk_space}\n\n"
-        # System memory
-        if "dlrm" in model:
-            system_memory = "512GB"
-            min_sys_req_content += (
-                f"{spaces}* **System Memory(RAM+SWAP)**: {system_memory}\n\n"
-            )
         min_sys_req_content += f"{spaces}</details>\n"
         return min_sys_req_content
 
