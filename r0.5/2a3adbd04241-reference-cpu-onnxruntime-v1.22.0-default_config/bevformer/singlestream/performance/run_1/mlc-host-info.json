@@ -1,0 +1,9 @@
+{
+  "os_version": "Linux-6.8.0-1030-gcp-x86_64-with-glibc2.35",
+  "cpu_version": "x86_64",
+  "python_version": "3.10.12 (main, Feb  4 2025, 14:57:36) [GCC 11.4.0]",
+  "os_version_sys": "ubuntu 22.04",
+  "system_name": "2a3adbd04241",
+  "mlc_repo_name": "anandhu-eng@mlperf-automations",
+  "mlc_repo_git_hash": "5f646675d0ac8a1b3d7a3c9145d765d750eaae16"
+}

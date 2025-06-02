@@ -1,0 +1,3 @@
+[mkdocs.plugins]
+site-urls = mkdocs_site_urls:SiteUrlsPlugin
+

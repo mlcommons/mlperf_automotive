@@ -1,0 +1,1 @@
+from .swaggermarkdown import makeExtension

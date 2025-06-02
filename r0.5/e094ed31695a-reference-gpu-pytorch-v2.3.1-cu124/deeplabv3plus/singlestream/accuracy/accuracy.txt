@@ -1,0 +1,6 @@
+
+Overall Acc: 0.985498
+Mean Acc: 0.969390
+FreqW Acc: 0.971654
+Mean IoU: 0.924357
+
