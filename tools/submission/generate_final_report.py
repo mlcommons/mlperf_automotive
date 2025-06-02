@@ -19,7 +19,7 @@ def get_args():
         '--input',
         required=True,
         help='results csv from checker')
-    parser.add_argument('--version', default='5.0', help='mlperf version')
+    parser.add_argument('--version', default='0.5', help='mlperf version')
     parser.add_argument(
         '--repository',
         default='submissions_inference_5.0',
@@ -133,28 +133,11 @@ def main():
     columns_order = [
         ["Result"],
         [
-            "resnet",
-            "retinanet",
-            "3d-unet-99",
-            "3d-unet-99.9",
-            "rnnt",
-            "bert-99",
-            "bert-99.9",
-            "dlrm-v2-99",
-            "dlrm-v2-99.9",
-            "gptj-99",
-            "gptj-99.9",
-            "stable-diffusion-xl",
-            "llama2-70b-99",
-            "llama2-70b-99.9",
-            "llama2-70b-interactive-99",
-            "llama2-70b-interactive-99.9",
-            "llama3.1-405b",
-            "mixtral-8x7b",
-            "pointpainting",
-            "rgat",
+            "ssd",
+            "bevformer",
+            "deeplabv3plus",
         ],
-        ["SingleStream", "MultiStream", "Server", "Offline"],
+        ["SingleStream", "ConstantStream"],
         [
             "Latency (ms)",
             "Samples/s",
@@ -165,84 +148,16 @@ def main():
         ],
     ]
 
-    if args.version == "4.1":
-        filter_scenarios = {
-            "datacenter": {
-                "resnet": ["Server", "Offline"],
-                "retinanet": ["Server", "Offline"],
-                "rnnt": ["Server", "Offline"],
-                "bert-99": ["Server", "Offline"],
-                "bert-99.9": ["Server", "Offline"],
-                "dlrm-v2-99": ["Server", "Offline"],
-                "dlrm-v2-99.9": ["Server", "Offline"],
-                "3d-unet-99": ["Offline"],
-                "3d-unet-99.9": ["Offline"],
-                "gptj-99": ["Server", "Offline"],
-                "gptj-99.9": ["Server", "Offline"],
-                "stable-diffusion-xl": ["Server", "Offline"],
-                "llama2-70b-99": ["Server", "Offline"],
-                "llama2-70b-99.9": ["Server", "Offline"],
-                "mixtral-8x7b": ["Server", "Offline"],
-            },
-            "edge": {
-                "resnet": ["SingleStream", "MultiStream", "Offline"],
-                "retinanet": ["SingleStream", "MultiStream", "Offline"],
-                "rnnt": ["SingleStream", "Offline"],
-                "bert-99": ["SingleStream", "Offline"],
-                "bert-99.9": [],
-                "dlrm-v2-99": [],
-                "dlrm-v2-99.9": [],
-                "3d-unet-99": ["SingleStream", "Offline"],
-                "3d-unet-99.9": ["SingleStream", "Offline"],
-                "gptj-99": ["SingleStream", "Offline"],
-                "gptj-99.9": ["SingleStream", "Offline"],
-                "stable-diffusion-xl": ["SingleStream", "Offline"],
-            },
-        }
-    else:
-        filter_scenarios = {
-            "datacenter": {
-                "resnet": ["Server", "Offline"],
-                "retinanet": ["Server", "Offline"],
-                "bert-99": [],
-                "bert-99.9": [],
-                "dlrm-v2-99": ["Server", "Offline"],
-                "dlrm-v2-99.9": ["Server", "Offline"],
-                "3d-unet-99": ["Offline"],
-                "3d-unet-99.9": ["Offline"],
-                "gptj-99": ["Server", "Offline"],
-                "gptj-99.9": ["Server", "Offline"],
-                "stable-diffusion-xl": ["Server", "Offline"],
-                "llama2-70b-99": ["Server", "Offline"],
-                "llama2-70b-99.9": ["Server", "Offline"],
-                "llama2-70b-interactive-99": ["Server", "Offline"],
-                "llama2-70b-interactive-99.9": ["Server", "Offline"],
-                "mixtral-8x7b": ["Server", "Offline"],
-                "rgat": ["Offline"],
-                "llama3.1-405b": ["Offline", "Server"],
-                "pointpainting": []
-            },
-            "edge": {
-                "resnet": ["SingleStream", "MultiStream", "Offline"],
-                "retinanet": ["SingleStream", "MultiStream", "Offline"],
-                "bert-99": ["SingleStream", "Offline"],
-                "bert-99.9": ["SingleStream", "Offline"],
-                "dlrm-v2-99": [],
-                "dlrm-v2-99.9": [],
-                "3d-unet-99": ["SingleStream", "Offline"],
-                "3d-unet-99.9": ["SingleStream", "Offline"],
-                "llama2-70b-99": [],
-                "llama2-70b-99.9": [],
-                "llama2-70b-interactive-99": [],
-                "llama2-70b-interactive-99.9": [],
-                "llama3.1-405b": [],
-                "gptj-99": ["SingleStream", "Offline"],
-                "gptj-99.9": ["SingleStream", "Offline"],
-                "rgat": [],
-                "stable-diffusion-xl": ["SingleStream", "Offline"],
-                "pointpainting": ["SingleStream"],
-            },
-        }
+    filter_scenarios = {
+        "datacenter": {
+            # not present in v0.5
+        },
+        "edge": {
+            "ssd": ["SingleStream", "ConstantStream"],
+            "bevformer": ["SingleStream", "ConstantStream"],
+            "deeplabv3plus": ["SingleStream", "ConstantStream"],
+        },
+    }
 
     def MakeWorksheet(df, index, filter_dict, sheet_name, outjsondata=[]):
         for key, value in filter_dict.items():
