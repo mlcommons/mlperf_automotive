@@ -47,8 +47,7 @@ class Cognata(dataset.Dataset):
 
     def get_item_loc(self, index):
         file_path = os.path.join(self.data_root, f'val_{index}.pkl')
-        src = os.path.join(self.data_path, file_path)
-        return src
+        return file_path
 
 
 class PostProcessCognata:
