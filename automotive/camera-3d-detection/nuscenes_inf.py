@@ -71,6 +71,10 @@ class Nuscenes(Dataset):
     def get_item_count(self):
         return self.length
 
+    def get_item_loc(self, index):
+        file_path = os.path.join(self.data_root, f'val_{index}.pkl')
+        return file_path
+
 
 class PostProcessNuscenes:
     def __init__(
