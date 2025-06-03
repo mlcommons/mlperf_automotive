@@ -77,6 +77,10 @@ class Cognata(dataset.Dataset):
     def get_item_count(self):
         return self.length
 
+    def get_item_loc(self, index):
+        file_path = os.path.join(self.data_root, f'val_{index}.pkl')
+        return file_path
+
 
 def object_labels(files, ignore_classes):
     counter = 1
