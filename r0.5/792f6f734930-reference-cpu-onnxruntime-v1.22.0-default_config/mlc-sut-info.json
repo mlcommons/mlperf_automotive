@@ -1,0 +1,7 @@
+{
+  "system_name": "792f6f734930",
+  "implementation": "reference",
+  "device": "cpu",
+  "framework": "onnxruntime",
+  "run_config": "default_config"
+}

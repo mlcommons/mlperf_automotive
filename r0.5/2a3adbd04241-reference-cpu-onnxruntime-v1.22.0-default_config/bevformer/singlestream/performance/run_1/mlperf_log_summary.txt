@@ -1,0 +1,71 @@
+================================================
+MLPerf Results Summary
+================================================
+SUT name : PySUT
+Scenario : SingleStream
+Mode     : PerformanceOnly
+99.9th percentile latency (ns) : 5808931696
+Groups per second: 26.0704
+Completed tokens per second: 0.01
+Result is : VALID
+  Min duration satisfied : Yes
+  Min queries satisfied : Yes
+  Early stopping satisfied: Yes
+Early Stopping Result:
+ * Processed at least 6636 queries (6636).
+ * Would discard 0 highest latency queries.
+ * Early stopping 99.9th percentile estimate: 6444096098
+ * Early stopping 99.0th percentile estimate: 4974977066
+
+================================================
+Additional Stats
+================================================
+QPS w/ loadgen overhead         : 0.29
+QPS w/o loadgen overhead        : 0.29
+
+Min latency (ns)                : 662689089
+Max latency (ns)                : 6444096098
+Mean latency (ns)               : 3497895545
+50.00 percentile latency (ns)   : 3750889915
+90.00 percentile latency (ns)   : 4316266188
+95.00 percentile latency (ns)   : 4493013756
+97.00 percentile latency (ns)   : 4589859957
+99.00 percentile latency (ns)   : 4836039817
+99.90 percentile latency (ns)   : 5808931696
+Min group latency (ns)          : 26068696894
+Max group latency (ns)          : 199200535370606
+Mean group latency (ns)         : 1323840571225
+50.00 group percentile latency (ns)   : 151479054004
+90.00 group percentile latency (ns)   : 162442512148
+95.00 group percentile latency (ns)   : 165905002627
+97.00 group percentile latency (ns)   : 166855106472
+99.00 group percentile latency (ns)   : 185944929106
+99.90 group percentile latency (ns)   : 199200535370606
+
+================================================
+Test Parameters Used
+================================================
+samples_per_query : 1
+target_qps : 2.03861e-06
+target_latency (ns): 0
+target_latency_percentile : 0.999
+max_async_queries : 1
+min_duration (ms): 600000
+max_duration (ms): 0
+min_query_count : 6636
+max_query_count : 6636
+qsl_rng_seed : 6023615788873153749
+sample_index_rng_seed : 15036839855038426416
+schedule_rng_seed : 9933818062894767841
+accuracy_log_rng_seed : 0
+accuracy_log_probability : 0
+accuracy_log_sampling_target : 0
+print_timestamps : 0
+performance_issue_unique : 0
+performance_issue_same : 0
+performance_issue_same_index : 0
+performance_sample_count : 128
+
+No warnings encountered during test.
+
+No errors encountered during test.

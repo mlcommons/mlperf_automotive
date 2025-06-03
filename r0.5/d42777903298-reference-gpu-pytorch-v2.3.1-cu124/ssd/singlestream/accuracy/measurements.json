@@ -1,0 +1,7 @@
+{
+  "starting_weights_filename": "baseline_8MP_ss_scales_fm1_5x5_all_ep60.pth",
+  "retraining": "no",
+  "input_data_types": "fp32",
+  "weight_data_types": "fp32",
+  "weight_transformations": "none"
+}

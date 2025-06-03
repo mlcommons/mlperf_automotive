@@ -1,0 +1,36 @@
+{
+    "accuracy_results": {
+        "scenario": "TestScenario.SingleStream"
+    },
+    "args": {
+        "accuracy": true,
+        "audit_conf": "audit.config",
+        "backend": "pytorch",
+        "checkpoint": "/home/mlcuser/MLC/repos/local/cache/download-file_a9e3aafd/baseline_8MP_ss_scales_fm1_5x5_all_ep60.pth/baseline_8MP_ss_scales_fm1_5x5_all_ep60.pth",
+        "cognata_root_path": "/home/mlcuser/MLC/repos/local/cache/download-file_4c1efb72/val_2d.tar.gz/val_2d",
+        "config": "baseline_8MP_ss_scales_fm1_5x5_all",
+        "count": null,
+        "dataset": "cognata",
+        "dataset_path": "/home/mlcuser/MLC/repos/local/cache/download-file_4c1efb72/val_2d.tar.gz/val_2d",
+        "debug": false,
+        "device": "cuda",
+        "dtype": "fp32",
+        "find_peak_performance": false,
+        "max_batchsize": 1,
+        "max_latency": null,
+        "model_name": "ssd",
+        "output": "/home/mlcuser/MLC/repos/local/cache/get-mlperf-inference-results-dir_ec25b0f4/valid_results/d42777903298-reference-gpu-pytorch-v2.3.1-cu124/ssd/singlestream/accuracy",
+        "performance_sample_count": 128,
+        "profile": null,
+        "qps": null,
+        "samples_per_query": 8,
+        "scenario": "SingleStream",
+        "threads": 1,
+        "time": null,
+        "user_conf": "/home/mlcuser/MLC/repos/anandhu-eng@mlperf-automations/script/generate-mlperf-inference-user-conf/tmp/bdc3c22a7ac34bf08352372c94275186.conf"
+    },
+    "cmdline": "Namespace(dataset='cognata', dataset_path='/home/mlcuser/MLC/repos/local/cache/download-file_4c1efb72/val_2d.tar.gz/val_2d', cognata_root_path='/home/mlcuser/MLC/repos/local/cache/download-file_4c1efb72/val_2d.tar.gz/val_2d', profile=None, scenario='SingleStream', max_batchsize=1, threads=1, accuracy=True, find_peak_performance=False, backend='pytorch', model_name='ssd', output='/home/mlcuser/MLC/repos/local/cache/get-mlperf-inference-results-dir_ec25b0f4/valid_results/d42777903298-reference-gpu-pytorch-v2.3.1-cu124/ssd/singlestream/accuracy', qps=None, checkpoint='/home/mlcuser/MLC/repos/local/cache/download-file_a9e3aafd/baseline_8MP_ss_scales_fm1_5x5_all_ep60.pth/baseline_8MP_ss_scales_fm1_5x5_all_ep60.pth', config='baseline_8MP_ss_scales_fm1_5x5_all', dtype='fp32', device='cuda', user_conf='/home/mlcuser/MLC/repos/anandhu-eng@mlperf-automations/script/generate-mlperf-inference-user-conf/tmp/bdc3c22a7ac34bf08352372c94275186.conf', audit_conf='audit.config', time=None, count=None, debug=False, performance_sample_count=128, max_latency=None, samples_per_query=8)",
+    "runtime": "debug-SUT",
+    "time": 1748517844,
+    "version": "2.3.1+cu121"
+}
