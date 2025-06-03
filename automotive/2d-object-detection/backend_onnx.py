@@ -35,6 +35,7 @@ class BackendOnnx(backend.Backend):
         self.checkpoint = checkpoint
         self.encoder = Encoder(dboxes)
         self.nms_threshold = nms_threshold
+
     def version(self):
         return torch.__version__
 
