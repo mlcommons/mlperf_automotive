@@ -35,7 +35,6 @@ class BackendOnnx(backend.Backend):
         self.checkpoint = checkpoint
         self.encoder = Encoder(dboxes)
         self.nms_threshold = nms_threshold
-
     def version(self):
         return torch.__version__
 
@@ -65,4 +64,7 @@ class BackendOnnx(backend.Backend):
                 for loc_, label_, prob_ in zip(loc, label, prob):
                     results.append([loc_[0] * width, loc_[1] * height,
                                     loc_[2] * width, loc_[3] * height, label_, prob_])
-        return np.stack(results)
+        if len(results) == 0:
+            return results
+        else:
+            return np.stack(results)
