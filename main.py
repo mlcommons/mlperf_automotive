@@ -353,8 +353,7 @@ def define_env(env):
         pre_space += " "
         # pre_space = "                "
         info += f"\n{pre_space}!!! tip\n\n"
-        # tags for compliance test will be uncommented when the automotive round mandates a compliance run
-        # info += f"{pre_space}    - Compliance runs can be enabled by adding `--compliance=yes`.\n\n"
+        info += f"{pre_space}    - Compliance runs can be enabled by adding `--compliance=yes`.\n\n"
         # to be uncomented after reviewing the constantstream scenario
         # info += f"{pre_space}    - Number of threads could be adjusted using `--threads=#`, where `#` is the desired number of threads. This option works only if the implementation in use supports threading.\n\n"
         # info += f"{pre_space}    - Batch size could be adjusted using
@@ -438,11 +437,11 @@ def define_env(env):
     ):
         extra_content = ""
         f_pre_space += ""
-        # TBD: After testing the constantstream scenario, we can uncomment this
-        # if scenario == "Server" or (
-        #     scenario == "All Scenarios" and "Server" in scenarios
-        # ):
-        #     extra_content += f"{f_pre_space}    * `<SERVER_TARGET_QPS>` must be determined manually. It is usually around 80% of the Offline QPS, but on some systems, it can drop below 50%. If a higher value is specified, the latency constraint will not be met, and the run will be considered invalid.\n"
+
+        if scenario == "ConstantStream" or (
+            scenario == "All Scenarios" and "ConstantStream" in scenarios
+        ):
+            extra_content += f"{f_pre_space}    * `<CONSTANTSTREAM_TARGET_QPS>` must be determined manually. If a higher value is specified, the latency constraint will not be met, and the run will be considered invalid.\n"
         if extra_content:
             extra_content = f"{f_pre_space}!!! tip\n\n" + extra_content
 
@@ -483,13 +482,12 @@ def define_env(env):
             scenario_variation_tag = ""
             scenario_option = f"\\\n{pre_space} --scenario={scenario}"
 
-        # TBD: After testing the constantstream scenario, we can uncomment this
-        # if scenario == "Server" or (
-        #     scenario == "All Scenarios" and "Server" in scenarios
-        # ):
-        #     scenario_option += (
-        #         f"\\\n{pre_space} --server_target_qps=<SERVER_TARGET_QPS>"
-        #     )
+        if scenario == "ConstantStream" or (
+            scenario == "All Scenarios" and "ConstantStream" in scenarios
+        ):
+            scenario_option += (
+                f"\\\n{pre_space} --constantstream_target_qps=<CONSTANTSTREAM_TARGET_QPS>"
+            )
 
         run_cmd_extra = get_run_cmd_extra(
             f_pre_space,
