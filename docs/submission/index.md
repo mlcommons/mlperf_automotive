@@ -5,10 +5,10 @@ hide:
 
 Click [here](https://docs.google.com/presentation/d/1cmbpZUpVr78EIrhzyMBnnWnjJrD-mZ2vmSb-yETkTA8/edit?usp=sharing) to view the proposal slide for Common Automation for MLPerf Inference Submission Generation through MLCFlow.
 
-Please refer to the [installation page](site:inference/install/) to install MLCFlow for automating the submission generation. In a typical development environment `pip install mlc-scripts` should be enough.
+Please refer to the [installation page](../install/index.md) to install MLCFlow for automating the submission generation. In a typical development environment `pip install mlc-scripts` should be enough.
 
 === "Custom automation based MLPerf results"
-    If you have not followed the `mlcr` commands under the individual model pages in the [benchmarks](../index.md) directory, please make sure that the result directory is structured in the following way. You can see the real examples for the expected folder structure [here](https://github.com/mlcommons/inference/tree/submission-generation-examples).
+    If you have not followed the `mlcr` commands under the individual model pages in the [benchmarks](../index.md) directory, please make sure that the result directory is structured in the following way. You can see the real examples for the expected folder structure [here](https://github.com/mlcommons/mlperf_automotive/tree/submission-generation-examples).
     ```
     └── System description ID(SUT Name)
         ├── system_meta.json
@@ -85,7 +85,7 @@ flowchart LR
 ### Command to generate submission folder
 
 ```bash
-mlcr generate,inference,submission \
+mlcr generate,inference,submission,_automotive \
   --clean \
   --preprocess_submission=yes \
   --run_checker=yes \
@@ -148,7 +148,7 @@ If there are multiple systems where MLPerf results are collected, the same proce
 
     ```bash
     mlcr push,github,mlperf,inference,submission \
-       --repo_url=https://github.com/mlcommons/mlperf_inference_submissions_v5.0 \
+       --repo_url=https://github.com/mlcommons/mlperf_automotive_submissions_v0.5 \
        --commit_message="Results on <HW name> added by <Name>" \
        --quiet
     ```
@@ -181,17 +181,18 @@ If there are multiple systems where MLPerf results are collected, the same proce
 
 Once you have all the results on the system, you can upload them to the MLCommons submission server as follows:
 
-=== "via CLI"
+<!-- TBD: sync with pablo to test the submission UI -->
+<!-- === "via CLI"
     You can do the following command which will run the submission checker and upload the results to the MLCommons submission server
     ```
-    mlcr run,submission,checker,inference \
+    mlcr run,submission,checker,inference,_automotive \
     --submitter_id=<> \
     --submission_dir=<Path to the submission folder>
-    ```
+    ``` -->
 === "via Browser"
     You can do the following command to generate the final submission tar file and then upload to the [MLCommons Submission UI](https://submissions-ui.mlcommons.org/submission). 
     ```
-    mlcr run,submission,checker \
+    mlcr run,submission,checker,_automotive \
     --submission_dir=<Path to the submission folder> \
     --tar=yes \
     --submission_tar_file=mysubmission.tar.gz
