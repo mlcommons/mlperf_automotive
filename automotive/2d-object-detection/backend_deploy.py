@@ -70,4 +70,7 @@ class BackendDeploy(backend.Backend):
                 for loc_, label_, prob_ in zip(loc, label, prob):
                     results.append([loc_[0] * width, loc_[1] * height,
                                     loc_[2] * width, loc_[3] * height, label_, prob_])
-        return np.stack(results)
+        if len(results) == 0:
+            return results
+        else:
+            return np.stack(results)
