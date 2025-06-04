@@ -81,6 +81,9 @@ mlcr mlperf,power,client --power_server=<POWER_SERVER_IP>
 mlc docker script --tags==mlperf,power,client --power_server=<POWER_SERVER_IP>"
 ```
 
+
+> **Note:** The following commands are for demonstrating workflow runs with power measurements and do not execute any MLPerf Automotive reference implementation. They are based on the MLPerf Inference reference implementation.
+
 ## Running MLPerf Image Classification with power
 
 ```bash
