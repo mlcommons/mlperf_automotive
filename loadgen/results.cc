@@ -532,8 +532,12 @@ void PerformanceSummary::LogSummary(AsyncSummary& summary) {
   if (settings.use_grouped_qsl) {
     double gps_as_completed =
         group_count / pr.final_query_all_samples_done_time;
-    summary("Groups per second: ", group_count / pr.max_latency);
-    summary("Completed tokens per second: ", DoubleToString(gps_as_completed));
+
+    double gps_as_scheduled =
+        group_count / pr.final_query_scheduled_time;
+    summary("Scheduled groups per second: ", gps_as_scheduled);
+    summary("Completed groups per second: ", DoubleToString(gps_as_completed));
+
   }
 
   std::string min_duration_recommendation;
