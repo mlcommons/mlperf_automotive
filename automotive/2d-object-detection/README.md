@@ -4,7 +4,7 @@ This is the reference implementation for the ABTF camera-based 3D object detecti
 
 | model | accuracy | dataset | model source | precision |
 | ---- | ---- | ---- | ---- | ---- |
-| SSD-ResNet50 | 0.7179 mAP | Cognata | https://github.com/mlcommons/abtf-ssd-pytorch | fp32 |
+| SSD-ResNet50 | 0.7179837 mAP | Cognata | https://github.com/mlcommons/abtf-ssd-pytorch | fp32 |
 
 Achieved a 99% latency of 0.862741101 seconds on an Nvidia L4 GPU.
 
