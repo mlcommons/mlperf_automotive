@@ -146,11 +146,12 @@ void PerformanceSummary::ProcessTokenLatencies() {
   }
 }
 
-void PerformanceSummary::ProcessGroupLatencies() {
+void PerformanceSummary::ProcessGroupLatencies(std::string* warning) {
   if (pr.sample_latencies.empty() || pr.group_sizes.empty() ||
       (!settings.use_grouped_qsl) || (group_latencies_processed)) {
     return;
   }
+  warning->clear();
   sample_count = pr.sample_latencies.size();
   std::vector<size_t> group_initial_idx;
   std::vector<QuerySampleLatency> group_latencies;
@@ -162,6 +163,7 @@ void PerformanceSummary::ProcessGroupLatencies() {
   }
   size_t i = 0;
   QuerySampleLatency accumulated_sample_latency = 0;
+  bool stop = false;
 
   while (i < pr.sample_index.size()) {
     auto sample_index = pr.sample_index[i];
@@ -169,11 +171,18 @@ void PerformanceSummary::ProcessGroupLatencies() {
                                 group_initial_idx.end(), sample_index);
     size_t idx = low - group_initial_idx.begin();
     if (group_initial_idx[idx] == sample_index) {
-      group_count++;
       QuerySampleLatency q = 0;
       for (size_t j = 0; j < pr.group_sizes[idx]; j++) {
+        if (pr.sample_latencies.size() < i + j){
+          *warning = "Benchmark run stopped without finishing all the samples in a group";
+          stop = true;
+          break;
+        }
         q += pr.sample_latencies[i + j];
       }
+      if (stop)
+        break;
+      group_count++;
       group_latencies.push_back(q);
       accumulated_sample_latency += q;
       i += pr.group_sizes[idx];
@@ -427,7 +436,8 @@ bool PerformanceSummary::PerfConstraintsMet(std::string* recommendation) {
 
 void PerformanceSummary::LogSummary(AsyncSummary& summary) {
   if (settings.use_grouped_qsl) {
-    ProcessGroupLatencies();
+    std::string group_warning;
+    ProcessGroupLatencies(&group_warning);
   }
   ProcessLatencies();
 
@@ -533,11 +543,9 @@ void PerformanceSummary::LogSummary(AsyncSummary& summary) {
     double gps_as_completed =
         group_count / pr.final_query_all_samples_done_time;
 
-    double gps_as_scheduled =
-        group_count / pr.final_query_scheduled_time;
+    double gps_as_scheduled = group_count / pr.final_query_scheduled_time;
     summary("Scheduled groups per second: ", gps_as_scheduled);
     summary("Completed groups per second: ", DoubleToString(gps_as_completed));
-
   }
 
   std::string min_duration_recommendation;
@@ -712,7 +720,10 @@ void PerformanceSummary::LogSummary(AsyncSummary& summary) {
 void PerformanceSummary::LogDetail(AsyncDetail& detail) {
 #if USE_NEW_LOGGING_FORMAT
   if (settings.use_grouped_qsl) {
-    ProcessGroupLatencies();
+    std::string group_warning;
+    ProcessGroupLatencies(&group_warning);
+    if (!group_warning.empty())
+      MLPERF_LOG_WARNING(detail, "warning_generic_message", group_warning);
   }
   ProcessLatencies();
 

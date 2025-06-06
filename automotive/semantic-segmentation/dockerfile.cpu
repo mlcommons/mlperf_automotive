@@ -24,6 +24,7 @@ RUN cd /tmp && \
     CFLAGS="-std=c++14" python setup.py install && \
     rm -rf mlperf
 
+RUN pip install numpy==1.24.4
 RUN pip install Cython
 RUN pip install scikit-image
 RUN pip install scikit-learn
