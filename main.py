@@ -284,34 +284,9 @@ def define_env(env):
         min_sys_req_content += f"{spaces}<details>\n"
         min_sys_req_content += f"{spaces}<summary>Please click here to see the minimum system requirements for running the benchmark</summary>\n\n"
         # device memory
-        if device.lower() == "cuda" and (
-            implementation.lower() == "nvidia" or implementation.lower() == "reference"
-        ):
-            if implementation.lower() == "nvidia":
-                if "dlrm" in model:
-                    device_memory = "24GB"
-                elif "llama2-70b" in model or "mixtral" in model:
-                    device_memory = "80GB"
-                elif "sdxl" in model or "gptj" in model:
-                    device_memory = "16GB"
-                else:
-                    device_memory = "8GB"
-            elif implementation.lower() == "reference":
-                if "dlrm" in model:
-                    device_memory = "2x80GB"
-                elif "llama2-70b" in model:
-                    device_memory = "8x80GB"
-                elif "mixtral" in model:
-                    device_memory = "4x80GB"
-                elif "sdxl" in model:
-                    device_memory = "24GB(fp32), 16GB(fp16)"
-                elif "gptj" in model:
-                    device_memory = "80GB(fp32). 40GB(fp16)"
-                elif "pointpainting" in model:
-                    device_memory = "To be updated"
-                else:
-                    device_memory = "8GB"
-            min_sys_req_content += f"{spaces}* **Device Memory**: {device_memory}\n\n"
+        if model.lower() in ["ssd", "bevformer", "deeplabv3plus"]:
+            device_memory = "20GB"
+        min_sys_req_content += f"{spaces}* **Device Memory**: {device_memory}\n\n"
         # disk space
         if "bevformer" in model:
             disk_space = "350GB"
