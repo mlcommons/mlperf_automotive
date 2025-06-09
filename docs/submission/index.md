@@ -85,7 +85,7 @@ flowchart LR
 ### Command to generate submission folder
 
 ```bash
-mlcr generate,inference,submission,_automotive \
+mlcr generate,inference,submission,_wg-automotive \
   --clean \
   --preprocess_submission=yes \
   --run_checker=yes \
@@ -185,14 +185,14 @@ Once you have all the results on the system, you can upload them to the MLCommon
 <!-- === "via CLI"
     You can do the following command which will run the submission checker and upload the results to the MLCommons submission server
     ```
-    mlcr run,submission,checker,inference,_automotive \
+    mlcr run,submission,checker,inference,_wg-automotive \
     --submitter_id=<> \
     --submission_dir=<Path to the submission folder>
     ``` -->
 === "via Browser"
     You can do the following command to generate the final submission tar file and then upload to the [MLCommons Submission UI](https://submissions-ui.mlcommons.org/submission). 
     ```
-    mlcr run,submission,checker,_automotive \
+    mlcr run,submission,checker,_wg-automotive \
     --submission_dir=<Path to the submission folder> \
     --tar=yes \
     --submission_tar_file=mysubmission.tar.gz
