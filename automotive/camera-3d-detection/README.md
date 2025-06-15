@@ -132,7 +132,7 @@ mlcr process,mlperf,accuracy,_nuscenes --result_dir=<Path to directory where fil
 ### Evaluate the accuracy by directly calling the accuracy script
 ```
 cd mlperf_automotive/automotive/camera-3d-detection
-python accuracy_nuscenes_cpu.py --mlperf-accuracy-file ./output/mlperf_log_accuracy.json --config projects/configs/bevformer/bevformer_tiny.py --nuscenes-dir /nuscenes_data/
+python accuracy_nuscenes_cpu.py --mlperf-accuracy-file ./output/mlperf_log_accuracy.json --nuscenes-dir /nuscenes_data/
 ```
 
 ## Preprocessing data
