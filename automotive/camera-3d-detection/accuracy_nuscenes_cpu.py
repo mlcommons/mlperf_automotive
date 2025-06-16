@@ -26,20 +26,7 @@ def get_args():
         required=True,
         help="nuscenes dataset directory")
     parser.add_argument(
-        "--verbose",
-        action="store_true",
-        help="verbose messages")
-    parser.add_argument(
-        "--output-file",
-        default="openimages-results.json",
-        help="path to output file")
-    parser.add_argument(
-        "--use-inv-map",
-        action="store_true",
-        help="use inverse label map")
-    parser.add_argument(
         "--config",
-        required=True,
         help="bevformer config file")
     args = parser.parse_args()
     return args

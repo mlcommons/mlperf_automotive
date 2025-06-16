@@ -173,15 +173,16 @@ void PerformanceSummary::ProcessGroupLatencies(std::string* warning) {
     if (group_initial_idx[idx] == sample_index) {
       QuerySampleLatency q = 0;
       for (size_t j = 0; j < pr.group_sizes[idx]; j++) {
-        if (pr.sample_latencies.size() < i + j){
-          *warning = "Benchmark run stopped without finishing all the samples in a group";
+        if (pr.sample_latencies.size() < i + j) {
+          *warning =
+              "Benchmark run stopped without finishing all the samples in a "
+              "group";
           stop = true;
           break;
         }
         q += pr.sample_latencies[i + j];
       }
-      if (stop)
-        break;
+      if (stop) break;
       group_count++;
       group_latencies.push_back(q);
       accumulated_sample_latency += q;
