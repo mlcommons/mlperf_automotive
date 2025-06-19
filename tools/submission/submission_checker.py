@@ -50,7 +50,7 @@ MODEL_CONFIG = {
         },
         "optional-scenarios-datacenter-edge": {},
         "accuracy-target": {
-            "bevformer": ("mAP", .2683556 * 0.99),
+            "bevformer": ("mAP_3D", .2683556 * 0.99),
             "deeplabv3plus": ("mIOU", .924355 * 0.999),
             "ssd": ("mAP", .7179 * 0.999)
         },
@@ -161,7 +161,8 @@ RESULT_FIELD_NEW = {
 
 ACC_PATTERN = {
     "mAP": r"mAP:\s*([0-9.]+)",
-    "mIOU": r"Mean IoU:\s*([0-9.]+)"
+    "mIOU": r"Mean IoU:\s*([0-9.]+)",
+    "mAP_3D": r"mAP_3D:\s*([0-9.]+)",
 }
 
 SYSTEM_DESC_REQUIRED_FIELDS = [

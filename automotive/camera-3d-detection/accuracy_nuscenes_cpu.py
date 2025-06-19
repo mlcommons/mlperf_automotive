@@ -90,7 +90,8 @@ def main():
         data_root=os.path.join(
             args.nuscenes_dir,
             'nuscenes'))
-    print(nusc_eval.evaluate(results=result_list))
+    metrics_dict = nusc_eval.evaluate(results=result_list)
+    print("mAP_3D:" + str(metrics_dict['pts_bbox_NuScenes/mAP']))
 
 
 if __name__ == "__main__":
