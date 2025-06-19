@@ -50,7 +50,7 @@ MODEL_CONFIG = {
         },
         "optional-scenarios-datacenter-edge": {},
         "accuracy-target": {
-            "bevformer": ("mAP", .2683556 * 0.99),
+            "bevformer": ("mAP_3D", .2683556 * 0.99),
             "deeplabv3plus": ("mIOU", .924355 * 0.999),
             "ssd": ("mAP", .7179 * 0.999)
         },
@@ -161,7 +161,8 @@ RESULT_FIELD_NEW = {
 
 ACC_PATTERN = {
     "mAP": r"mAP:\s*([0-9.]+)",
-    "mIOU": r"Mean IoU:\s*([0-9.]+)"
+    "mIOU": r"Mean IoU:\s*([0-9.]+)",
+    "mAP_3D": r"mAP_3D:\s*([0-9.]+)",
 }
 
 SYSTEM_DESC_REQUIRED_FIELDS = [
@@ -415,19 +416,7 @@ class Config:
         return (
             division in ["closed", "network"]
             and model
-            in [
-                "3d-unet-99",
-                "3d-unet-99.9",
-                "gptj-99",
-                "gptj-99.9",
-                "llama2-70b-99",
-                "llama2-70b-99.9",
-                "llama2-70b-interactive-99",
-                "llama2-70b-interactive-99.9",
-                "mixtral-8x7b",
-                "llama3.1-405b",
-                "rgat",
-            ]
+            in []
             and self.version not in ["v4.0", "v4.1"]
         )
 
@@ -1294,44 +1283,7 @@ def check_results_dir(
         if system_json.get("sw_notes"):
             notes = notes + ". " if notes else ""
             notes = notes + system_json.get("sw_notes")
-        special_unit_dict = {
-            "gptj-99": {
-                "Offline": "Tokens/s",
-                "ConstantStream": "Tokens/s",
-            },
-            "gptj-99.9": {
-                "Offline": "Tokens/s",
-                "ConstantStream": "Tokens/s",
-            },
-            "llama2-70b-99": {
-                "Offline": "Tokens/s",
-                "ConstantStream": "Tokens/s",
-            },
-            "llama2-70b-99.9": {
-                "Offline": "Tokens/s",
-                "ConstantStream": "Tokens/s",
-            },
-            "llama2-70b-interactive-99": {
-                "Offline": "Tokens/s",
-                "ConstantStream": "Tokens/s",
-            },
-            "llama2-70b-interactive-99.9": {
-                "Offline": "Tokens/s",
-                "ConstantStream": "Tokens/s",
-            },
-            "llama3.1-405b": {
-                "Offline": "Tokens/s",
-                "ConstantStream": "Tokens/s",
-            },
-            "mixtral-8x7b": {
-                "Offline": "Tokens/s",
-                "ConstantStream": "Tokens/s",
-            },
-            "llama3.1-405b": {
-                "Offline": "Tokens/s",
-                "ConstantStream": "Tokens/s",
-            },
-        }
+        special_unit_dict = {}
         unit_dict = {
             "SingleStream": "Latency (ms)",
             "MultiStream": "Latency (ms)",
