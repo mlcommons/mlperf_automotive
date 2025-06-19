@@ -160,7 +160,7 @@ RESULT_FIELD_NEW = {
 }
 
 ACC_PATTERN = {
-    "mAP": r"mAP:\s*([0-9.]+)",
+    "mAP": r"'pts_bbox_NuScenes/mAP'\s*:\s*([0-9.]+)|mAP\s*:\s*([0-9.]+)",
     "mIOU": r"Mean IoU:\s*([0-9.]+)"
 }
 
