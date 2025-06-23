@@ -140,6 +140,7 @@ SCENARIO_MAPPING = {
     "singlestream": "SingleStream",
     "multistream": "MultiStream",
     "server": "ConstantStream",
+    "constantstream": "ConstantStream",
     "offline": "Offline",
 }
 
