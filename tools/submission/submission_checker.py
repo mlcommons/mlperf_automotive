@@ -87,9 +87,18 @@ MODEL_CONFIG = {
             "ssd": {"ConstantStream": 10000000}
         },
         "min-queries": {
-            "bevformer": {"ConstantStream": 6636},
-            "deeplabv3plus": {"ConstantStream": 6636},
-            "ssd": {"ConstantStream": 6636}
+            "bevformer": {
+                "ConstantStream": 6636
+                "SingleStream": 6636,
+            },
+            "deeplabv3plus": {
+                "ConstantStream": 6636
+                "SingleStream": 6636,
+            },
+            "ssd": {
+                "ConstantStream": 6636
+                "SingleStream": 6636,
+            }
         },
     },
 }
