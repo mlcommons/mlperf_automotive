@@ -31,24 +31,16 @@ MODEL_CONFIG = {
             "deeplabv3plus",
             "ssd",
         ],
-        "required-scenarios-datacenter": {
-            "bevformer": ["ConstantStream", "SingleStream"],
-            "deeplabv3plus": ["ConstantStream", "SingleStream"],
-            "ssd": ["ConstantStream", "SingleStream"]
+        "required-scenarios-adas": {
+            "bevformer": ["SingleStream"],
+            "deeplabv3plus": ["SingleStream"],
+            "ssd": ["SingleStream"]
         },
-        "optional-scenarios-datacenter": {},
-        "required-scenarios-edge": {
-            "bevformer": ["ConstantStream", "SingleStream"],
-            "deeplabv3plus": ["ConstantStream", "SingleStream"],
-            "ssd": ["ConstantStream", "SingleStream"]
+        "optional-scenarios-adas": {
+            "bevformer": ["ConstantStream"],
+            "deeplabv3plus": ["ConstantStream"],
+            "ssd": ["ConstantStream"]
         },
-        "optional-scenarios-edge": {},
-        "required-scenarios-datacenter-edge": {
-            "bevformer": ["ConstantStream", "SingleStream"],
-            "deeplabv3plus": ["ConstantStream", "SingleStream"],
-            "ssd": ["ConstantStream", "SingleStream"]
-        },
-        "optional-scenarios-datacenter-edge": {},
         "accuracy-target": {
             "bevformer": ("mAP_3D", .2683556 * 0.99),
             "deeplabv3plus": ("mIOU", .924355 * 0.999),
@@ -88,15 +80,15 @@ MODEL_CONFIG = {
         },
         "min-queries": {
             "bevformer": {
-                "ConstantStream": 6636
+                "ConstantStream": 6636,
                 "SingleStream": 6636,
             },
             "deeplabv3plus": {
-                "ConstantStream": 6636
+                "ConstantStream": 6636,
                 "SingleStream": 6636,
             },
             "ssd": {
-                "ConstantStream": 6636
+                "ConstantStream": 6636,
                 "SingleStream": 6636,
             }
         },
@@ -317,17 +309,9 @@ class Config:
         self.skip_power_check = skip_power_check
 
     def set_type(self, submission_type):
-        if submission_type == "datacenter":
-            self.required = self.base["required-scenarios-datacenter"]
-            self.optional = self.base["optional-scenarios-datacenter"]
-        elif submission_type == "edge":
-            self.required = self.base["required-scenarios-edge"]
-            self.optional = self.base["optional-scenarios-edge"]
-        elif (
-            submission_type == "datacenter,edge" or submission_type == "edge,datacenter"
-        ):
-            self.required = self.base["required-scenarios-datacenter-edge"]
-            self.optional = self.base["optional-scenarios-datacenter-edge"]
+        if submission_type == "adas":
+            self.required = self.base["required-scenarios-adas"]
+            self.optional = self.base["optional-scenarios-adas"]
         else:
             raise ValueError("invalid system type")
 
@@ -1556,8 +1540,7 @@ def check_results_dir(
                         results[name] = None
                         continue
                     system_type = system_json.get("system_type")
-                    valid_system_types = [
-                        "datacenter", "edge", "datacenter,edge", "edge,datacenter"]
+                    valid_system_types = ["adas"]
 
                     if system_type not in valid_system_types:
                         log.error(
