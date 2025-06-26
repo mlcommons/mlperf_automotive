@@ -16,7 +16,7 @@ The currently valid [MLPerf Automotive Benchmarks](index_gh.md) as of MLPerf inf
 - **Latency Target**: 99.9%
 - **Accuracy Constraint**: 99.9%
 - **Framework Support**: ONNX, PyTorch
-- **Submission Category**: Edge
+- **Submission Category**: ADAS
 
 ## Camera-Based 3D Object Detection
 ### [BEVFormer (tiny)](benchmarks/camera-3d-detection/bevformer.md)
@@ -29,7 +29,7 @@ The currently valid [MLPerf Automotive Benchmarks](index_gh.md) as of MLPerf inf
 - **Latency Target**: 99.9%
 - **Accuracy Constraint**: 99%
 - **Framework Support**: ONNX, PyTorch
-- **Submission Category**: Edge
+- **Submission Category**: ADAS
 
 ## Semantic Segmentation
 ### [DeepLabv3+](benchmarks/semantic-segmentation/deeplabv3plus.md)
@@ -43,12 +43,12 @@ The currently valid [MLPerf Automotive Benchmarks](index_gh.md) as of MLPerf inf
 - **Latency Target**: 99.9%
 - **Accuracy Constraint**: 99.9%
 - **Framework Support**: ONNX (8MP & Dynamic), PyTorch
-- **Submission Category**: Edge
+- **Submission Category**: ADAS
 
 ---
 
 ## Submission Categories
-- **Edge Category**: All benchmarks are applicable to the edge category for the automotive inference v0.5
+- **ADAS Category**: All benchmarks are applicable to the ADAS category for the automotive inference v0.5
 
 ## High Accuracy Variants
 - **Benchmarks**: All the benchmarks for submission round v0.5 have high accuracy variant.
