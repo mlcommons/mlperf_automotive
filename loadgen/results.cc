@@ -477,6 +477,9 @@ void PerformanceSummary::LogSummary(AsyncSummary& summary) {
           (sample_count - 1) / pr.final_query_all_samples_done_time;
       summary("Completed samples per second    : ",
               DoubleToString(qps_as_completed));
+      summary(DoubleToString(target_latency_percentile.percentile * 100, 1) +
+                  "th percentile latency (ns) : ",
+              target_latency_percentile.sample_latency);
       break;
     }
     case TestScenario::Offline: {
@@ -847,6 +850,10 @@ void PerformanceSummary::LogDetail(AsyncDetail& detail) {
       double qps_as_completed =
           (sample_count - 1) / pr.final_query_all_samples_done_time;
       MLPERF_LOG(detail, "result_completed_samples_per_sec", qps_as_completed);
+      MLPERF_LOG(detail, "early_stopping_latency_ss",
+                 early_stopping_latency_ss);
+      MLPERF_LOG(detail, "early_stopping_latency_ms",
+                 early_stopping_latency_ms);
       break;
     }
     case TestScenario::Offline: {
