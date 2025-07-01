@@ -95,7 +95,7 @@ MODEL_CONFIG = {
 }
 
 VALID_DIVISIONS = ["open", "closed", "network"]
-VALID_AVAILABILITIES = ["available", "preview", "rdi"]
+VALID_AVAILABILITIES = ["hardened", "developmenet", "engineering_samples", "presilicon"]
 REQUIRED_PERF_FILES = ["mlperf_log_summary.txt", "mlperf_log_detail.txt"]
 OPTIONAL_PERF_FILES = ["mlperf_log_accuracy.json"]
 REQUIRED_PERF_POWER_FILES = ["spl.txt"]
@@ -1548,8 +1548,7 @@ def check_results_dir(
                         results[name] = None
                         continue
                     system_type = system_json.get("system_type")
-                    valid_system_types = [
-                        "datacenter", "edge", "datacenter,edge", "edge,datacenter"]
+                    valid_system_types = ["adas"]
 
                     if system_type not in valid_system_types:
                         log.error(
