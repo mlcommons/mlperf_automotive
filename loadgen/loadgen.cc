@@ -752,14 +752,14 @@ std::vector<LoadableSampleSet> GenerateLoadableSets(
     size_t number_of_groups = qsl->NumberOfGroups();
     for (size_t i = 0; i < number_of_groups; i++) {
       size_t group_size = qsl->GroupSize(groupIdx[idx]);
-      for (size_t j = 0; j < group_size; j++) {
-        loadable_set.push_back(samples[idx]);
-        idx++;
-      }
-      if (loadable_set.size() >= set_size) {
+      if (loadable_set.size() + group_size >= set_size) {
         result.push_back({std::move(loadable_set), loadable_set.size()});
         loadable_set.clear();
         loadable_set.reserve(set_size + set_padding);
+      }
+      for (size_t j = 0; j < group_size; j++) {
+        loadable_set.push_back(samples[idx]);
+        idx++;
       }
     }
   }
