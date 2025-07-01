@@ -19,6 +19,7 @@ limitations under the License.
 #include <chrono>
 #include <cmath>
 #include <string>
+#include <vector>
 
 #include "logging.h"
 #include "query_sample_library.h"
@@ -91,6 +92,7 @@ struct TestSettingsInternal {
   bool infer_token_latencies = false;
   int64_t token_latency_scaling_factor;
   bool use_grouped_qsl = false;
+  std::vector<size_t>group_sizes;
 };
 
 /// \brief A namespace of collections of FindPeakPerformance helper functions,

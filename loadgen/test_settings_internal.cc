@@ -56,7 +56,8 @@ TestSettingsInternal::TestSettingsInternal(
       server_constant_gen(requested.server_constant_gen),
       infer_token_latencies(requested.infer_token_latencies),
       token_latency_scaling_factor(requested.token_latency_scaling_factor),
-      use_grouped_qsl(requested.use_grouped_qsl) {
+      use_grouped_qsl(requested.use_grouped_qsl), 
+      group_sizes(requested.group_sizes) {
   // Target QPS, target latency, and max_async_queries.
   switch (requested.scenario) {
     case TestScenario::SingleStream:
@@ -597,6 +598,40 @@ int TestSettings::FromConfig(const std::string &path, const std::string &model,
     return true;
   };
 
+  auto lookupkvstr = [&](const std::string &model, const std::string &scenario,
+                      const std::string &key, std::string *val_str) {
+    std::map<std::string, std::string>::iterator it;
+    std::string found;
+    // lookup exact key first
+    it = kv.find(model + "." + scenario + "." + key);
+    if (it != kv.end()) {
+      found = it->second;
+    } else {
+      // lookup key with model wildcard
+      it = kv.find("*." + scenario + "." + key);
+      if (it != kv.end()) {
+        found = it->second;
+      } else {
+        it = kv.find(model + ".*." + key);
+        if (it != kv.end()) {
+          found = it->second;
+        } else {
+          it = kv.find("*.*." + key);
+          if (it != kv.end()) {
+            found = it->second;
+          } else {
+            return false;
+          }
+        }
+      }
+    }
+    // if we get here, found will be set
+    if (val_str) {
+      *val_str = found.c_str();
+    }
+    return true;
+  };
+
   int line_nr = 0;
   int errors = 0;
   // Declare the input stream before the if-else block
@@ -679,6 +714,7 @@ int TestSettings::FromConfig(const std::string &path, const std::string &model,
   if (errors != 0) return -EINVAL;
 
   uint64_t val;
+  std::string val_string;
 
   // keys that apply to all scenarios
   if (lookupkv(model, scenario, "mode", &val, nullptr)) {
@@ -808,6 +844,18 @@ int TestSettings::FromConfig(const std::string &path, const std::string &model,
            nullptr);
   lookupkv(model, scenario, "accuracy_log_sampling_target",
            &accuracy_log_sampling_target, nullptr);
+  if (lookupkvstr(model, scenario, "group_sizes", &val_string)){
+    group_sizes.clear();
+    size_t pos = 0;
+    std::string delimiter = ",";
+    std::string token;
+    while ((pos = val_string.find(delimiter)) != std::string::npos) {
+      token = val_string.substr(0, pos);
+      group_sizes.push_back(strtoul(token.c_str(), nullptr, 0));
+      val_string.erase(0, pos + delimiter.length());
+    }
+  }
+
   return 0;
 }
 

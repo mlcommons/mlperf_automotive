@@ -66,9 +66,23 @@ class QuerySampleLibrary {
   ///   * A previously unloaded sample will not be unloaded again.
   virtual void UnloadSamplesFromRam(
       const std::vector<QuerySampleIndex>& samples) = 0;
-  virtual size_t GroupSize(size_t i) = 0;
-  virtual size_t GroupOf(size_t i) = 0;
-  virtual size_t NumberOfGroups() = 0;
+
+  void InitGroupSizes(const std::vector<size_t> group_sizes){
+    group_sizes_.clear();
+    group_idx_.clear();
+    for (size_t i = 0; i < group_sizes.size(); i++) {
+      group_sizes_.push_back(group_sizes[i]);
+      for (size_t j = 0; j < group_sizes[i]; j++) {
+        group_idx_.push_back(i);
+      }
+    }
+  }
+  size_t GroupSize(size_t i) { return group_sizes_[i]; }
+  size_t GroupOf(size_t i) { return group_idx_[i]; }
+  size_t NumberOfGroups() { return group_sizes_.size(); }
+  private:
+    std::vector<size_t> group_sizes_;
+    std::vector<size_t> group_idx_;
 };
 
 /// @}

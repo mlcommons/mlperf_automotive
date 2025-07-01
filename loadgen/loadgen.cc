@@ -344,6 +344,12 @@ std::vector<QueryMetadata> GenerateQueries(
     }
   }
 
+  if (settings.use_grouped_qsl) {
+    // get vector of group sizes
+    
+    qsl->InitGroupSizes(settings.group_sizes);
+  }
+
   std::vector<QuerySampleIndex> samples(samples_per_query);
   std::chrono::nanoseconds timestamp(0);
   std::chrono::nanoseconds prev_timestamp(0);
