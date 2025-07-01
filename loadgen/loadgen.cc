@@ -346,7 +346,7 @@ std::vector<QueryMetadata> GenerateQueries(
 
   if (settings.use_grouped_qsl) {
     // get vector of group sizes
-    
+
     sequence_gen->InitGroupSizes(settings.group_sizes);
   }
 
@@ -424,8 +424,8 @@ std::vector<QueryMetadata> GenerateQueries(
       }
     } else if (settings.use_grouped_qsl) {
       g = grouped_sample_distribution(sample_rng);
-      group_size =
-          sequence_gen->GroupSize(sequence_gen->GroupOf(loaded_samples[groups_first[g]]));
+      group_size = sequence_gen->GroupSize(
+          sequence_gen->GroupOf(loaded_samples[groups_first[g]]));
     } else {
       for (auto& s : samples) {
         s = loaded_samples[settings.performance_issue_unique
@@ -696,7 +696,8 @@ void LoadSamplesToRam(QuerySampleLibrary* qsl,
 /// \brief Generates random sets of samples in the QSL that we can load into
 /// RAM at the same time.
 std::vector<LoadableSampleSet> GenerateLoadableSets(
-    QuerySampleLibrary* qsl, const TestSettingsInternal& settings, SequenceGen* sequence_gen) {
+    QuerySampleLibrary* qsl, const TestSettingsInternal& settings,
+    SequenceGen* sequence_gen) {
   auto tracer = MakeScopedTracer(
       [](AsyncTrace& trace) { trace("GenerateLoadableSets"); });
 
@@ -1158,7 +1159,8 @@ void FindPeakPerformanceMode(SystemUnderTest* sut, QuerySampleLibrary* qsl,
 
   // Reuse performance_set, u_perf_summary has the largest 'samples_per_query'.
   std::vector<loadgen::LoadableSampleSet> loadable_sets(
-      loadgen::GenerateLoadableSets(qsl, u_perf_summary.settings, sequence_gen));
+      loadgen::GenerateLoadableSets(qsl, u_perf_summary.settings,
+                                    sequence_gen));
   const LoadableSampleSet& performance_set = loadable_sets.front();
   LoadSamplesToRam(qsl, performance_set.set);
 
