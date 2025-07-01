@@ -344,12 +344,6 @@ std::vector<QueryMetadata> GenerateQueries(
     }
   }
 
-  if (settings.use_grouped_qsl) {
-    // get vector of group sizes
-
-    sequence_gen->InitGroupSizes(settings.group_sizes);
-  }
-
   std::vector<QuerySampleIndex> samples(samples_per_query);
   std::chrono::nanoseconds timestamp(0);
   std::chrono::nanoseconds prev_timestamp(0);
@@ -1376,6 +1370,9 @@ void StartTest(SystemUnderTest* sut, QuerySampleLibrary* qsl,
   auto run_funcs = loadgen::RunFunctions::Get(sanitized_settings.scenario);
 
   loadgen::SequenceGen sequence_gen;
+  if (test_settings.use_grouped_qsl) {
+    sequence_gen.InitGroupSizes(test_settings.group_sizes);
+  }
   switch (sanitized_settings.mode) {
     case TestMode::SubmissionRun:
       run_funcs.accuracy(sut, qsl, sanitized_settings, &sequence_gen);
