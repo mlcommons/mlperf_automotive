@@ -299,6 +299,23 @@ bool PerformanceSummary::EarlyStopping(
                           "every additional\n query were under latency.";
         return false;
       }
+
+      // Also need to print the early stopping estimate for the target percentile
+      double multi_stream_percentile = 0.99;
+      QuerySampleLatency percentile_estimate =
+          (*sample_latencies)[queries_issued - t];
+      *recommendation +=
+          "\n * Early stopping " +
+          DoubleToString(target_latency_percentile.percentile * 100, 1) +
+          "th percentile estimate: " + std::to_string(percentile_estimate);
+      early_stopping_latency_ss = percentile_estimate;
+
+      percentile_estimate = (*sample_latencies)[queries_issued - t];
+      *recommendation +=
+          "\n * Early stopping " +
+          DoubleToString(multi_stream_percentile * 100, 1) +
+          "th percentile estimate: " + std::to_string(percentile_estimate);
+      early_stopping_latency_ms = percentile_estimate;
       break;
     }
     case TestScenario::MultiStream: {
