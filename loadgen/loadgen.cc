@@ -347,7 +347,7 @@ std::vector<QueryMetadata> GenerateQueries(
   if (settings.use_grouped_qsl) {
     // get vector of group sizes
     
-    qsl->InitGroupSizes(settings.group_sizes);
+    sequence_gen->InitGroupSizes(settings.group_sizes);
   }
 
   std::vector<QuerySampleIndex> samples(samples_per_query);
@@ -365,10 +365,10 @@ std::vector<QueryMetadata> GenerateQueries(
   if (settings.use_grouped_qsl) {
     size_t current_idx = 0;
     while (current_idx < loaded_samples.size()) {
-      size_t current_group = qsl->GroupOf(loaded_samples[current_idx]);
+      size_t current_group = sequence_gen->GroupOf(loaded_samples[current_idx]);
       groups.push_back(current_group);
       groups_first.push_back(current_idx);
-      current_idx += qsl->GroupSize(current_group);
+      current_idx += sequence_gen->GroupSize(current_group);
       number_of_groups++;
     }
   }
@@ -425,7 +425,7 @@ std::vector<QueryMetadata> GenerateQueries(
     } else if (settings.use_grouped_qsl) {
       g = grouped_sample_distribution(sample_rng);
       group_size =
-          qsl->GroupSize(qsl->GroupOf(loaded_samples[groups_first[g]]));
+          sequence_gen->GroupSize(sequence_gen->GroupOf(loaded_samples[groups_first[g]]));
     } else {
       for (auto& s : samples) {
         s = loaded_samples[settings.performance_issue_unique
@@ -657,8 +657,8 @@ PerformanceResult IssueQueries(SystemUnderTest* sut, QuerySampleLibrary* qsl,
     }
   }
 
-  for (size_t i = 0; i < qsl->NumberOfGroups(); i++) {
-    group_sizes.push_back(qsl->GroupSize(i));
+  for (size_t i = 0; i < sequence_gen->NumberOfGroups(); i++) {
+    group_sizes.push_back(sequence_gen->GroupSize(i));
   }
 
   return PerformanceResult{
@@ -696,7 +696,7 @@ void LoadSamplesToRam(QuerySampleLibrary* qsl,
 /// \brief Generates random sets of samples in the QSL that we can load into
 /// RAM at the same time.
 std::vector<LoadableSampleSet> GenerateLoadableSets(
-    QuerySampleLibrary* qsl, const TestSettingsInternal& settings) {
+    QuerySampleLibrary* qsl, const TestSettingsInternal& settings, SequenceGen* sequence_gen) {
   auto tracer = MakeScopedTracer(
       [](AsyncTrace& trace) { trace("GenerateLoadableSets"); });
 
@@ -717,18 +717,18 @@ std::vector<LoadableSampleSet> GenerateLoadableSets(
   } else {
     // If using grouped qsl, we randomized the groups.
     // The samples within a group mantain their order.
-    size_t number_of_groups = qsl->NumberOfGroups();
+    size_t number_of_groups = sequence_gen->NumberOfGroups();
     size_t acumCount = 0, idx = 0;
     std::vector<QuerySampleIndex> groups(number_of_groups);
     std::vector<QuerySampleIndex> acumSizes(number_of_groups);
     for (size_t i = 0; i < number_of_groups; i++) {
       groups[i] = static_cast<QuerySampleIndex>(i);
       acumSizes[i] = acumCount;
-      acumCount += qsl->GroupSize(i);
+      acumCount += sequence_gen->GroupSize(i);
     }
     std::shuffle(groups.begin(), groups.end(), qsl_rng);
     for (size_t i = 0; i < number_of_groups; i++) {
-      for (size_t j = 0; j < qsl->GroupSize(groups[i]); j++) {
+      for (size_t j = 0; j < sequence_gen->GroupSize(groups[i]); j++) {
         samples[idx] = acumSizes[groups[i]] + j;
         groupIdx[idx] = groups[i];
         idx++;
@@ -755,9 +755,9 @@ std::vector<LoadableSampleSet> GenerateLoadableSets(
     }
   } else {
     size_t idx = 0;
-    size_t number_of_groups = qsl->NumberOfGroups();
+    size_t number_of_groups = sequence_gen->NumberOfGroups();
     for (size_t i = 0; i < number_of_groups; i++) {
-      size_t group_size = qsl->GroupSize(groupIdx[idx]);
+      size_t group_size = sequence_gen->GroupSize(groupIdx[idx]);
       for (size_t j = 0; j < group_size; j++) {
         loadable_set.push_back(samples[idx]);
         idx++;
@@ -868,7 +868,7 @@ std::pair<PerformanceSummary, PerformanceSummary> FindBoundaries(
       });
 
   std::vector<loadgen::LoadableSampleSet> loadable_sets(
-      loadgen::GenerateLoadableSets(qsl, u_settings));
+      loadgen::GenerateLoadableSets(qsl, u_settings, sequence_gen));
   const LoadableSampleSet& performance_set = loadable_sets.front();
   LoadSamplesToRam(qsl, performance_set.set);
 
@@ -955,7 +955,7 @@ void RunPerformanceMode(SystemUnderTest* sut, QuerySampleLibrary* qsl,
 
   // Use first loadable set as the performance set.
   std::vector<loadgen::LoadableSampleSet> loadable_sets(
-      loadgen::GenerateLoadableSets(qsl, settings));
+      loadgen::GenerateLoadableSets(qsl, settings, sequence_gen));
   const LoadableSampleSet& performance_set = loadable_sets.front();
   LoadSamplesToRam(qsl, performance_set.set);
 
@@ -1088,7 +1088,7 @@ void FindPeakPerformanceMode(SystemUnderTest* sut, QuerySampleLibrary* qsl,
   // 1. Check whether the lower bound came from user satisfy performance
   // constraints or not.
   std::vector<loadgen::LoadableSampleSet> base_loadable_sets(
-      loadgen::GenerateLoadableSets(qsl, base_settings));
+      loadgen::GenerateLoadableSets(qsl, base_settings, sequence_gen));
   const LoadableSampleSet& base_performance_set = base_loadable_sets.front();
   LoadSamplesToRam(qsl, base_performance_set.set);
 
@@ -1158,7 +1158,7 @@ void FindPeakPerformanceMode(SystemUnderTest* sut, QuerySampleLibrary* qsl,
 
   // Reuse performance_set, u_perf_summary has the largest 'samples_per_query'.
   std::vector<loadgen::LoadableSampleSet> loadable_sets(
-      loadgen::GenerateLoadableSets(qsl, u_perf_summary.settings));
+      loadgen::GenerateLoadableSets(qsl, u_perf_summary.settings, sequence_gen));
   const LoadableSampleSet& performance_set = loadable_sets.front();
   LoadSamplesToRam(qsl, performance_set.set);
 
@@ -1203,7 +1203,7 @@ void RunAccuracyMode(SystemUnderTest* sut, QuerySampleLibrary* qsl,
   });
 
   std::vector<loadgen::LoadableSampleSet> loadable_sets(
-      loadgen::GenerateLoadableSets(qsl, settings));
+      loadgen::GenerateLoadableSets(qsl, settings, sequence_gen));
 
   for (auto& loadable_set : loadable_sets) {
     {

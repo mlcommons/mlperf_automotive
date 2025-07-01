@@ -54,13 +54,27 @@ struct SequenceGen {
   void InitAccLogRng(uint64_t accuracy_log_rng_seed) {
     accuracy_log_rng = std::mt19937(accuracy_log_rng_seed);
   }
-
+  void InitGroupSizes(const std::vector<size_t> group_sizes){
+    group_sizes_.clear();
+    group_idx_.clear();
+    for (size_t i = 0; i < group_sizes.size(); i++) {
+      group_sizes_.push_back(group_sizes[i]);
+      for (size_t j = 0; j < group_sizes[i]; j++) {
+        group_idx_.push_back(i);
+      }
+    }
+  }
+  size_t GroupSize(size_t i) { return group_sizes_[i]; }
+  size_t GroupOf(size_t i) { return group_idx_[i]; }
+  size_t NumberOfGroups() { return group_sizes_.size(); }
  private:
   uint64_t query_id = 0;
   uint64_t sample_id = 0;
   std::mt19937 accuracy_log_rng;
   std::uniform_real_distribution<double> accuracy_log_dist =
       std::uniform_real_distribution<double>(0, 1);
+  std::vector<size_t> group_sizes_;
+  std::vector<size_t> group_idx_;
 };
 
 /// \brief An interface for a particular scenario + mode to implement for
