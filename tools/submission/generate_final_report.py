@@ -149,10 +149,7 @@ def main():
     ]
 
     filter_scenarios = {
-        "datacenter": {
-            # not present in v0.5
-        },
-        "edge": {
+        "adas": {
             "ssd": ["SingleStream", "ConstantStream"],
             "bevformer": ["SingleStream", "ConstantStream"],
             "deeplabv3plus": ["SingleStream", "ConstantStream"],
@@ -241,7 +238,7 @@ def main():
         f.write(json.dumps(id_dict, indent=4))
 
     for category in ["closed", "open", "network"]:
-        for suite in ["datacenter", "edge"]:
+        for suite in ["adas"]:
             MakeWorksheet(
                 df,
                 indices[category],
