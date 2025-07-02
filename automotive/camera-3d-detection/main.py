@@ -436,7 +436,7 @@ def main():
 
     sut = lg.ConstructSUT(issue_queries, flush_queries)
     qsl = lg.ConstructGroupedQSL(
-        scene_lengths, performance_sample_count, ds.load_query_samples, ds.unload_query_samples
+        sum(scene_lengths), performance_sample_count, ds.load_query_samples, ds.unload_query_samples
     )
     settings.use_grouped_qsl = True
     log.info("starting {}".format(scenario))

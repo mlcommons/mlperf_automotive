@@ -112,9 +112,6 @@ class QuerySampleLibraryTrampoline : public QuerySampleLibrary {
   const std::string& Name() override { return name_; }
   size_t TotalSampleCount() override { return total_sample_count_; }
   size_t PerformanceSampleCount() override { return performance_sample_count_; }
-  size_t GroupSize(size_t i) override { return 1; }
-  size_t GroupOf(size_t i) override { return i; }
-  size_t NumberOfGroups() override { return total_sample_count_; }
 
   void LoadSamplesToRam(const std::vector<QuerySampleIndex>& samples) override {
     pybind11::gil_scoped_acquire gil_acquirer;
@@ -138,37 +135,21 @@ class QuerySampleLibraryTrampoline : public QuerySampleLibrary {
 class GroupedQuerySampleLibraryTrampoline : public QuerySampleLibrary {
  public:
   GroupedQuerySampleLibraryTrampoline(
-      std::string name, size_t performance_sample_count,
+      std::string name, size_t total_sample_count, 
+      size_t performance_sample_count,
       LoadSamplesToRamCallback load_samples_to_ram_cb,
-      UnloadSamplesFromRamCallback unload_samples_from_ram_cb,
-      pybind11::array_t<size_t> group_sizes)
+      UnloadSamplesFromRamCallback unload_samples_from_ram_cb)
       : name_(std::move(name)),
+        total_sample_count_(total_sample_count),
         performance_sample_count_(performance_sample_count),
         load_samples_to_ram_cb_(load_samples_to_ram_cb),
         unload_samples_from_ram_cb_(unload_samples_from_ram_cb) {
-    total_sample_count_ = 0;
-    if (group_sizes.ndim() != 1) {
-      throw std::runtime_error("Group sizes should be a 1D Numpy array");
-    }
-    auto buffer = group_sizes.request();
-    size_t* ptr = (size_t*)buffer.ptr;
-
-    for (ssize_t i = 0; i < group_sizes.shape()[0]; i++) {
-      group_sizes_.push_back(ptr[i]);
-      total_sample_count_ += ptr[i];
-      for (size_t j = 0; j < ptr[i]; j++) {
-        group_idx_.push_back(i);
-      }
-    }
   }
   ~GroupedQuerySampleLibraryTrampoline() override = default;
 
   const std::string& Name() override { return name_; }
   size_t TotalSampleCount() override { return total_sample_count_; }
   size_t PerformanceSampleCount() override { return performance_sample_count_; }
-  size_t GroupSize(size_t i) override { return group_sizes_[i]; }
-  size_t GroupOf(size_t i) override { return group_idx_[i]; }
-  size_t NumberOfGroups() override { return group_sizes_.size(); }
 
   void LoadSamplesToRam(const std::vector<QuerySampleIndex>& samples) override {
     pybind11::gil_scoped_acquire gil_acquirer;
@@ -182,8 +163,6 @@ class GroupedQuerySampleLibraryTrampoline : public QuerySampleLibrary {
 
  private:
   std::string name_;
-  std::vector<size_t> group_sizes_;
-  std::vector<size_t> group_idx_;
   size_t total_sample_count_;
   size_t performance_sample_count_;
   LoadSamplesToRamCallback load_samples_to_ram_cb_;
@@ -287,13 +266,13 @@ void DestroyQDL(uintptr_t qdl) {
 }
 
 uintptr_t ConstructGroupedQSL(
-    pybind11::array_t<size_t> group_sizes, size_t performance_sample_count,
+    size_t total_sample_count, size_t performance_sample_count,
     LoadSamplesToRamCallback load_samples_to_ram_cb,
     UnloadSamplesFromRamCallback unload_samples_from_ram_cb) {
   GroupedQuerySampleLibraryTrampoline* qsl =
       new GroupedQuerySampleLibraryTrampoline(
-          "PyQSL", performance_sample_count, load_samples_to_ram_cb,
-          unload_samples_from_ram_cb, group_sizes);
+          "PyQSL", total_sample_count, performance_sample_count, load_samples_to_ram_cb,
+          unload_samples_from_ram_cb);
   return reinterpret_cast<uintptr_t>(qsl);
 }
 
