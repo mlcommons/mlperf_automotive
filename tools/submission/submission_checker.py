@@ -53,7 +53,7 @@ MODEL_CONFIG = {
 
         },
         "performance-sample-count": {
-            "bevformer": 512,
+            "bevformer": 256,
             "deeplabv3plus": 128,
             "ssd": 128
         },
