@@ -142,8 +142,7 @@ class GroupedQuerySampleLibraryTrampoline : public QuerySampleLibrary {
         total_sample_count_(total_sample_count),
         performance_sample_count_(performance_sample_count),
         load_samples_to_ram_cb_(load_samples_to_ram_cb),
-        unload_samples_from_ram_cb_(unload_samples_from_ram_cb) {
-  }
+        unload_samples_from_ram_cb_(unload_samples_from_ram_cb) {}
   ~GroupedQuerySampleLibraryTrampoline() override = default;
 
   const std::string& Name() override { return name_; }
@@ -170,10 +169,11 @@ class GroupedQuerySampleLibraryTrampoline : public QuerySampleLibrary {
 
 }  // namespace
 
-void* ConstructGroupedQSL(ClientData client_data, const char* name, size_t name_length,
-                   size_t total_sample_count, size_t performance_sample_count,
-                   LoadSamplesToRamCallback load_samples_to_ram_cb,
-                   UnloadSamplesFromRamCallback unload_samples_from_ram_cb) {
+void* ConstructGroupedQSL(
+    ClientData client_data, const char* name, size_t name_length,
+    size_t total_sample_count, size_t performance_sample_count,
+    LoadSamplesToRamCallback load_samples_to_ram_cb,
+    UnloadSamplesFromRamCallback unload_samples_from_ram_cb) {
   GroupedQuerySampleLibraryTrampoline* qsl =
       new GroupedQuerySampleLibraryTrampoline(
           client_data, std::string(name, name_length), total_sample_count,
