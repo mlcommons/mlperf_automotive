@@ -75,7 +75,7 @@ TestSettingsInternal::TestSettingsInternal(
       target_latency_percentile =
           requested.multi_stream_target_latency_percentile;
       break;
-    case TestScenario::ConstantStream:
+    case TestScenario::ConstantStream:{
       if (requested.server_target_qps >= 0.0) {
         target_qps = requested.server_target_qps;
       } else {
@@ -97,6 +97,7 @@ TestSettingsInternal::TestSettingsInternal(
       target_latency_percentile = requested.server_target_latency_percentile;
       max_async_queries = requested.server_max_async_queries;
       break;
+    }
     case TestScenario::Offline:
       // target_latency_percentile is not used in Offline, but set it to
       // 0.99 anyway to avoid garbage value.
