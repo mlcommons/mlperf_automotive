@@ -712,7 +712,8 @@ std::vector<LoadableSampleSet> GenerateLoadableSets(
   } else {
     // If using grouped qsl, we randomized the groups.
     // The samples within a group mantain their order.
-    size_t number_of_groups = sequence_gen->NumberOfGroups();
+    qsl->InitGroupSizes(settings.group_sizes);
+    size_t number_of_groups = qsl->NumberOfGroups();
     size_t acumCount = 0, idx = 0;
     std::vector<QuerySampleIndex> groups(number_of_groups);
     std::vector<QuerySampleIndex> acumSizes(number_of_groups);
@@ -1319,7 +1320,6 @@ void StartTest(SystemUnderTest* sut, QuerySampleLibrary* qsl,
     detail("*Refer to Effective Settings for actual value");
 #endif
   });
-
   TestSettings test_settings = requested_settings;
   // Look for Audit Config file to override TestSettings during audit
   if (FileExists(audit_config_filename)) {
@@ -1364,7 +1364,7 @@ void StartTest(SystemUnderTest* sut, QuerySampleLibrary* qsl,
   }
 
   loadgen::TestSettingsInternal sanitized_settings(
-      test_settings, qsl->PerformanceSampleCount());
+      test_settings, qsl->PerformanceSampleCount(), qsl->TotalSampleCount());
   sanitized_settings.LogAllSettings();
 
   auto run_funcs = loadgen::RunFunctions::Get(sanitized_settings.scenario);

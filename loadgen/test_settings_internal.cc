@@ -25,7 +25,7 @@ namespace mlperf {
 namespace loadgen {
 
 TestSettingsInternal::TestSettingsInternal(
-    const TestSettings &requested_settings, size_t qsl_performance_sample_count)
+    const TestSettings &requested_settings, size_t qsl_performance_sample_count, size_t qsl_total_sample_count)
     : requested(requested_settings),
       scenario(requested.scenario),
       mode(requested.mode),
@@ -119,6 +119,12 @@ TestSettingsInternal::TestSettingsInternal(
       }
       max_async_queries = 1;
       break;
+  }
+
+  if (use_grouped_qsl && group_sizes.empty()) {
+    for(size_t i = 0; i < qsl_total_sample_count; i++) {
+      group_sizes.push_back(1);
+    }
   }
 
   // Performance Sample Count: TestSettings override QSL ->
@@ -682,6 +688,8 @@ int TestSettings::FromConfig(const std::string &path, const std::string &model,
           kv[k] = s;
           continue;
         }
+        kv[k] = s;
+        continue;
         errors++;
         LogDetail([l = line_nr](AsyncDetail &detail) {
 #if USE_NEW_LOGGING_FORMAT
