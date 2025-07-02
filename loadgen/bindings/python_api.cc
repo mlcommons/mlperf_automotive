@@ -135,7 +135,7 @@ class QuerySampleLibraryTrampoline : public QuerySampleLibrary {
 class GroupedQuerySampleLibraryTrampoline : public QuerySampleLibrary {
  public:
   GroupedQuerySampleLibraryTrampoline(
-      std::string name, size_t total_sample_count, 
+      std::string name, size_t total_sample_count,
       size_t performance_sample_count,
       LoadSamplesToRamCallback load_samples_to_ram_cb,
       UnloadSamplesFromRamCallback unload_samples_from_ram_cb)
@@ -143,8 +143,7 @@ class GroupedQuerySampleLibraryTrampoline : public QuerySampleLibrary {
         total_sample_count_(total_sample_count),
         performance_sample_count_(performance_sample_count),
         load_samples_to_ram_cb_(load_samples_to_ram_cb),
-        unload_samples_from_ram_cb_(unload_samples_from_ram_cb) {
-  }
+        unload_samples_from_ram_cb_(unload_samples_from_ram_cb) {}
   ~GroupedQuerySampleLibraryTrampoline() override = default;
 
   const std::string& Name() override { return name_; }
@@ -271,8 +270,8 @@ uintptr_t ConstructGroupedQSL(
     UnloadSamplesFromRamCallback unload_samples_from_ram_cb) {
   GroupedQuerySampleLibraryTrampoline* qsl =
       new GroupedQuerySampleLibraryTrampoline(
-          "PyQSL", total_sample_count, performance_sample_count, load_samples_to_ram_cb,
-          unload_samples_from_ram_cb);
+          "PyQSL", total_sample_count, performance_sample_count,
+          load_samples_to_ram_cb, unload_samples_from_ram_cb);
   return reinterpret_cast<uintptr_t>(qsl);
 }
 

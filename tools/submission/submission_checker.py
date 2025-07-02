@@ -96,7 +96,11 @@ MODEL_CONFIG = {
 }
 
 VALID_DIVISIONS = ["open", "closed", "network"]
-VALID_AVAILABILITIES = ["hardened", "development", "engineering_samples", "presilicon"]
+VALID_AVAILABILITIES = [
+    "hardened",
+    "development",
+    "engineering_samples",
+    "presilicon"]
 REQUIRED_PERF_FILES = ["mlperf_log_summary.txt", "mlperf_log_detail.txt"]
 OPTIONAL_PERF_FILES = ["mlperf_log_accuracy.json"]
 REQUIRED_PERF_POWER_FILES = ["spl.txt"]
