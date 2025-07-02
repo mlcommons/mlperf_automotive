@@ -281,6 +281,7 @@ bool PerformanceSummary::EarlyStopping(
       break;
     }
     case TestScenario::ConstantStream: {
+      bool return_false = false;
       int64_t t =
           std::count_if((*sample_latencies).begin(), (*sample_latencies).end(),
                         [=](auto const& latency) {
@@ -297,6 +298,55 @@ bool PerformanceSummary::EarlyStopping(
                           std::to_string(h + t - queries_issued) +
                           " more queries,\n with the run being successful if "
                           "every additional\n query were under latency.";
+        return_false = true;
+      }
+
+      // Also need to print the early stopping estimate for the target percentile
+      int64_t h_min;
+      t = 1;
+      h_min =
+          find_min_passing(1, target_latency_percentile.percentile, 
+                           tolerance, confidence);
+      h = h_min;
+      for (int64_t i = 2; i < queries_issued + 1; ++i) {
+        h = find_min_passing(i, target_latency_percentile.percentile, 
+                             tolerance, confidence);
+        if (queries_issued < h + i) {
+          t = i - 1;
+          break;
+        }
+      }
+      QuerySampleLatency percentile_estimate =
+          (*sample_latencies)[queries_issued - t];
+      *recommendation +=
+          "\n * Early stopping " +
+          DoubleToString(target_latency_percentile.percentile * 100, 1) +
+          "th percentile estimate: " + std::to_string(percentile_estimate);
+      early_stopping_latency_ss = percentile_estimate;
+
+      double multi_stream_percentile = 0.99;
+      t = 1;
+      h_min =
+          find_min_passing(1, multi_stream_percentile, 
+                           tolerance, confidence);
+      h = h_min;
+      for (int64_t i = 2; i < queries_issued + 1; ++i) {
+        h = find_min_passing(i, multi_stream_percentile, 
+                             tolerance, confidence);
+        if (queries_issued < h + i) {
+          t = i - 1;
+          break;
+        }
+      }
+      percentile_estimate = (*sample_latencies)[queries_issued - t];
+      *recommendation +=
+          "\n * Early stopping " +
+          DoubleToString(multi_stream_percentile * 100, 1) +
+          "th percentile estimate: " + std::to_string(percentile_estimate);
+      early_stopping_latency_ms = percentile_estimate;
+      
+      // handle failure case
+      if (return_false) {
         return false;
       }
       break;
@@ -477,6 +527,9 @@ void PerformanceSummary::LogSummary(AsyncSummary& summary) {
           (sample_count - 1) / pr.final_query_all_samples_done_time;
       summary("Completed samples per second    : ",
               DoubleToString(qps_as_completed));
+      summary(DoubleToString(target_latency_percentile.percentile * 100, 1) +
+                  "th percentile latency (ns) : ",
+              target_latency_percentile.sample_latency);
       break;
     }
     case TestScenario::Offline: {
@@ -847,6 +900,10 @@ void PerformanceSummary::LogDetail(AsyncDetail& detail) {
       double qps_as_completed =
           (sample_count - 1) / pr.final_query_all_samples_done_time;
       MLPERF_LOG(detail, "result_completed_samples_per_sec", qps_as_completed);
+      MLPERF_LOG(detail, "early_stopping_latency_ss",
+                 early_stopping_latency_ss);
+      MLPERF_LOG(detail, "early_stopping_latency_ms",
+                 early_stopping_latency_ms);
       break;
     }
     case TestScenario::Offline: {

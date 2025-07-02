@@ -52,31 +52,11 @@ def main():
             ref_mode = line.split(": ", 1)[1].strip()
             continue
 
-        if ref_mode == "SingleStream":
+        if ref_mode in ("SingleStream", "ConstantStream",):
             if re.match(
                     ".*Early stopping (90th|90.0th|99.9th) percentile estimate", line):
                 ref_score = line.split(": ", 1)[1].strip()
                 ref_score = 1e9 / float(ref_score)
-                continue
-
-        if ref_mode == "MultiStream":
-            if re.match(
-                    ".*Early stopping (99th|99.0th) percentile estimate", line):
-                ref_score = line.split(": ", 1)[1].strip()
-                ref_score = 1e9 / float(ref_score)
-                continue
-
-        if ref_mode == "Server":
-            if re.match("Completed samples per second", line):
-                ref_score = line.split(": ", 1)[1].strip()
-                continue
-            if re.match("target_latency (ns)", line):
-                ref_target_latency = line.split(": ", 1)[1].strip()
-                continue
-
-        if ref_mode == "Offline":
-            if re.match("Samples per second", line):
-                ref_score = line.split(": ", 1)[1].strip()
                 continue
 
         if re.match("Result is", line):
@@ -93,34 +73,11 @@ def main():
             test_mode = line.split(": ", 1)[1].strip()
             continue
 
-        if test_mode == "SingleStream":
+        if test_mode in ("SingleStream", "ConstantStream",):
             if re.match(
                     ".*Early stopping (90th|90.0th|99.9th) percentile estimate", line):
                 test_score = line.split(": ", 1)[1].strip()
                 test_score = 1e9 / float(test_score)
-                continue
-
-        if test_mode == "MultiStream":
-            if re.match(
-                    ".*Early stopping (99th|99.0th) percentile estimate", line):
-                test_score = line.split(": ", 1)[1].strip()
-                test_score = 1e9 / float(test_score)
-                continue
-
-        if test_mode == "Server":
-            if re.match("Completed samples per second", line):
-                test_score = line.split(": ", 1)[1].strip()
-                continue
-            if re.match("target_latency (ns)", line):
-                test_target_latency = line.split(": ", 1)[1].strip()
-                if test_target_latency != ref_target_latency:
-                    print("TEST FAIL: Server target latency mismatch")
-                    sys.exit()
-                continue
-
-        if test_mode == "Offline":
-            if re.match("Samples per second", line):
-                test_score = line.split(": ", 1)[1].strip()
                 continue
 
         if re.match("Result is", line):
@@ -143,9 +100,7 @@ def main():
     # In single-/multi-stream mode, latencies can be very short for high performance systems
     # and run-to-run variation due to external disturbances (OS) can be significant.
     # In this case we relax pass threshold to 20%
-    if (ref_mode == "SingleStream" and float(ref_score) <= 200000) or (
-        ref_mode == "MultiStream" and float(ref_score) <= 1600000
-    ):
+    if ref_mode in ("SingleStream", "ConstantStream",) and float(ref_score) <= 200000:
         threshold = 0.20
 
     if float(test_score) < float(ref_score) * (1 + threshold):
