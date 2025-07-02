@@ -712,8 +712,8 @@ std::vector<LoadableSampleSet> GenerateLoadableSets(
   } else {
     // If using grouped qsl, we randomized the groups.
     // The samples within a group mantain their order.
-    qsl->InitGroupSizes(settings.group_sizes);
-    size_t number_of_groups = qsl->NumberOfGroups();
+    sequence_gen->InitGroupSizes(settings.group_sizes);
+    size_t number_of_groups = sequence_gen->NumberOfGroups();
     size_t acumCount = 0, idx = 0;
     std::vector<QuerySampleIndex> groups(number_of_groups);
     std::vector<QuerySampleIndex> acumSizes(number_of_groups);
