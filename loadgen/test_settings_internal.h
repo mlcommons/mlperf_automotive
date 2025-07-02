@@ -44,7 +44,8 @@ std::string ToString(TestMode mode);
 /// the concept of target_duration used to pre-generate queries.
 struct TestSettingsInternal {
   explicit TestSettingsInternal(const TestSettings &requested_settings,
-                                size_t qsl_performance_sample_count, size_t qsl_total_sample_count);
+                                size_t qsl_performance_sample_count,
+                                size_t qsl_total_sample_count);
   void LogEffectiveSettings() const;
   void LogAllSettings() const;
   void LogSummary(AsyncSummary &summary) const;
@@ -92,7 +93,7 @@ struct TestSettingsInternal {
   bool infer_token_latencies = false;
   int64_t token_latency_scaling_factor;
   bool use_grouped_qsl = false;
-  std::vector<size_t>group_sizes;
+  std::vector<size_t> group_sizes;
 };
 
 /// \brief A namespace of collections of FindPeakPerformance helper functions,

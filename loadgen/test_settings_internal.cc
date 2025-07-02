@@ -25,7 +25,8 @@ namespace mlperf {
 namespace loadgen {
 
 TestSettingsInternal::TestSettingsInternal(
-    const TestSettings &requested_settings, size_t qsl_performance_sample_count, size_t qsl_total_sample_count)
+    const TestSettings &requested_settings, size_t qsl_performance_sample_count,
+    size_t qsl_total_sample_count)
     : requested(requested_settings),
       scenario(requested.scenario),
       mode(requested.mode),
@@ -56,7 +57,7 @@ TestSettingsInternal::TestSettingsInternal(
       server_constant_gen(requested.server_constant_gen),
       infer_token_latencies(requested.infer_token_latencies),
       token_latency_scaling_factor(requested.token_latency_scaling_factor),
-      use_grouped_qsl(requested.use_grouped_qsl), 
+      use_grouped_qsl(requested.use_grouped_qsl),
       group_sizes(requested.group_sizes) {
   // Target QPS, target latency, and max_async_queries.
   switch (requested.scenario) {
@@ -122,7 +123,7 @@ TestSettingsInternal::TestSettingsInternal(
   }
 
   if (use_grouped_qsl && group_sizes.empty()) {
-    for(size_t i = 0; i < qsl_total_sample_count; i++) {
+    for (size_t i = 0; i < qsl_total_sample_count; i++) {
       group_sizes.push_back(1);
     }
   }
@@ -605,7 +606,7 @@ int TestSettings::FromConfig(const std::string &path, const std::string &model,
   };
 
   auto lookupkvstr = [&](const std::string &model, const std::string &scenario,
-                      const std::string &key, std::string *val_str) {
+                         const std::string &key, std::string *val_str) {
     std::map<std::string, std::string>::iterator it;
     std::string found;
     // lookup exact key first
@@ -852,7 +853,7 @@ int TestSettings::FromConfig(const std::string &path, const std::string &model,
            nullptr);
   lookupkv(model, scenario, "accuracy_log_sampling_target",
            &accuracy_log_sampling_target, nullptr);
-  if (lookupkvstr(model, scenario, "group_sizes", &val_string)){
+  if (lookupkvstr(model, scenario, "group_sizes", &val_string)) {
     group_sizes.clear();
     size_t pos = 0;
     std::string delimiter = ",";
