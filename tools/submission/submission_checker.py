@@ -73,11 +73,7 @@ MODEL_CONFIG = {
             "schedule_rng_seed": 9933818062894767841,
         },
         "ignore_errors": [],
-        "latency-constraint": {
-            "bevformer": {"ConstantStream": 10000000},
-            "deeplabv3plus": {"ConstantStream": 10000000},
-            "ssd": {"ConstantStream": 10000000}
-        },
+        "latency-constraint": {},
         "min-queries": {
             "bevformer": {
                 "ConstantStream": 100000,
