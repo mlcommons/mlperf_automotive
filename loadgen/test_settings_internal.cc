@@ -92,8 +92,8 @@ TestSettingsInternal::TestSettingsInternal(
 #endif
         });
       }
-      target_latency =
-          std::chrono::nanoseconds(requested.server_target_latency_ns);
+      uint64_t tgt_lat_ns = 1000000000 / target_qps;
+      target_latency = std::chrono::nanoseconds(tgt_lat_ns);
       target_latency_percentile = requested.server_target_latency_percentile;
       max_async_queries = requested.server_max_async_queries;
       break;
@@ -810,8 +810,6 @@ int TestSettings::FromConfig(const std::string &path, const std::string &model,
   // keys that apply to ConstantStream
   lookupkv(model, "ConstantStream", "target_latency_percentile", nullptr,
            &server_target_latency_percentile, 0.01);
-  lookupkv(model, "ConstantStream", "target_latency", &server_target_latency_ns,
-           nullptr, 1000 * 1000);
 
   // keys that can be overriden in user.conf (the provided values still need to
   // pass the submission checker rules)
