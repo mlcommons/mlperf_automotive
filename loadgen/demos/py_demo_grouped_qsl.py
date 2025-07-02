@@ -37,7 +37,7 @@ def unload_samples_from_ram(query_samples):
 
 
 def process_query_async(query_samples):
-    time.sleep(0.001)
+    time.sleep(0.008)
     responses = []
     for s in query_samples:
         print(s.index)
@@ -56,6 +56,7 @@ def flush_queries():
 def main(argv):
     del argv
     settings = mlperf_loadgen.TestSettings()
+    # settings.FromConfig("user.conf", "bevformer", "ConstantStream")
     settings.scenario = mlperf_loadgen.TestScenario.ConstantStream
     settings.mode = mlperf_loadgen.TestMode.PerformanceOnly
     settings.server_target_qps = 100
@@ -67,8 +68,7 @@ def main(argv):
 
     sut = mlperf_loadgen.ConstructSUT(issue_query, flush_queries)
     qsl = mlperf_loadgen.ConstructGroupedQSL(
-        np.array([16 for _ in range(64)] + [32 for _ in range(32)],
-                 dtype=np.uint64), 16 * 128, load_samples_to_ram, unload_samples_from_ram
+        1024, 32, load_samples_to_ram, unload_samples_from_ram
     )
 
     # qsl = mlperf_loadgen.ConstructQSL(
