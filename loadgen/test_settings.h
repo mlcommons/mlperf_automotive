@@ -279,7 +279,7 @@ struct TestSettings {
   /// \brief Infer token latencies
   bool infer_token_latencies = false;
   uint64_t token_latency_scaling_factor;
-  std::vector<size_t>group_sizes;
+  std::vector<size_t> group_sizes;
   /**@}*/
 };
 
