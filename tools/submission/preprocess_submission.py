@@ -387,8 +387,7 @@ def infer_scenario_results(args, config):
                     with open(system_id_json) as system_info:
                         system_json = json.load(system_info)
                     system_type = system_json.get("system_type")
-                    valid_system_types = ["datacenter", "edge",
-                                          "datacenter,edge", "edge,datacenter"]
+                    valid_system_types = ["adas"]
                     if system_type not in valid_system_types:
                         log.error("Division %s, submitter %s, "
                                   "system %s has invalid system type (%s)",

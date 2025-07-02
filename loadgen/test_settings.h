@@ -23,6 +23,7 @@ limitations under the License.
 
 #include <cstdint>
 #include <string>
+#include <vector>
 
 namespace mlperf {
 
@@ -278,6 +279,7 @@ struct TestSettings {
   /// \brief Infer token latencies
   bool infer_token_latencies = false;
   uint64_t token_latency_scaling_factor;
+  std::vector<size_t>group_sizes;
   /**@}*/
 };
 

@@ -89,9 +89,6 @@ class QuerySampleLibraryTrampoline : public QuerySampleLibrary {
   const std::string& Name() override { return name_; }
   size_t TotalSampleCount() override { return total_sample_count_; }
   size_t PerformanceSampleCount() override { return performance_sample_count_; }
-  size_t GroupSize(size_t i) override { return 1; }
-  size_t GroupOf(size_t i) override { return i; }
-  size_t NumberOfGroups() override { return total_sample_count_; }
 
   void LoadSamplesToRam(const std::vector<QuerySampleIndex>& samples) override {
     (*load_samples_to_ram_cb_)(client_data_, samples.data(), samples.size());
@@ -136,32 +133,22 @@ namespace {
 class GroupedQuerySampleLibraryTrampoline : public QuerySampleLibrary {
  public:
   GroupedQuerySampleLibraryTrampoline(
-      ClientData client_data, std::string name, size_t performance_sample_count,
+      ClientData client_data, std::string name, size_t total_sample_count,
+      size_t performance_sample_count,
       LoadSamplesToRamCallback load_samples_to_ram_cb,
-      UnloadSamplesFromRamCallback unload_samples_from_ram_cb,
-      std::vector<size_t>& group_sizes)
-      : name_(std::move(name)),
+      UnloadSamplesFromRamCallback unload_samples_from_ram_cb)
+      : client_data_(client_data),
+        name_(std::move(name)),
+        total_sample_count_(total_sample_count),
         performance_sample_count_(performance_sample_count),
         load_samples_to_ram_cb_(load_samples_to_ram_cb),
         unload_samples_from_ram_cb_(unload_samples_from_ram_cb) {
-    total_sample_count_ = 0;
-
-    for (size_t i = 0; i < group_sizes.size(); i++) {
-      group_sizes_.push_back(group_sizes[i]);
-      total_sample_count_ += group_sizes[i];
-      for (size_t j = 0; j < group_sizes[i]; j++) {
-        group_idx_.push_back(i);
-      }
-    }
   }
   ~GroupedQuerySampleLibraryTrampoline() override = default;
 
   const std::string& Name() override { return name_; }
   size_t TotalSampleCount() override { return total_sample_count_; }
   size_t PerformanceSampleCount() override { return performance_sample_count_; }
-  size_t GroupSize(size_t i) override { return group_sizes_[i]; }
-  size_t GroupOf(size_t i) override { return group_idx_[i]; }
-  size_t NumberOfGroups() override { return group_sizes_.size(); }
 
   void LoadSamplesToRam(const std::vector<QuerySampleIndex>& samples) override {
     (*load_samples_to_ram_cb_)(client_data_, samples.data(), samples.size());
@@ -175,8 +162,6 @@ class GroupedQuerySampleLibraryTrampoline : public QuerySampleLibrary {
  private:
   std::string name_;
   ClientData client_data_;
-  std::vector<size_t> group_sizes_;
-  std::vector<size_t> group_idx_;
   size_t total_sample_count_;
   size_t performance_sample_count_;
   LoadSamplesToRamCallback load_samples_to_ram_cb_;
@@ -185,16 +170,15 @@ class GroupedQuerySampleLibraryTrampoline : public QuerySampleLibrary {
 
 }  // namespace
 
-void* ConstructGroupedQSL(
-    ClientData client_data, const char* name, size_t name_length,
-    size_t total_sample_count, size_t performance_sample_count,
-    LoadSamplesToRamCallback load_samples_to_ram_cb,
-    UnloadSamplesFromRamCallback unload_samples_from_ram_cb,
-    std::vector<size_t>& group_sizes) {
+void* ConstructGroupedQSL(ClientData client_data, const char* name, size_t name_length,
+                   size_t total_sample_count, size_t performance_sample_count,
+                   LoadSamplesToRamCallback load_samples_to_ram_cb,
+                   UnloadSamplesFromRamCallback unload_samples_from_ram_cb) {
   GroupedQuerySampleLibraryTrampoline* qsl =
       new GroupedQuerySampleLibraryTrampoline(
-          client_data, std::string(name, name_length), performance_sample_count,
-          load_samples_to_ram_cb, unload_samples_from_ram_cb, group_sizes);
+          client_data, std::string(name, name_length), total_sample_count,
+          performance_sample_count, load_samples_to_ram_cb,
+          unload_samples_from_ram_cb);
   return reinterpret_cast<void*>(qsl);
 }
 
