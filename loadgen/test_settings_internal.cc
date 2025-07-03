@@ -92,8 +92,7 @@ TestSettingsInternal::TestSettingsInternal(
 #endif
         });
       }
-      uint64_t tgt_lat_ns = 1000000000 / target_qps;
-      target_latency = std::chrono::nanoseconds(tgt_lat_ns);
+      target_latency = std::chrono::nanoseconds(uint64_t(1000000000 / target_qps));
       target_latency_percentile = requested.server_target_latency_percentile;
       max_async_queries = requested.server_max_async_queries;
       break;
