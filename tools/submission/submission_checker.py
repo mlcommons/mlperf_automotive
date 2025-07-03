@@ -53,7 +53,7 @@ MODEL_CONFIG = {
 
         },
         "performance-sample-count": {
-            "bevformer": 512,
+            "bevformer": 256,
             "deeplabv3plus": 128,
             "ssd": 128
         },
@@ -73,22 +73,18 @@ MODEL_CONFIG = {
             "schedule_rng_seed": 9933818062894767841,
         },
         "ignore_errors": [],
-        "latency-constraint": {
-            "bevformer": {"ConstantStream": 10000000},
-            "deeplabv3plus": {"ConstantStream": 10000000},
-            "ssd": {"ConstantStream": 10000000}
-        },
+        "latency-constraint": {},
         "min-queries": {
             "bevformer": {
-                "ConstantStream": 6636,
+                "ConstantStream": 100000,
                 "SingleStream": 6636,
             },
             "deeplabv3plus": {
-                "ConstantStream": 6636,
+                "ConstantStream": 100000,
                 "SingleStream": 6636,
             },
             "ssd": {
-                "ConstantStream": 6636,
+                "ConstantStream": 100000,
                 "SingleStream": 6636,
             }
         },
