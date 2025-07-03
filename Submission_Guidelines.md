@@ -21,7 +21,7 @@ The MLPerf inference submission rules are spread between the [MLCommons policies
 MLPerf inference submissions are expected to be run on various hardware and supported software stacks. Therefore, MLCommons provides only reference implementations to guide submitters in creating optimal implementations for their specific software and hardware configurations. Additionally, all implementations used for MLPerf inference submissions are available in the MLCommons [Inference results](https://github.com/orgs/mlcommons/repositories?q=inference_results_v+sort%3Aname) repositories (under `closed/<submitter>/code` directory), offering further guidance for submitters developing their own implementations.
 
 ### Expected time to do benchmark runs
-1. Closed submission under adas needs a single stream or constant stream scenario with a minimum of 6636 samples. 
+1. Closed submission under adas needs a single stream or constant stream scenario with a minimum of 6636 or 100000 samples, respectively. 
 2. Further two compliance runs are needed for closed division taking similar time as the normal performance run.
 3. Open division has no accuracy constraints, no required compliance runs, and can be submitted for any single scenario. There is no constraint on the model used except that the model accuracy must be validated on the accuracy dataset used in the corresponding MLPerf inference task [or must be preapproved](https://github.com/mlcommons/inference_policies/blob/master/inference_rules.adoc#412-relaxed-constraints-for-the-open-division).
 
