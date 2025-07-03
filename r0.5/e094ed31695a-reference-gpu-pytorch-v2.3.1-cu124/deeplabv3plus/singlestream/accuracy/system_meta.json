@@ -28,7 +28,7 @@
   "number_of_nodes": "1",
   "operating_system": "Ubuntu 22.04 (linux-6.8.0-1030-gcp-glibc2.35)",
   "other_software_stack": "Python: 3.10.12, LLVM-15.0.6, Using Docker  , CUDA 12.4",
-  "status": "available",
+  "status": "development",
   "submitter": "MLCommons",
   "sw_notes": "",
   "system_name": "e094ed31695a",
