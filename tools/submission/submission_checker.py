@@ -67,10 +67,9 @@ MODEL_CONFIG = {
             "DEEPLABV3PLUS": "deeplabv3plus",
         },
         "seeds": {
-            # TODO: Update random seeds
-            "qsl_rng_seed": 6023615788873153749,
-            "sample_index_rng_seed": 15036839855038426416,
-            "schedule_rng_seed": 9933818062894767841,
+            "qsl_rng_seed": 1575625098,
+            "sample_index_rng_seed": 2227286192,
+            "schedule_rng_seed": 3495234579,
         },
         "ignore_errors": [],
         "latency-constraint": {},
