@@ -2,6 +2,8 @@
 # Unless a later match takes precedence,they will be requested for review when someone opens a pull request.
 * @mlcommons/wg-automotive
 
+* @mlcommons/wg-benchmark-infra
+
 /.github/CODEOWNERS @mlcommons/systems
 
 /.github/workflows/cla.yml @mlcommons/systems
