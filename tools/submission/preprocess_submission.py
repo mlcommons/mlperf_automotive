@@ -250,7 +250,7 @@ def clean_invalid_results(args, log_path, config, system_desc, system_json,
             if is_closed_or_network:
                 compliance_dir = change_folder_name_in_path(
                     scenario_path, "results", "compliance")
-                if not checker.check_compliance_dir(
+                if hasattr(checker, 'check_compliance_dir') and not checker.check_compliance_dir(
                     compliance_dir,
                     mlperf_model,
                     scenario_fixed,
