@@ -1,4 +1,4 @@
-# MLPerf™ Automotive Benchmark Suite
+# MLPerf® Automotive Benchmark Suite
 MLPerf Automotive is a benchmark suite for measuring how fast automotive systems can run models in a variety of deployment scenarios. 
 
 ## MLPerf Automotive v0.5
