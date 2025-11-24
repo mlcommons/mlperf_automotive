@@ -11,7 +11,7 @@ An important requirement is that you must have Docker installed.
 virtualenv -p python3 ./env && source ./env/bin/activate && pip install pip==24.0 && pip install mlcube-docker
 # Fetch the implementation from GitHub
 git clone https://github.com/mlcommons/mlperf_automotive && cd ./mlperf_automotive
-git fetch origin pull/xxx/head:feature/mlcube_bevformer && git checkout feature/mlcube_bevformer
+git fetch origin pull/87/head:feature/mlcube_bevformer && git checkout feature/mlcube_bevformer
 cd ./automotive/camera-3d-detection/mlcube
 ```
 
