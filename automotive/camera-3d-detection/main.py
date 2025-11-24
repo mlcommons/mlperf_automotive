@@ -22,7 +22,6 @@ import numpy as np
 import torch
 import pickle
 import dataset
-import torch
 import nuscenes_inf
 
 logging.basicConfig(level=logging.INFO)
@@ -52,7 +51,6 @@ SUPPORTED_PROFILES = {
 SCENARIO_MAP = {
     "SingleStream": lg.TestScenario.SingleStream,
     "MultiStream": lg.TestScenario.MultiStream,
-    "ConstantStream": lg.TestScenario.ConstantStream,
     "Offline": lg.TestScenario.Offline,
 }
 
@@ -378,7 +376,6 @@ def main():
     runner_map = {
         lg.TestScenario.SingleStream: RunnerBase,
         lg.TestScenario.MultiStream: QueueRunner,
-        lg.TestScenario.ConstantStream: QueueRunner,
         lg.TestScenario.Offline: QueueRunner,
     }
     runner = runner_map[scenario](
