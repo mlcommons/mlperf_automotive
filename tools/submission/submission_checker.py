@@ -156,7 +156,7 @@ RESULT_FIELD_NEW = {
         "Offline": "result_samples_per_second",
         "SingleStream": "early_stopping_latency_ss",
         "MultiStream": "early_stopping_latency_ms",
-        "ConstantStream": "result_completed_samples_per_sec",
+        "ConstantStream": "result_99.90_percentile_latency_ns",
     },
 }
 
@@ -836,7 +836,7 @@ def check_performance_dir(
         )
         is_valid = False
 
-    if scenario == "SingleStream" or scenario == "MultiStream":
+    if scenario == "SingleStream" or scenario == "MultiStream" or scenario == "ConstantStream":
         res /= MS_TO_NS
 
     # Check if the current scenario uses early stopping
@@ -1281,7 +1281,7 @@ def check_results_dir(
             "SingleStream": "Latency (ms)",
             "MultiStream": "Latency (ms)",
             "Offline": "Samples/s",
-            "ConstantStream": "Queries/s",
+            "ConstantStream": "Latency (ms)",
         }
         power_unit_dict = {
             "SingleStream": "millijoules",
