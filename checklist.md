@@ -101,15 +101,18 @@ Documented whether **Equal Issue Mode** is applicable in
 - [ ] All necessary changes made to the **preprocess_submission**.
     - [ ] Updated values in divisions list.
     - [ ] Fixed conditional statements that are specific to inference for better portability with automotive
-    
+
 ---
 
-
-
-#### **14. Sample Log Files**
+#### **16. Sample Log Files**
 - [ ] Include sample logs for all the applicable scenario runs:
   - [ ] `mlperf_log_summary.txt`
   - [ ] `mlperf_log_detail.txt`  
 - [ ] Log files passing the submission checker are generated for all Divisions.
   - [ ] Closed
   - [ ] Open  
+
+---
+
+#### **17. Model and Dataset access**
+- [ ] Include steps for submitters to obtain access for gated models and dataset
