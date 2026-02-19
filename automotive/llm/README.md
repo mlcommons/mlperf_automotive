@@ -25,4 +25,4 @@ docker run --gpus all -it -v /path/to/model/and/dataset:/home/llama mlperf-auto-
 `python main.py --model_path <path/to/model> --dataset_path <path/to/dataset> --device <cpu|cuda> --accuracy`
 
 ### Accuracy checker
-`python accuracy_checker.py`
+`python accuracy_checker.py`--dataset_file <path/to/dataset>
