@@ -8,6 +8,10 @@ import mlperf_loadgen as lg
 from dataset import MMLU_QSL
 from backend_deploy import LlamaBackend
 
+SCENARIO_MAP = {
+    "SingleStream": lg.TestScenario.SingleStream,
+}
+
 class LlamaSUT:
     def __init__(self, model_path, qsl, device="cuda"):
         self.backend = LlamaBackend(model_path, device)
@@ -53,9 +57,19 @@ def main():
     parser.add_argument("--dataset_path", default="mmlu_automotive.json", help="Path to generated dataset")
     parser.add_argument("--device", default="cuda", help="cuda or cpu")
     parser.add_argument("--performance_sample_count", type=int, default=100, help="Number of samples to run")
-    parser.add_argument("--time", type=int, default=10, help="Benchmark duration in minutes")
-    parser.add_argument("--accuracy", action="store_true", help="Run in Accuracy Mode")
-    parser.add_argument("--enable_trace", action="store_true", help="Enable LoadGen tracing")
+    parser.add_argument(
+        "--user-conf",
+        type=str,
+        default="user.conf",
+        help="user config for user LoadGen settings such as target QPS",
+    )
+    parser.add_argument(
+        "--scenario",
+        default="SingleStream",
+        help="mlperf benchmark scenario, one of " +
+        str(list(SCENARIO_MAP.keys())),
+    )
+    parser.add_argument("--output_dir", default="results", help="output directory for logs and results")
     args = parser.parse_args()
 
     # 1. Setup QSL
@@ -67,29 +81,18 @@ def main():
     
     # 3. Configure LoadGen Settings
     settings = lg.TestSettings()
-    
-    settings.scenario = lg.TestScenario.SingleStream
-    settings.single_stream_expected_latency_ns = 1000000000 # 1 second target latency constraint
-    
-    if args.accuracy:
-        settings.mode = lg.TestMode.AccuracyOnly
-    else:
-        settings.mode = lg.TestMode.PerformanceOnly
-
-    settings.min_duration_ms = args.time * 60 * 1000
-    settings.min_query_count = count
-    
+    settings.scenario = SCENARIO_MAP[args.scenario]
+    # mlperf_conf is automatically loaded by the loadgen
+    settings.FromConfig(args.user_conf, "llm", args.scenario)
     # Logging
-    os.makedirs("results", exist_ok=True)
+    os.makedirs(args.output_dir, exist_ok=True)
     log_output_settings = lg.LogOutputSettings()
-    log_output_settings.outdir = "results"
+    log_output_settings.outdir = args.output_dir
     log_output_settings.copy_summary_to_stdout = True
     
     log_settings = lg.LogSettings()
     log_settings.log_output = log_output_settings
-    log_settings.enable_trace = args.enable_trace
 
-    print(f"Starting MLPerf Benchmark: SingleStream ({'Accuracy' if args.accuracy else 'Performance'}) ...")
 
     # 4. Start Test
     sut = lg.ConstructSUT(sut_wrapper.issue_queries, sut_wrapper.flush_queries)
