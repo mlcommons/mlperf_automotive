@@ -21,11 +21,10 @@ class LlamaBackend:
             torch.cuda.empty_cache()
 
         # Load Model
-        dtype = torch.bfloat16 if device == "cuda" and torch.cuda.is_bf16_supported() else torch.float16
         
         self.model = AutoModelForCausalLM.from_pretrained(
             model_path,
-            torch_dtype=dtype
+            torch_dtype=torch.float16
         )
         
         self.model.to(device)
