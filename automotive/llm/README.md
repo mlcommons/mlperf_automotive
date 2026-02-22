@@ -19,10 +19,12 @@ docker run --gpus all -it -v /path/to/model/and/dataset:/home/llama mlperf-auto-
 ## Running the benchmark
 
 ### Performance mode
-`python main.py --model_path <path/to/model> --dataset_path <path/to/dataset> --time 10 --device <cpu|cuda>`
+Set the mode in user.conf to 2 to run in performance mode.
+`python main.py --model_path <path/to/model> --dataset_path <path/to/dataset> --device <cpu|cuda>`
 
 ### Accuracy model
-`python main.py --model_path <path/to/model> --dataset_path <path/to/dataset> --device <cpu|cuda> --accuracy`
+Set the mode in user.conf to 1 to run in accuracy mode.
+`python main.py --model_path <path/to/model> --dataset_path <path/to/dataset> --device <cpu|cuda>
 
 ### Accuracy checker
 `python accuracy_checker.py`--dataset_file <path/to/dataset>
