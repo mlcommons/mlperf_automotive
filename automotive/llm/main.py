@@ -70,6 +70,10 @@ def main():
         str(list(SCENARIO_MAP.keys())),
     )
     parser.add_argument("--output_dir", default="results", help="output directory for logs and results")
+    parser.add_argument(
+        "--accuracy",
+        action="store_true",
+        help="Run accuracy mode")
     args = parser.parse_args()
 
     # 1. Setup QSL
@@ -82,9 +86,11 @@ def main():
     # 3. Configure LoadGen Settings
     settings = lg.TestSettings()
     settings.scenario = SCENARIO_MAP[args.scenario]
-    # mlperf_conf is automatically loaded by the loadgen
+    if args.accuracy:
+        settings.mode = lg.TestMode.AccuracyOnly
+    else:
+        settings.mode = lg.TestMode.PerformanceOnly
     settings.FromConfig(args.user_conf, "llm", args.scenario)
-    # Logging
     os.makedirs(args.output_dir, exist_ok=True)
     log_output_settings = lg.LogOutputSettings()
     log_output_settings.outdir = args.output_dir
