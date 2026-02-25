@@ -27,36 +27,21 @@ def format_mmlu_prompt(example):
     
     return messages, example['answer']
 
-def download_and_save(output_file="mmlu_full.json", sample_count=None):
-    print("Fetching available MMLU configurations...")
-    try:
-        # Dynamically get all 57 subsets (math, history, law, etc.)
-        subsets = datasets.get_dataset_config_names("cais/mmlu")
-        # Filter out 'all' if it exists to avoid duplication, though usually it's just the topics
-        subsets = [s for s in subsets if s != 'all']
-    except Exception as e:
-        print(f"Error fetching config names: {e}")
-        return
-
-    print(f"Found {len(subsets)} categories. Starting download...")
-    
+def fetch_samples(subsets, split, target_count, output_file):
+    print(f"\nFetching {target_count if target_count else 'ALL'} samples from '{split}' split...")
     all_samples = []
     
-    # If sample_count is provided, we distribute it across categories
-    if sample_count:
-        samples_per_category = max(1, sample_count // len(subsets))
-        print(f"Limiting to approximately {samples_per_category} samples per category (Total target: {sample_count})")
+    if target_count:
+        samples_per_category = max(1, target_count // len(subsets))
+        print(f"Limiting to approx {samples_per_category} samples per category.")
     else:
         samples_per_category = float('inf')
-        print("Downloading ALL samples from all categories.")
     
-    for subset in tqdm(subsets, desc="Processing Categories"):
+    for subset in tqdm(subsets, desc=f"Processing {split}"):
         try:
-            # Download specific subset
-            ds = datasets.load_dataset("cais/mmlu", subset, split="test", trust_remote_code=True)
+            ds = datasets.load_dataset("cais/mmlu", subset, split=split, trust_remote_code=True)
             
-            # Select a chunk if we are limiting samples
-            if sample_count:
+            if target_count:
                 limit = min(len(ds), samples_per_category)
                 ds = ds.select(range(limit))
             
@@ -69,26 +54,47 @@ def download_and_save(output_file="mmlu_full.json", sample_count=None):
                     "subset": subset
                 })
                 
-                # Global break if we strictly hit the count
-                if sample_count and len(all_samples) >= sample_count:
+                if target_count and len(all_samples) >= target_count:
                     break
         except Exception as e:
             print(f"Warning: Could not process {subset}: {e}")
             continue
         
-        if sample_count and len(all_samples) >= sample_count:
+        if target_count and len(all_samples) >= target_count:
             break
             
-    # Save to disk
     print(f"Saving {len(all_samples)} items to {output_file}...")
     with open(output_file, 'w') as f:
         json.dump(all_samples, f, indent=2)
+
+def download_and_save(output_file="mmlu_full.json", sample_count=None, cal_output="mmlu_cal.json", cal_count=200):
+    print("Fetching available MMLU configurations...")
+    try:
+        # Dynamically get all 57 subsets (math, history, law, etc.)
+        subsets = datasets.get_dataset_config_names("cais/mmlu")
+        # Filter out 'all' if it exists to avoid duplication
+        subsets = [s for s in subsets if s != 'all']
+    except Exception as e:
+        print(f"Error fetching config names: {e}")
+        return
+
+    print(f"Found {len(subsets)} categories.")
+    
+    # 1. Fetch Calibration Data (from validation split)
+    if cal_count > 0:
+        fetch_samples(subsets, "validation", cal_count, cal_output)
+        
+    # 2. Fetch Evaluation Data (from test split)
+    fetch_samples(subsets, "test", sample_count, output_file)
+    
     print("Done.")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--output", default="mmlu_full.json", help="Output file path")
+    parser.add_argument("--output", default="mmlu_full.json", help="Output file path for evaluation dataset")
     parser.add_argument("--count", type=int, default=None, help="Total number of samples to generate (Default: None = Download Everything)")
+    parser.add_argument("--cal_output", default="mmlu_cal.json", help="Output file path for calibration dataset")
+    parser.add_argument("--cal_count", type=int, default=200, help="Number of calibration samples (Default: 200, set to 0 to disable)")
     args = parser.parse_args()
     
-    download_and_save(args.output, args.count)
+    download_and_save(args.output, args.count, args.cal_output, args.cal_count)
