@@ -90,7 +90,7 @@ def main():
         settings.mode = lg.TestMode.AccuracyOnly
     else:
         settings.mode = lg.TestMode.PerformanceOnly
-    settings.FromConfig(args.user_conf, "llama3.2_3b", args.scenario)
+    settings.FromConfig(args.user_conf, "llama3_2-3b", args.scenario)
     os.makedirs(args.output_dir, exist_ok=True)
     log_output_settings = lg.LogOutputSettings()
     log_output_settings.outdir = args.output_dir
