@@ -383,7 +383,8 @@ class Config:
         self.accuracy_upper_limit = self.base.get("accuracy-upper-limit", {})
         self.performance_sample_count = self.base["performance-sample-count"]
         self.latency_constraint = self.base.get("latency-constraint", {})
-        self.latency_percentile_constraint = self.base.get("latency-percentile-constraint", {})
+        self.latency_percentile_constraint = self.base.get(
+            "latency-percentile-constraint", {})
         self.min_queries = self.base.get("min-queries", {})
         self.required = None
         self.optional = None
@@ -908,7 +909,8 @@ def check_performance_dir(
         )
         is_valid = False
 
-    latency_percentile_constraint = config.latency_percentile_constraint.get(model, 0.999)
+    latency_percentile_constraint = config.latency_percentile_constraint.get(
+        model, 0.999)
     if target_latency_percentile != latency_percentile_constraint:
         log.error(
             "%s target_latency_percentile is required to be %s, expected=%s, found=%s",
@@ -1140,7 +1142,7 @@ def get_power_metric(config, scenario_fixed, log_path, is_valid, res):
                 samples_per_query = 8
 
             if (scenario_fixed in ["MultiStream"]
-                    ) and scenario in ["SingleStream"]:
+                ) and scenario in ["SingleStream"]:
                 power_metric = (
                     avg_power * power_duration * samples_per_query * 1000 / num_queries
                 )
