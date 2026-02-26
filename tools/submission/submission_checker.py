@@ -403,7 +403,7 @@ class Config:
         if model in self.models:
             return model
 
-        # simple mapping, ie resnet50->resnet
+        # simple mapping
         mlperf_model = self.base["model_mapping"].get(model)
         if mlperf_model:
             return mlperf_model
@@ -414,15 +414,6 @@ class Config:
             if mlperf_model:
                 return mlperf_model
 
-        # try to guess, keep this for backwards compatibility
-        # TODO: Generalize this guess or remove it completely?
-
-        if "mobilenet" in model or "efficientnet" in model or "resnet50" in model:
-            model = "resnet"
-        elif "bert-99.9" in model:
-            model = "bert-99.9"
-        elif "bert-99" in model:
-            model = "bert-99"
         # map again
         mlperf_model = self.base["model_mapping"].get(model, model)
         return mlperf_model
@@ -488,13 +479,6 @@ class Config:
     def uses_early_stopping(self, scenario):
         return scenario in ["ConstantStream", "SingleStream", "MultiStream"]
 
-    def requires_equal_issue(self, model, division):
-        return (
-            division in ["closed", "network"]
-            and model
-            in []
-            and self.version not in ["v4.0", "v4.1"]
-        )
 
 
 def get_args():
@@ -840,14 +824,6 @@ def check_performance_dir(
     equal_issue_used_check = (
         mlperf_log["effective_sample_concatenate_permutation"] == True
     )
-    if not config.requires_equal_issue(model, division):
-        equal_issue_used_check = True
-    if not equal_issue_used_check:
-        log.error(
-            "%s requires equal issue mode (sample_concatenate_permutation), expected=true, found=false", path
-        )
-        is_valid = False
-
     sut_name = mlperf_log["sut_name"]
 
     # check if there are any errors in the detailed log
