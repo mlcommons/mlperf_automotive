@@ -136,6 +136,7 @@ def main():
             "ssd",
             "bevformer",
             "deeplabv3plus",
+            "llama3_2-3b",
         ],
         ["SingleStream", "ConstantStream"],
         [
@@ -153,6 +154,7 @@ def main():
             "ssd": ["SingleStream", "ConstantStream"],
             "bevformer": ["SingleStream", "ConstantStream"],
             "deeplabv3plus": ["SingleStream", "ConstantStream"],
+            "llama3_2-3b": ["SingleStream", "ConstantStream"]
         },
     }
 
