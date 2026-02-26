@@ -259,8 +259,8 @@ class UniAD(UniADTrack):
                     ):
         """Test function
         """
-        img_metas = img_metas[0].data
-        img = img[0].data
+        img_metas = img_metas[0]
+        img = img[0]
 
         for var, name in [(img_metas, 'img_metas')]:
             if not isinstance(var, list):

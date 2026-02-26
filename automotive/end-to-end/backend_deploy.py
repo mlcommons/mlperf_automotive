@@ -43,56 +43,28 @@ class BackendUniAD:
         """
         Runs inference on a single batch of data.
         """
-        # 1. Robustly unwrap DataContainers and move everything to the GPU.
-        # Checking `type(obj).__name__` guarantees we catch pickled containers 
-        # even if Python's strict `isinstance` fails due to import path mismatches.
-        def unwrap_and_move(obj):
-            if type(obj).__name__ == 'DataContainer' or isinstance(obj, DataContainer):
-                return unwrap_and_move(obj.data)
-            elif isinstance(obj, torch.Tensor):
+        # 1. Move everything to the GPU.
+        # The data has already been structurally unwrapped and formatted offline.
+        def move_to_device(obj):
+            if isinstance(obj, torch.Tensor):
                 return obj.to(self.device)
             elif isinstance(obj, list):
-                return [unwrap_and_move(x) for x in obj]
+                return [move_to_device(x) for x in obj]
             elif isinstance(obj, tuple):
-                return tuple(unwrap_and_move(x) for x in obj)
+                return tuple(move_to_device(x) for x in obj)
             elif isinstance(obj, dict):
-                return {k: unwrap_and_move(v) for k, v in obj.items()}
+                return {k: move_to_device(v) for k, v in obj.items()}
             return obj
 
-        batch_data = unwrap_and_move(batch_data)
-        
-        # 2. Ensure 'img' is strictly formatted as a 5D batched tensor: [B, N, C, H, W]
-        if 'img' in batch_data:
-            img_data = batch_data['img']
-            if isinstance(img_data, list) and len(img_data) > 0:
-                if isinstance(img_data[0], torch.Tensor):
-                    batch_data['img'] = torch.stack(img_data, dim=0)
-                elif isinstance(img_data[0], list) and isinstance(img_data[0][0], torch.Tensor):
-                    batch_data['img'] = torch.stack(img_data[0], dim=0).unsqueeze(0)
-            
-            if isinstance(batch_data['img'], torch.Tensor) and batch_data['img'].dim() == 4:
-                batch_data['img'] = batch_data['img'].unsqueeze(0)
+        batch_data = move_to_device(batch_data)
 
-        # 3. Ensure 'img_metas' is strictly formatted for UniAD's forward_test.
+        # 2. Re-wrap img_metas using MMCV's DataContainer.
         # UniAD hardcodes `metas = img_metas[0].data` in forward_test.
-        
-        if 'img_metas' in batch_data:
-            metas = batch_data['img_metas']
-            
-            # Flatten to find the actual metadata dictionaries
-            flat_metas = []
-            def get_dicts(obj):
-                if isinstance(obj, dict):
-                    flat_metas.append(obj)
-                elif isinstance(obj, (list, tuple)):
-                    for i in obj: get_dicts(i)
-                    
-            get_dicts(metas)
-            
-            # Re-wrap using MMCV's DataContainer to satisfy the `.data` attribute check
-            batch_data['img_metas'] = [DataContainer([flat_metas])]
-        
+        #if 'img_metas' in batch_data:
+        batch_data['img_metas'] = [[batch_data['img_metas']]]
+
         with torch.no_grad():
+            # Direct call without MMDataParallel wrapper bypasses all DataContainer strictness
             outputs = self.model(return_loss=False, rescale=True, **batch_data)
             
         return outputs
