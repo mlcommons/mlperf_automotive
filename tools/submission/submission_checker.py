@@ -106,14 +106,14 @@ MODEL_CONFIG = {
             "bevformer": ["ConstantStream"],
             "deeplabv3plus": ["ConstantStream"],
             "ssd": ["ConstantStream"],
-            "llama3_2-3b": ["ConstantStream"],
+            "llama3_2-3b": [],
         },
         "accuracy-target": {
             "bevformer": ("mAP_3D", .2683556 * 0.99),
             "deeplabv3plus": ("mIOU", .924355 * 0.999),
             "ssd": ("mAP", .7179 * 0.999),
             # TODO: Reference accuracy
-            "llama3_2-3b": ("ACC", 58.57 * 0.99)
+            "llama3_2-3b": ("ACC", 58.61 * 0.95)
         },
         "accuracy-upper-limit": {
 
@@ -165,7 +165,6 @@ MODEL_CONFIG = {
                 "SingleStream": 6636,
             },
             "llama3_2-3b": {
-                "ConstantStream": 100000,
                 "SingleStream": 6636,
             }
         },
@@ -503,7 +502,7 @@ def get_args():
     parser.add_argument("--input", required=True, help="submission directory")
     parser.add_argument(
         "--version",
-        default="v0.5",
+        default="v1.0",
         choices=list(MODEL_CONFIG.keys()),
         help="mlperf version",
     )

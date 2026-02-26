@@ -19,10 +19,10 @@ def get_args():
         '--input',
         required=True,
         help='results csv from checker')
-    parser.add_argument('--version', default='0.5', help='mlperf version')
+    parser.add_argument('--version', default='1.0', help='mlperf version')
     parser.add_argument(
         '--repository',
-        default='submissions_automotive_0.5',
+        default='submissions_automotive_v1.0',
         help='mlperf repository')
     parser.add_argument(
         '--repository-owner',
@@ -30,7 +30,7 @@ def get_args():
         help='mlperf repository owner in GitHub')
     parser.add_argument(
         '--repository-branch',
-        default='main',
+        default='master',
         help='mlperf repository branch')
     args = parser.parse_args()
     return args
@@ -154,7 +154,7 @@ def main():
             "ssd": ["SingleStream", "ConstantStream"],
             "bevformer": ["SingleStream", "ConstantStream"],
             "deeplabv3plus": ["SingleStream", "ConstantStream"],
-            "llama3_2-3b": ["SingleStream", "ConstantStream"]
+            "llama3_2-3b": ["SingleStream"]
         },
     }
 
