@@ -88,6 +88,88 @@ MODEL_CONFIG = {
             }
         },
     },
+    "v1.0": {
+        "models": [
+            "bevformer",
+            "deeplabv3plus",
+            "ssd",
+            "llama3_2-3b",
+
+        ],
+        "required-scenarios-adas": {
+            "bevformer": ["SingleStream"],
+            "deeplabv3plus": ["SingleStream"],
+            "ssd": ["SingleStream"],
+            "llama3_2-3b": ["SingleStream"],
+        },
+        "optional-scenarios-adas": {
+            "bevformer": ["ConstantStream"],
+            "deeplabv3plus": ["ConstantStream"],
+            "ssd": ["ConstantStream"],
+            "llama3_2-3b": ["ConstantStream"],
+        },
+        "accuracy-target": {
+            "bevformer": ("mAP_3D", .2683556 * 0.99),
+            "deeplabv3plus": ("mIOU", .924355 * 0.999),
+            "ssd": ("mAP", .7179 * 0.999),
+            # TODO: Reference accuracy
+            "llama3_2-3b": ("ACC", 58.57 * 0.99)
+        },
+        "accuracy-upper-limit": {
+
+        },
+        "accuracy-delta-perc": {
+
+        },
+        "performance-sample-count": {
+            "bevformer": 256,
+            "deeplabv3plus": 128,
+            "ssd": 128,
+            "llama3_2-3b": 100,
+        },
+        # model_mapping.json is expected in the root directory of the
+        # submission folder for open submissions and so the below dictionary is
+        # not really needed
+        "model_mapping": {
+            # map model names to the official mlperf model class
+            "SSD": "ssd",
+            "BEVFORMER": "bevformer",
+            "DEEPLABV3PLUS": "deeplabv3plus",
+            "LLAMA3_2-3B": "llama3_2-3b"
+        },
+        "seeds": {
+            # TODO: update seeds
+            "qsl_rng_seed": 1575625098,
+            "sample_index_rng_seed": 2227286192,
+            "schedule_rng_seed": 3495234579,
+        },
+        "ignore_errors": [],
+        "latency-constraint": {},
+        "latency-percentile-constraint": {
+            "bevformer": 0.999,
+            "deeplabv3plus": 0.999,
+            "ssd": 0.999,
+            "llama3_2-3b": 0.9
+        },
+        "min-queries": {
+            "bevformer": {
+                "ConstantStream": 100000,
+                "SingleStream": 6636,
+            },
+            "deeplabv3plus": {
+                "ConstantStream": 100000,
+                "SingleStream": 6636,
+            },
+            "ssd": {
+                "ConstantStream": 100000,
+                "SingleStream": 6636,
+            },
+            "llama3_2-3b": {
+                "ConstantStream": 100000,
+                "SingleStream": 6636,
+            }
+        },
+    },
 }
 
 VALID_DIVISIONS = ["open", "closed", "network"]
@@ -129,13 +211,6 @@ REQUIRED_TEST01_ACC_FILES = REQUIRED_TEST01_ACC_FILES_1 + [
     "compliance_accuracy.txt",
 ]
 
-OFFLINE_MIN_SPQ_SINCE_V4 = {
-    # TODO: Update or remove
-    "bevformer": 1024,
-    "deeplabv3plus": 1024,
-    "ssd": 1024
-}
-
 SCENARIO_MAPPING = {
     "singlestream": "SingleStream",
     "multistream": "MultiStream",
@@ -158,12 +233,19 @@ RESULT_FIELD_NEW = {
         "MultiStream": "early_stopping_latency_ms",
         "ConstantStream": "result_99.90_percentile_latency_ns",
     },
+    "v1.0": {
+        "Offline": "result_samples_per_second",
+        "SingleStream": "early_stopping_latency_ss",
+        "MultiStream": "early_stopping_latency_ms",
+        "ConstantStream": "result_99.90_percentile_latency_ns",
+    },
 }
 
 ACC_PATTERN = {
     "mAP": r"mAP:\s*([0-9.]+)",
     "mIOU": r"Mean IoU:\s*([0-9.]+)",
     "mAP_3D": r"mAP_3D:\s*([0-9.]+)",
+    "ACC": r'^Accuracy:\s+(\d+(?:\.\d+)?)%$',
 }
 
 SYSTEM_DESC_REQUIRED_FIELDS = [
@@ -302,6 +384,7 @@ class Config:
         self.accuracy_upper_limit = self.base.get("accuracy-upper-limit", {})
         self.performance_sample_count = self.base["performance-sample-count"]
         self.latency_constraint = self.base.get("latency-constraint", {})
+        self.latency_percentile_constraint = self.base.get("latency-percentile-constraint", {})
         self.min_queries = self.base.get("min-queries", {})
         self.required = None
         self.optional = None
@@ -617,7 +700,6 @@ def check_accuracy_dir(config, model, path, verbose):
     acc_limit_check = True
 
     acc_seen = [False for _ in acc_targets]
-
     with open(os.path.join(path, "accuracy.txt"), "r", encoding="utf-8") as f:
         for line in f:
             for i, (pattern, acc_target, acc_type) in enumerate(
@@ -827,11 +909,13 @@ def check_performance_dir(
         )
         is_valid = False
 
-    if target_latency_percentile != 0.999:
+    latency_percentile_constraint = config.latency_percentile_constraint.get(model, 0.999)
+    if target_latency_percentile != latency_percentile_constraint:
         log.error(
-            "%s target_latency_percentile is required to be 0.999, expected=%s, found=%s",
+            "%s target_latency_percentile is required to be %s, expected=%s, found=%s",
             fname,
-            "0.999",
+            latency_percentile_constraint,
+            latency_percentile_constraint,
             target_latency_percentile,
         )
         is_valid = False
@@ -906,16 +990,6 @@ def check_performance_dir(
                 min_query_count,
             )
             is_valid = False
-
-    if scenario == "Offline" and (
-            samples_per_query < OFFLINE_MIN_SPQ_SINCE_V4[model]):
-        log.error(
-            "%s Required minimum samples per query not met by user config, Expected=%s, Found=%s",
-            fname,
-            OFFLINE_MIN_SPQ_SINCE_V4[model],
-            samples_per_query,
-        )
-        is_valid = False
 
     # Test duration of 600s is met
     required_min_duration = TEST_DURATION_MS
