@@ -3,67 +3,44 @@ import json
 import pickle
 import numpy as np
 import torch
-from dataset import Nuscenes
+import torch.nn.functional as F
 from mmcv.parallel import DataContainer
 
+from projects.mmdet3d_plugin.uniad.dense_heads.planning_head_plugin import PlanningMetric
+
 def get_args():
-    parser = argparse.ArgumentParser(description="UniAD Accuracy Checker (Planning L2 Metric)")
+    parser = argparse.ArgumentParser(description="UniAD Accuracy Checker (Planning Metric)")
     parser.add_argument("--log-file", type=str, default="results/mlperf_log_accuracy.json", help="Path to MLPerf accuracy log")
-    parser.add_argument("--dataset-path", help="Path to NuScenes dataset", required=True)
-    parser.add_argument("--config", help="Path to model config file", required=True)
-    parser.add_argument("--length", type=int, default=100, help="Benchmark dataset size")
+    # Kept available so existing shell execution scripts don't break
+    parser.add_argument("--dataset-path", help="Path to NuScenes dataset", required=False)
     return parser.parse_args()
 
 def unwrap(obj):
-    """Safely unwraps mmcv DataContainers if present."""
+    """Safely unwraps mmcv DataContainers recursively from dicts and lists."""
     if isinstance(obj, DataContainer):
         return unwrap(obj.data)
+    elif isinstance(obj, dict):
+        return {k: unwrap(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [unwrap(x) for x in obj]
+    elif isinstance(obj, tuple):
+        return tuple(unwrap(x) for x in obj)
     return obj
 
-def recursive_cpu_numpy(obj):
-    """Recursively converts any PyTorch tensors in a nested structure to numpy arrays."""
+def to_tensor(obj):
+    """Recursively converts structures to CPU PyTorch tensors for native torchmetrics."""
     if isinstance(obj, torch.Tensor):
-        return obj.detach().cpu().numpy()
+        return obj.detach().cpu()
+    elif isinstance(obj, np.ndarray):
+        return torch.from_numpy(obj).cpu()
     elif isinstance(obj, (list, tuple)):
-        return [recursive_cpu_numpy(x) for x in obj]
+        return [to_tensor(x) for x in obj]
+    elif isinstance(obj, dict):
+        return {k: to_tensor(v) for k, v in obj.items()}
     return obj
-
-def to_numpy_coords(traj):
-    """Converts raw trajectory data (list/tensor) to a clean numpy array and slices X,Y coordinates."""
-    if traj is None:
-        return None
-    
-    traj = unwrap(traj)
-    
-    # Safely convert any nested GPU tensors to CPU numpy arrays before stacking
-    traj = recursive_cpu_numpy(traj)
-    traj = np.array(traj)
-        
-    traj = np.squeeze(traj)
-    
-    # Ensure the array actually has coordinate dimensions
-    if len(traj.shape) == 0:
-        return None
-        
-    # We only want the first 2 coordinates (X, Y) to calculate L2 distance
-    if len(traj.shape) >= 1 and traj.shape[-1] >= 2:
-        traj = traj[..., :2]
-    else:
-        return None
-        
-    # If we accidentally grab a batch/multi-agent array like (6, 16, 2), 
-    # force it down to 2D by taking the first element of extra dimensions.
-    # The ego trajectory must strictly be 2D: (timesteps, 2)
-    while len(traj.shape) > 2:
-        traj = traj[0]
-        
-    return traj
 
 def main():
     args = get_args()
-    
-    print("Initializing Nuscenes Dataset for Ground Truth extraction...")
-    dataset = Nuscenes(dataset_path=args.dataset_path, config=args.config, length=args.length)
     
     print(f"Parsing accuracy log: {args.log_file}")
     try:
@@ -73,90 +50,81 @@ def main():
         print(f"Error: {args.log_file} not found. Did you run main.py with --accuracy?")
         return
         
-    l2_errors = []
-    
+    raw_outputs_dict = {}
     for entry in log_data:
         qsl_idx = entry["qsl_idx"]
         data_hex = entry["data"]
+        prediction_orig = pickle.loads(bytes.fromhex(data_hex))
+        raw_outputs_dict[qsl_idx] = prediction_orig
         
-        # 1. Unpickle Prediction
-        prediction = pickle.loads(bytes.fromhex(data_hex))
-        prediction = unwrap(prediction)
+    ordered_keys = sorted(raw_outputs_dict.keys())
+    
+    planning_metrics = PlanningMetric(conf={
+        'xbound': [-12.5, 12.5, 0.5],
+        'ybound': [-12.5, 12.5, 0.5],
+        'zbound': [-10.0, 10.0, 20.0],
+    })
+
+    print("\n" + "="*50)
+    print(" UniAD Planning Accuracy Results")
+    print("="*50)
+
+    for qsl_idx in ordered_keys:
+        prediction = unwrap(raw_outputs_dict[qsl_idx])
         
-        # 2. Extract Prediction & GT Trajectories
-        pred_traj_raw = None
-        gt_traj_raw = None
-        
-        if 'planning' in prediction:
-            plan_data = unwrap(prediction['planning'])
-            # Navigate the exact UniAD 'planning' dictionary structure
-            if isinstance(plan_data, dict):
-                # --- PREDICTION ---
-                if 'result_planning' in plan_data and isinstance(plan_data['result_planning'], dict):
-                    res_plan = plan_data['result_planning']
-                    # 'sdc_traj' (Self-Driving Car trajectory) is our target
-                    if 'sdc_traj' in res_plan:
-                        pred_traj_raw = res_plan['sdc_traj']
-                    elif 'sdc_traj_all' in res_plan:
-                        pred_traj_raw = res_plan['sdc_traj_all']
-                elif 'traj' in plan_data:
-                    pred_traj_raw = plan_data['traj']
-                elif 'planning_traj' in plan_data:
-                    pred_traj_raw = plan_data['planning_traj']
-                    
-                # --- GROUND TRUTH ---
-                # UniAD conveniently packages the GT ego trajectory inside the prediction dict!
-                if 'planning_gt' in plan_data and isinstance(plan_data['planning_gt'], dict):
-                    plan_gt = plan_data['planning_gt']
-                    if 'sdc_planning' in plan_gt:
-                        gt_traj_raw = plan_gt['sdc_planning']
-            else:
-                # 'planning' might just be the trajectory tensor itself
-                pred_traj_raw = plan_data
-                
-        pred_traj = to_numpy_coords(pred_traj_raw)
-        gt_traj = to_numpy_coords(gt_traj_raw)
-        
-        # 3. Handle missing data cleanly
-        if pred_traj is None or gt_traj is None:
-            missing = []
-            if pred_traj is None: missing.append("PRED")
-            if gt_traj is None: missing.append("GT")
-            print(f"Warning: Missing {' and '.join(missing)} trajectory for QSL Index {qsl_idx}. Skipping...")
+        if 'planning' not in prediction:
             continue
             
-        # 4. Compute L2 Distance (Euclidean)
-        # Ensure temporal sequence lengths match before calculating (e.g. 6 frames)
-        min_len = min(pred_traj.shape[0], gt_traj.shape[0])
-        pred_traj = pred_traj[:min_len]
-        gt_traj = gt_traj[:min_len]
+        try:
+            # Match the exact dictionary paths from the test.py script
+            plan_gt = prediction['planning']['planning_gt']
+            res_plan = prediction['planning']['result_planning']
+            
+            segmentation = to_tensor(plan_gt['segmentation'])
+            sdc_planning = to_tensor(plan_gt['sdc_planning'])
+            sdc_planning_mask = to_tensor(plan_gt['sdc_planning_mask'])
+            pred_sdc_traj = to_tensor(res_plan['sdc_traj'])
+            
+            # Apply the exact shape slices from the test.py script
+            pred_sliced = pred_sdc_traj[:, :6, :2]
+            gt_sliced = sdc_planning[0][0, :, :6, :2]
+            mask_sliced = sdc_planning_mask[0][0, :, :6, :2]
+            seg_sliced = segmentation[0][:, [1,2,3,4,5,6]]
+            
+            planning_metrics(pred_sliced, gt_sliced, mask_sliced, seg_sliced)
+            
+        except Exception as e:
+            print(f"Warning: Failed to process QSL Index {qsl_idx}. Error: {e}")
+            continue
+            
+    # Compute and print the finalized metrics
+    try:
+        planning_results = planning_metrics.compute()
         
-        diff = pred_traj - gt_traj
-        l2_dist = np.linalg.norm(diff, axis=-1)
-        l2_errors.append(l2_dist)
-        
-    if len(l2_errors) == 0:
-        print("\nNo valid trajectories could be evaluated.")
-        return
-        
-    # Average the errors across all samples
-    l2_errors = np.array(l2_errors)
-    mean_l2_per_step = np.mean(l2_errors, axis=0)
-    overall_mean_l2 = np.mean(mean_l2_per_step)
-    
-    # 5. Print Metrics
-    print("\n" + "="*50)
-    print(" UniAD Planning Accuracy Results (L2 Metric)")
-    print("="*50)
-    
-    for i, val in enumerate(mean_l2_per_step):
-        # Typical autonomous driving benchmarks evaluate at 2Hz (0.5s per step)
-        time_step = (i + 1) * 0.5 
-        print(f" L2 Error @ {time_step:.1f}s: \t {val:.4f} m")
-        
-    print("-" * 50)
-    print(f" Average L2 Error: \t {overall_mean_l2:.4f} m")
-    print("="*50)
+        if 'L2' in planning_results:
+            l2_val = planning_results['L2']
+            if isinstance(l2_val, torch.Tensor):
+                l2_list = l2_val.tolist()
+            else:
+                l2_list = list(l2_val)
+                
+            avg_l2 = sum(l2_list) / len(l2_list)
+            
+            # Generate time labels (0.5s, 1.0s, ...)
+            time_labels = [f"{(i+1)*0.5:.1f}s" for i in range(len(l2_list))]
+            
+            # Format output table
+            header = "        " + "".join(f"{label:>8}" for label in time_labels)
+            row = " L2:    " + "".join(f"{val:>8.4f}" for val in l2_list)
+            
+            print(header)
+            print(row)
+            print(f"Avg: {avg_l2:.4f}")
+        else:
+            print(" L2 metric not found in results.")
+            
+    except Exception as e:
+        print(f"Error computing final metrics: {e}")
 
 if __name__ == "__main__":
     main()
