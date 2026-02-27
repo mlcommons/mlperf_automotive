@@ -36,9 +36,6 @@ class Nuscenes:
                 item = self.preloaded[id]
             else:
                 item = self.load_item(id)
-                
-            # Items were already collated during offline preprocessing.
-            # We can just pass them straight through.
             data.append(item)
             
         return data
