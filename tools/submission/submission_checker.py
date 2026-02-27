@@ -1243,6 +1243,215 @@ def is_system_over_network(division, system_json, path):
     return is_network_system, is_valid
 
 
+def check_compliance_perf_dir(test_dir):
+    is_valid = False
+
+    fname = os.path.join(test_dir, "verify_performance.txt")
+    if not os.path.exists(fname):
+        log.error("%s is missing in %s", fname, test_dir)
+        is_valid = False
+    else:
+        with open(fname, "r") as f:
+            for line in f:
+                # look for: TEST PASS
+                if "TEST PASS" in line:
+                    is_valid = True
+                    break
+        if is_valid == False:
+            log.error(
+                "Compliance test performance check in %s failed",
+                test_dir)
+
+        # Check performance dir
+        test_perf_path = os.path.join(test_dir, "performance", "run_1")
+        if not os.path.exists(test_perf_path):
+            log.error("%s has no performance/run_1 directory", test_dir)
+            is_valid = False
+        else:
+            diff = files_diff(
+                list_files(test_perf_path),
+                REQUIRED_COMP_PER_FILES,
+                ["mlperf_log_accuracy.json"],
+            )
+            if diff:
+                log.error(
+                    "%s has file list mismatch (%s)",
+                    test_perf_path,
+                    diff)
+                is_valid = False
+
+    return is_valid
+
+
+def check_compliance_acc_dir(test_dir, model, config):
+    is_valid = False
+    acc_passed = False
+
+    fname = os.path.join(test_dir, "verify_accuracy.txt")
+    if not os.path.exists(fname):
+        log.error("%s is missing in %s", fname, test_dir)
+    else:
+        if "TEST01" in test_dir:
+            # Accuracy can fail for TEST01
+            is_valid = True
+            with open(fname, "r") as f:
+                for line in f:
+                    # look for: TEST PASS
+                    if "TEST PASS" in line:
+                        acc_passed = True
+                        break
+            if acc_passed == False:
+                log.info(
+                    "Compliance test accuracy check (deterministic mode) in %s failed",
+                    test_dir,
+                )
+
+            # Check Accuracy dir
+            test_acc_path = os.path.join(test_dir, "accuracy")
+            if not os.path.exists(test_acc_path):
+                log.error("%s has no accuracy directory", test_dir)
+                is_valid = False
+            else:
+                diff = files_diff(
+                    list_files(test_acc_path),
+                    (
+                        REQUIRED_TEST01_ACC_FILES_1
+                        if acc_passed
+                        else REQUIRED_TEST01_ACC_FILES
+                    ),
+                )
+                if diff:
+                    log.error(
+                        "%s has file list mismatch (%s)",
+                        test_acc_path,
+                        diff)
+                    is_valid = False
+                elif not acc_passed:
+                    target = config.get_accuracy_target(model)
+                    patterns, acc_targets, acc_types, acc_limits, up_patterns, acc_upper_limit = get_accuracy_values(
+                        config, model)
+                    acc_limit_check = True
+
+                    acc_seen = [False for _ in acc_targets]
+                    acc_baseline = {acc_type: 0 for acc_type in acc_types}
+                    acc_compliance = {acc_type: 0 for acc_type in acc_types}
+                    with open(
+                        os.path.join(test_acc_path, "baseline_accuracy.txt"),
+                        "r",
+                        encoding="utf-8",
+                    ) as f:
+                        for line in f:
+                            for acc_type, pattern in zip(acc_types, patterns):
+                                m = re.match(pattern, line)
+                                if m:
+                                    acc_baseline[acc_type] = float(m.group(1))
+                    with open(
+                        os.path.join(test_acc_path, "compliance_accuracy.txt"),
+                        "r",
+                        encoding="utf-8",
+                    ) as f:
+                        for line in f:
+                            for acc_type, pattern in zip(acc_types, patterns):
+                                m = re.match(pattern, line)
+                                if m:
+                                    acc_compliance[acc_type] = float(
+                                        m.group(1))
+                    for acc_type in acc_types:
+                        if acc_baseline[acc_type] == 0 or acc_compliance[acc_type] == 0:
+                            is_valid = False
+                            break
+                        else:
+                            required_delta_perc = config.get_delta_perc(
+                                model, acc_type
+                            )
+                            delta_perc = (
+                                abs(
+                                    1
+                                    - acc_baseline[acc_type] /
+                                    acc_compliance[acc_type]
+                                )
+                                * 100
+                            )
+                            if delta_perc <= required_delta_perc:
+                                is_valid = True
+                            else:
+                                log.error(
+                                    "Compliance test accuracy check (non-deterministic mode) in %s failed",
+                                    test_dir,
+                                )
+                                is_valid = False
+                                break
+
+    return is_valid
+
+
+def check_compliance_dir(
+    compliance_dir, model, scenario, config, division, system_json, name
+):
+    compliance_perf_pass = True
+    compliance_perf_dir_pass = True
+    compliance_acc_pass = True
+    test_list = ["TEST01", "TEST04"]
+
+    if model in [
+        "ssd",
+        "llama3-2b",
+        "uniad",
+    ]:
+        test_list.remove("TEST04")
+
+    if model in [
+        "llama3-2b",
+    ]:
+        test_list.remove("TEST01")
+
+
+    if test_list and not os.path.exists(compliance_dir):
+        log.error("no compliance dir for %s: %s", name, compliance_dir)
+        return False
+
+    # Check performance of all Tests (except for TEST06)
+    for test in test_list:
+        test_dir = os.path.join(compliance_dir, test)
+        if not os.path.exists(test_dir):
+            log.error("Missing %s in compliance dir %s", test, compliance_dir)
+            compliance_perf_dir_pass = False
+        else:
+            try:
+                compliance_perf_dir = os.path.join(
+                    compliance_dir, test, "performance", "run_1"
+                )
+                compliance_perf_valid, r, is_inferred = check_performance_dir(
+                    config, model, compliance_perf_dir, scenario, division, system_json
+                )
+                if is_inferred:
+                    log.info(
+                        "%s has inferred results, qps=%s",
+                        compliance_perf_dir,
+                        r)
+            except Exception as e:
+                log.error(
+                    "%s caused exception in check_performance_dir: %s",
+                    compliance_perf_dir,
+                    e,
+                )
+                is_valid, r = False, None
+            compliance_perf_pass = (
+                compliance_perf_pass
+                and check_compliance_perf_dir(test_dir)
+                and compliance_perf_valid
+            )
+
+    compliance_acc_pass = True
+    for test in ["TEST01"]:
+        if test in test_list:
+            # Check accuracy for TEST01
+            compliance_acc_pass &= check_compliance_acc_dir(
+                os.path.join(compliance_dir, test), model, config
+            )
+
+    return compliance_perf_pass and compliance_acc_pass and compliance_perf_dir_pass
+
 def check_results_dir(
     config,
     filter_submitter,
@@ -1796,6 +2005,32 @@ def check_results_dir(
                                 # results csv
                                 errors += 1
                                 log.error("%s, accuracy not valid", acc_path)
+                        # check compliace
+                        # TODO: change for new folder structure
+                        compliance_dir = os.path.join(
+                            division,
+                            submitter,
+                            "compliance",
+                            system_desc,
+                            model_name,
+                            scenario,
+                        )
+                        if not check_compliance_dir(
+                                compliance_dir,
+                                mlperf_model,
+                                scenario_fixed,
+                                config,
+                                division,
+                                system_json,
+                                name,
+                        ):
+                            log.error(
+                                "compliance dir %s has issues", compliance_dir
+                            )
+                            results[name] = None
+                        else:
+                            compliance = 1
+
 
                         inferred = 0
                         n = ["run_1"]
