@@ -128,7 +128,7 @@ def main():
             
             print(header)
             print(row)
-            print(f"Avg: {avg_l2:.4f}")
+            print(f"Avg: {avg_l2}")
         else:
             print(" L2 metric not found in results.")
             
