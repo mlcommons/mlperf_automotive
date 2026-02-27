@@ -94,26 +94,28 @@ MODEL_CONFIG = {
             "deeplabv3plus",
             "ssd",
             "llama3_2-3b",
-
+            "uniad",
         ],
         "required-scenarios-adas": {
             "bevformer": ["SingleStream"],
             "deeplabv3plus": ["SingleStream"],
             "ssd": ["SingleStream"],
             "llama3_2-3b": ["SingleStream"],
+            "uniad": ["SingleStream"],
         },
         "optional-scenarios-adas": {
             "bevformer": ["ConstantStream"],
             "deeplabv3plus": ["ConstantStream"],
             "ssd": ["ConstantStream"],
             "llama3_2-3b": [],
+            "uniad": ["ConstantStream"],
         },
         "accuracy-target": {
             "bevformer": ("mAP_3D", .2683556 * 0.99),
             "deeplabv3plus": ("mIOU", .924355 * 0.999),
             "ssd": ("mAP", .7179 * 0.999),
-            # TODO: Reference accuracy
-            "llama3_2-3b": ("ACC", 58.61 * 0.95)
+            "llama3_2-3b": ("ACC", 58.61 * 0.95),
+            "uniad": ("L2", .8959 * 0.99)
         },
         "accuracy-upper-limit": {
 
@@ -126,6 +128,7 @@ MODEL_CONFIG = {
             "deeplabv3plus": 128,
             "ssd": 128,
             "llama3_2-3b": 100,
+            "uniad": 100
         },
         # model_mapping.json is expected in the root directory of the
         # submission folder for open submissions and so the below dictionary is
@@ -135,7 +138,8 @@ MODEL_CONFIG = {
             "SSD": "ssd",
             "BEVFORMER": "bevformer",
             "DEEPLABV3PLUS": "deeplabv3plus",
-            "LLAMA3_2-3B": "llama3_2-3b"
+            "LLAMA3_2-3B": "llama3_2-3b",
+            "UNIAD": "uniad",
         },
         "seeds": {
             # TODO: update seeds
@@ -149,7 +153,8 @@ MODEL_CONFIG = {
             "bevformer": 0.999,
             "deeplabv3plus": 0.999,
             "ssd": 0.999,
-            "llama3_2-3b": 0.9
+            "llama3_2-3b": 0.9,
+            "uniad": 0.999,
         },
         "min-queries": {
             "bevformer": {
@@ -165,6 +170,10 @@ MODEL_CONFIG = {
                 "SingleStream": 6636,
             },
             "llama3_2-3b": {
+                "SingleStream": 6636,
+            },
+            "uniad": {
+                "ConstantStream": 100000,
                 "SingleStream": 6636,
             }
         },
@@ -245,6 +254,7 @@ ACC_PATTERN = {
     "mIOU": r"Mean IoU:\s*([0-9.]+)",
     "mAP_3D": r"mAP_3D:\s*([0-9.]+)",
     "ACC": r'^Accuracy:\s+(\d+(?:\.\d+)?)%$',
+    "L2": r"Avg:\s*([0-9.]+)",
 }
 
 SYSTEM_DESC_REQUIRED_FIELDS = [
