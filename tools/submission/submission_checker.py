@@ -1127,7 +1127,7 @@ def get_power_metric(config, scenario_fixed, log_path, is_valid, res):
                 samples_per_query = 8
 
             if (scenario_fixed in ["MultiStream"]
-                    ) and scenario in ["SingleStream"]:
+                ) and scenario in ["SingleStream"]:
                 power_metric = (
                     avg_power * power_duration * samples_per_query * 1000 / num_queries
                 )
@@ -1405,7 +1405,6 @@ def check_compliance_dir(
     ]:
         test_list.remove("TEST01")
 
-
     if test_list and not os.path.exists(compliance_dir):
         log.error("no compliance dir for %s: %s", name, compliance_dir)
         return False
@@ -1451,6 +1450,7 @@ def check_compliance_dir(
             )
 
     return compliance_perf_pass and compliance_acc_pass and compliance_perf_dir_pass
+
 
 def check_results_dir(
     config,
@@ -2030,7 +2030,6 @@ def check_results_dir(
                             results[name] = None
                         else:
                             compliance = 1
-
 
                         inferred = 0
                         n = ["run_1"]
