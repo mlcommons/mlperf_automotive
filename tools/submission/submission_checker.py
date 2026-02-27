@@ -88,6 +88,96 @@ MODEL_CONFIG = {
             }
         },
     },
+    "v1.0": {
+        "models": [
+            "bevformer",
+            "deeplabv3plus",
+            "ssd",
+            "llama3_2-3b",
+            "uniad",
+        ],
+        "required-scenarios-adas": {
+            "bevformer": ["SingleStream"],
+            "deeplabv3plus": ["SingleStream"],
+            "ssd": ["SingleStream"],
+            "llama3_2-3b": ["SingleStream"],
+            "uniad": ["SingleStream"],
+        },
+        "optional-scenarios-adas": {
+            "bevformer": ["ConstantStream"],
+            "deeplabv3plus": ["ConstantStream"],
+            "ssd": ["ConstantStream"],
+            "llama3_2-3b": [],
+            "uniad": ["ConstantStream"],
+        },
+        "accuracy-target": {
+            "bevformer": ("mAP_3D", .2683556 * 0.99),
+            "deeplabv3plus": ("mIOU", .924355 * 0.999),
+            "ssd": ("mAP", .7179 * 0.999),
+            "llama3_2-3b": ("ACC", 58.61 * 0.95),
+            "uniad": ("L2", .8958691209554672 * 0.99)
+        },
+        "accuracy-upper-limit": {
+
+        },
+        "accuracy-delta-perc": {
+
+        },
+        "performance-sample-count": {
+            "bevformer": 256,
+            "deeplabv3plus": 128,
+            "ssd": 128,
+            "llama3_2-3b": 8192,
+            "uniad": 256
+        },
+        # model_mapping.json is expected in the root directory of the
+        # submission folder for open submissions and so the below dictionary is
+        # not really needed
+        "model_mapping": {
+            # map model names to the official mlperf model class
+            "SSD": "ssd",
+            "BEVFORMER": "bevformer",
+            "DEEPLABV3PLUS": "deeplabv3plus",
+            "LLAMA3_2-3B": "llama3_2-3b",
+            "UNIAD": "uniad",
+        },
+        "seeds": {
+            # TODO: update seeds
+            "qsl_rng_seed": 1575625098,
+            "sample_index_rng_seed": 2227286192,
+            "schedule_rng_seed": 3495234579,
+        },
+        "ignore_errors": [],
+        "latency-constraint": {},
+        "latency-percentile-constraint": {
+            "bevformer": 0.999,
+            "deeplabv3plus": 0.999,
+            "ssd": 0.999,
+            "llama3_2-3b": 0.9,
+            "uniad": 0.999,
+        },
+        "min-queries": {
+            "bevformer": {
+                "ConstantStream": 100000,
+                "SingleStream": 6636,
+            },
+            "deeplabv3plus": {
+                "ConstantStream": 100000,
+                "SingleStream": 6636,
+            },
+            "ssd": {
+                "ConstantStream": 100000,
+                "SingleStream": 6636,
+            },
+            "llama3_2-3b": {
+                "SingleStream": 6636,
+            },
+            "uniad": {
+                "ConstantStream": 100000,
+                "SingleStream": 6636,
+            }
+        },
+    },
 }
 
 VALID_DIVISIONS = ["open", "closed", "network"]
@@ -129,13 +219,6 @@ REQUIRED_TEST01_ACC_FILES = REQUIRED_TEST01_ACC_FILES_1 + [
     "compliance_accuracy.txt",
 ]
 
-OFFLINE_MIN_SPQ_SINCE_V4 = {
-    # TODO: Update or remove
-    "bevformer": 1024,
-    "deeplabv3plus": 1024,
-    "ssd": 1024
-}
-
 SCENARIO_MAPPING = {
     "singlestream": "SingleStream",
     "multistream": "MultiStream",
@@ -158,12 +241,20 @@ RESULT_FIELD_NEW = {
         "MultiStream": "early_stopping_latency_ms",
         "ConstantStream": "result_99.90_percentile_latency_ns",
     },
+    "v1.0": {
+        "Offline": "result_samples_per_second",
+        "SingleStream": "early_stopping_latency_ss",
+        "MultiStream": "early_stopping_latency_ms",
+        "ConstantStream": "result_99.90_percentile_latency_ns",
+    },
 }
 
 ACC_PATTERN = {
     "mAP": r"mAP:\s*([0-9.]+)",
     "mIOU": r"Mean IoU:\s*([0-9.]+)",
     "mAP_3D": r"mAP_3D:\s*([0-9.]+)",
+    "ACC": r'^Accuracy:\s+(\d+(?:\.\d+)?)%$',
+    "L2": r"Avg:\s*([0-9.]+)",
 }
 
 SYSTEM_DESC_REQUIRED_FIELDS = [
@@ -302,6 +393,8 @@ class Config:
         self.accuracy_upper_limit = self.base.get("accuracy-upper-limit", {})
         self.performance_sample_count = self.base["performance-sample-count"]
         self.latency_constraint = self.base.get("latency-constraint", {})
+        self.latency_percentile_constraint = self.base.get(
+            "latency-percentile-constraint", {})
         self.min_queries = self.base.get("min-queries", {})
         self.required = None
         self.optional = None
@@ -320,7 +413,7 @@ class Config:
         if model in self.models:
             return model
 
-        # simple mapping, ie resnet50->resnet
+        # simple mapping
         mlperf_model = self.base["model_mapping"].get(model)
         if mlperf_model:
             return mlperf_model
@@ -331,15 +424,6 @@ class Config:
             if mlperf_model:
                 return mlperf_model
 
-        # try to guess, keep this for backwards compatibility
-        # TODO: Generalize this guess or remove it completely?
-
-        if "mobilenet" in model or "efficientnet" in model or "resnet50" in model:
-            model = "resnet"
-        elif "bert-99.9" in model:
-            model = "bert-99.9"
-        elif "bert-99" in model:
-            model = "bert-99"
         # map again
         mlperf_model = self.base["model_mapping"].get(model, model)
         return mlperf_model
@@ -405,14 +489,6 @@ class Config:
     def uses_early_stopping(self, scenario):
         return scenario in ["ConstantStream", "SingleStream", "MultiStream"]
 
-    def requires_equal_issue(self, model, division):
-        return (
-            division in ["closed", "network"]
-            and model
-            in []
-            and self.version not in ["v4.0", "v4.1"]
-        )
-
 
 def get_args():
     """Parse commandline."""
@@ -420,7 +496,7 @@ def get_args():
     parser.add_argument("--input", required=True, help="submission directory")
     parser.add_argument(
         "--version",
-        default="v0.5",
+        default="v1.0",
         choices=list(MODEL_CONFIG.keys()),
         help="mlperf version",
     )
@@ -617,7 +693,6 @@ def check_accuracy_dir(config, model, path, verbose):
     acc_limit_check = True
 
     acc_seen = [False for _ in acc_targets]
-
     with open(os.path.join(path, "accuracy.txt"), "r", encoding="utf-8") as f:
         for line in f:
             for i, (pattern, acc_target, acc_type) in enumerate(
@@ -758,14 +833,6 @@ def check_performance_dir(
     equal_issue_used_check = (
         mlperf_log["effective_sample_concatenate_permutation"] == True
     )
-    if not config.requires_equal_issue(model, division):
-        equal_issue_used_check = True
-    if not equal_issue_used_check:
-        log.error(
-            "%s requires equal issue mode (sample_concatenate_permutation), expected=true, found=false", path
-        )
-        is_valid = False
-
     sut_name = mlperf_log["sut_name"]
 
     # check if there are any errors in the detailed log
@@ -827,11 +894,14 @@ def check_performance_dir(
         )
         is_valid = False
 
-    if target_latency_percentile != 0.999:
+    latency_percentile_constraint = config.latency_percentile_constraint.get(
+        model, 0.999)
+    if target_latency_percentile != latency_percentile_constraint:
         log.error(
-            "%s target_latency_percentile is required to be 0.999, expected=%s, found=%s",
+            "%s target_latency_percentile is required to be %s, expected=%s, found=%s",
             fname,
-            "0.999",
+            latency_percentile_constraint,
+            latency_percentile_constraint,
             target_latency_percentile,
         )
         is_valid = False
@@ -906,16 +976,6 @@ def check_performance_dir(
                 min_query_count,
             )
             is_valid = False
-
-    if scenario == "Offline" and (
-            samples_per_query < OFFLINE_MIN_SPQ_SINCE_V4[model]):
-        log.error(
-            "%s Required minimum samples per query not met by user config, Expected=%s, Found=%s",
-            fname,
-            OFFLINE_MIN_SPQ_SINCE_V4[model],
-            samples_per_query,
-        )
-        is_valid = False
 
     # Test duration of 600s is met
     required_min_duration = TEST_DURATION_MS
@@ -1067,7 +1127,7 @@ def get_power_metric(config, scenario_fixed, log_path, is_valid, res):
                 samples_per_query = 8
 
             if (scenario_fixed in ["MultiStream"]
-                    ) and scenario in ["SingleStream"]:
+                ) and scenario in ["SingleStream"]:
                 power_metric = (
                     avg_power * power_duration * samples_per_query * 1000 / num_queries
                 )
@@ -1181,6 +1241,215 @@ def is_system_over_network(division, system_json, path):
             f"{path} incorrect network mode (={is_network_system}) for division '{division}'"
         )
     return is_network_system, is_valid
+
+
+def check_compliance_perf_dir(test_dir):
+    is_valid = False
+
+    fname = os.path.join(test_dir, "verify_performance.txt")
+    if not os.path.exists(fname):
+        log.error("%s is missing in %s", fname, test_dir)
+        is_valid = False
+    else:
+        with open(fname, "r") as f:
+            for line in f:
+                # look for: TEST PASS
+                if "TEST PASS" in line:
+                    is_valid = True
+                    break
+        if is_valid == False:
+            log.error(
+                "Compliance test performance check in %s failed",
+                test_dir)
+
+        # Check performance dir
+        test_perf_path = os.path.join(test_dir, "performance", "run_1")
+        if not os.path.exists(test_perf_path):
+            log.error("%s has no performance/run_1 directory", test_dir)
+            is_valid = False
+        else:
+            diff = files_diff(
+                list_files(test_perf_path),
+                REQUIRED_COMP_PER_FILES,
+                ["mlperf_log_accuracy.json"],
+            )
+            if diff:
+                log.error(
+                    "%s has file list mismatch (%s)",
+                    test_perf_path,
+                    diff)
+                is_valid = False
+
+    return is_valid
+
+
+def check_compliance_acc_dir(test_dir, model, config):
+    is_valid = False
+    acc_passed = False
+
+    fname = os.path.join(test_dir, "verify_accuracy.txt")
+    if not os.path.exists(fname):
+        log.error("%s is missing in %s", fname, test_dir)
+    else:
+        if "TEST01" in test_dir:
+            # Accuracy can fail for TEST01
+            is_valid = True
+            with open(fname, "r") as f:
+                for line in f:
+                    # look for: TEST PASS
+                    if "TEST PASS" in line:
+                        acc_passed = True
+                        break
+            if acc_passed == False:
+                log.info(
+                    "Compliance test accuracy check (deterministic mode) in %s failed",
+                    test_dir,
+                )
+
+            # Check Accuracy dir
+            test_acc_path = os.path.join(test_dir, "accuracy")
+            if not os.path.exists(test_acc_path):
+                log.error("%s has no accuracy directory", test_dir)
+                is_valid = False
+            else:
+                diff = files_diff(
+                    list_files(test_acc_path),
+                    (
+                        REQUIRED_TEST01_ACC_FILES_1
+                        if acc_passed
+                        else REQUIRED_TEST01_ACC_FILES
+                    ),
+                )
+                if diff:
+                    log.error(
+                        "%s has file list mismatch (%s)",
+                        test_acc_path,
+                        diff)
+                    is_valid = False
+                elif not acc_passed:
+                    target = config.get_accuracy_target(model)
+                    patterns, acc_targets, acc_types, acc_limits, up_patterns, acc_upper_limit = get_accuracy_values(
+                        config, model)
+                    acc_limit_check = True
+
+                    acc_seen = [False for _ in acc_targets]
+                    acc_baseline = {acc_type: 0 for acc_type in acc_types}
+                    acc_compliance = {acc_type: 0 for acc_type in acc_types}
+                    with open(
+                        os.path.join(test_acc_path, "baseline_accuracy.txt"),
+                        "r",
+                        encoding="utf-8",
+                    ) as f:
+                        for line in f:
+                            for acc_type, pattern in zip(acc_types, patterns):
+                                m = re.match(pattern, line)
+                                if m:
+                                    acc_baseline[acc_type] = float(m.group(1))
+                    with open(
+                        os.path.join(test_acc_path, "compliance_accuracy.txt"),
+                        "r",
+                        encoding="utf-8",
+                    ) as f:
+                        for line in f:
+                            for acc_type, pattern in zip(acc_types, patterns):
+                                m = re.match(pattern, line)
+                                if m:
+                                    acc_compliance[acc_type] = float(
+                                        m.group(1))
+                    for acc_type in acc_types:
+                        if acc_baseline[acc_type] == 0 or acc_compliance[acc_type] == 0:
+                            is_valid = False
+                            break
+                        else:
+                            required_delta_perc = config.get_delta_perc(
+                                model, acc_type
+                            )
+                            delta_perc = (
+                                abs(
+                                    1
+                                    - acc_baseline[acc_type] /
+                                    acc_compliance[acc_type]
+                                )
+                                * 100
+                            )
+                            if delta_perc <= required_delta_perc:
+                                is_valid = True
+                            else:
+                                log.error(
+                                    "Compliance test accuracy check (non-deterministic mode) in %s failed",
+                                    test_dir,
+                                )
+                                is_valid = False
+                                break
+
+    return is_valid
+
+
+def check_compliance_dir(
+    compliance_dir, model, scenario, config, division, system_json, name
+):
+    compliance_perf_pass = True
+    compliance_perf_dir_pass = True
+    compliance_acc_pass = True
+    test_list = ["TEST01", "TEST04"]
+
+    if model in [
+        "ssd",
+        "llama3-2b",
+        "uniad",
+    ]:
+        test_list.remove("TEST04")
+
+    if model in [
+        "llama3-2b",
+    ]:
+        test_list.remove("TEST01")
+
+    if test_list and not os.path.exists(compliance_dir):
+        log.error("no compliance dir for %s: %s", name, compliance_dir)
+        return False
+
+    # Check performance of all Tests (except for TEST06)
+    for test in test_list:
+        test_dir = os.path.join(compliance_dir, test)
+        if not os.path.exists(test_dir):
+            log.error("Missing %s in compliance dir %s", test, compliance_dir)
+            compliance_perf_dir_pass = False
+        else:
+            try:
+                compliance_perf_dir = os.path.join(
+                    compliance_dir, test, "performance", "run_1"
+                )
+                compliance_perf_valid, r, is_inferred = check_performance_dir(
+                    config, model, compliance_perf_dir, scenario, division, system_json
+                )
+                if is_inferred:
+                    log.info(
+                        "%s has inferred results, qps=%s",
+                        compliance_perf_dir,
+                        r)
+            except Exception as e:
+                log.error(
+                    "%s caused exception in check_performance_dir: %s",
+                    compliance_perf_dir,
+                    e,
+                )
+                is_valid, r = False, None
+            compliance_perf_pass = (
+                compliance_perf_pass
+                and check_compliance_perf_dir(test_dir)
+                and compliance_perf_valid
+            )
+
+    compliance_acc_pass = True
+    for test in ["TEST01"]:
+        if test in test_list:
+            # Check accuracy for TEST01
+            compliance_acc_pass &= check_compliance_acc_dir(
+                os.path.join(compliance_dir, test), model, config
+            )
+
+    return compliance_perf_pass and compliance_acc_pass and compliance_perf_dir_pass
 
 
 def check_results_dir(
@@ -1736,6 +2005,31 @@ def check_results_dir(
                                 # results csv
                                 errors += 1
                                 log.error("%s, accuracy not valid", acc_path)
+                        # check compliace
+                        # TODO: change for new folder structure
+                        compliance_dir = os.path.join(
+                            division,
+                            submitter,
+                            "compliance",
+                            system_desc,
+                            model_name,
+                            scenario,
+                        )
+                        if not check_compliance_dir(
+                                compliance_dir,
+                                mlperf_model,
+                                scenario_fixed,
+                                config,
+                                division,
+                                system_json,
+                                name,
+                        ):
+                            log.error(
+                                "compliance dir %s has issues", compliance_dir
+                            )
+                            results[name] = None
+                        else:
+                            compliance = 1
 
                         inferred = 0
                         n = ["run_1"]
