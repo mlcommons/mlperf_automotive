@@ -115,7 +115,7 @@ MODEL_CONFIG = {
             "deeplabv3plus": ("mIOU", .924355 * 0.999),
             "ssd": ("mAP", .7179 * 0.999),
             "llama3_2-3b": ("ACC", 58.61 * 0.95),
-            "uniad": ("L2", .8959 * 0.99)
+            "uniad": ("L2", .8958691209554672 * 0.99)
         },
         "accuracy-upper-limit": {
 
@@ -127,8 +127,8 @@ MODEL_CONFIG = {
             "bevformer": 256,
             "deeplabv3plus": 128,
             "ssd": 128,
-            "llama3_2-3b": 100,
-            "uniad": 100
+            "llama3_2-3b": 8192,
+            "uniad": 256
         },
         # model_mapping.json is expected in the root directory of the
         # submission folder for open submissions and so the below dictionary is
