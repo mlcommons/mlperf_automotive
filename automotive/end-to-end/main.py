@@ -20,13 +20,23 @@ SUPPORTED_PROFILES = {
     },
 }
 
+SCENARIO_MAP = {
+    "SingleStream": lg.TestScenario.SingleStream,
+    "ConstantStream": lg.TestScenario.ConstantStream,
+}
+
 def get_args():
     parser = argparse.ArgumentParser(description="UniAD MLPerf Automotive Benchmark")
     parser.add_argument("--config", help="Path to model config file", required=True)
     parser.add_argument("--checkpoint", help="Path to checkpoint file", required=True)
     parser.add_argument("--dataset-path", help="Path to NuScenes dataset", required=True)
     parser.add_argument("--length", type=int, default=0, help="Benchmark dataset size")
-    parser.add_argument("--scenario", type=str, default="SingleStream", choices=["SingleStream"])
+    parser.add_argument(
+        "--scenario",
+        default="SingleStream",
+        help="mlperf benchmark scenario, one of " +
+        str(list(SCENARIO_MAP.keys())),
+    )
     parser.add_argument("--log-dir", type=str, default="results", help="Directory to store LoadGen logs")
     parser.add_argument("--accuracy", action="store_true", help="Run benchmark in accuracy mode")
     parser.add_argument(
@@ -46,7 +56,7 @@ def main():
     backend = BackendUniAD(config_path=args.config, checkpoint_path=args.checkpoint)
     
     print("Initializing Nuscenes Dataset/QSL...")
-    dataset = Nuscenes(dataset_path=args.dataset_path, config=args.config, length=args.length)
+    dataset = Nuscenes(os.path.abspath(args.dataset_path), config=args.config, length=args.length)
 
     # ---------- MLPerf SUT Callbacks ---------- #
     def issue_query(query_samples):
@@ -79,7 +89,6 @@ def main():
 
     # ---------- MLPerf Initialization ---------- #
     print("Constructing Query Sample Library (QSL)...")
-    print(dataset.get_item_count())
     qsl = lg.ConstructGroupedQSL(
         dataset.get_item_count(), 
         min(dataset.get_item_count(), 100), # Performance count
@@ -96,17 +105,18 @@ def main():
     # Configure LoadGen parameters
     settings = lg.TestSettings()
     settings.FromConfig(user_conf, 'uniad', args.scenario)
-    settings.use_grouped_qsl = True
-    settings.scenario = lg.TestScenario.SingleStream
+    scenario = SCENARIO_MAP[args.scenario]
+    settings.scenario = scenario
     settings.mode = lg.TestMode.AccuracyOnly if args.accuracy else lg.TestMode.PerformanceOnly
-    settings.min_query_count = 50
-    settings.min_duration_ms = 10000 
     
     # Trigger Benchmark
     print(f"Starting MLPerf LoadGen in {args.scenario} scenario...")
     
     # Configure and create log directory
-    os.makedirs(args.log_dir, exist_ok=True)
+    if args.log_dir:
+        log_dir = os.path.abspath(args.log_dir)
+        os.makedirs(log_dir, exist_ok=True)
+        os.chdir(log_dir)
     
     log_output_settings = lg.LogOutputSettings()
     log_output_settings.outdir = args.log_dir

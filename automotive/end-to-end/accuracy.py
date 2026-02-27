@@ -2,24 +2,20 @@ import argparse
 import json
 import pickle
 import numpy as np
+import os
 import torch
 import torch.nn.functional as F
-from mmcv.parallel import DataContainer
 
 from projects.mmdet3d_plugin.uniad.dense_heads.planning_head_plugin import PlanningMetric
 
 def get_args():
     parser = argparse.ArgumentParser(description="UniAD Accuracy Checker (Planning Metric)")
     parser.add_argument("--log-file", type=str, default="results/mlperf_log_accuracy.json", help="Path to MLPerf accuracy log")
-    # Kept available so existing shell execution scripts don't break
-    parser.add_argument("--dataset-path", help="Path to NuScenes dataset", required=False)
+    parser.add_argument("--dataset-path", help="Path to preprocessed NuScenes dataset (.pkl files)", required=True)
     return parser.parse_args()
 
 def unwrap(obj):
-    """Safely unwraps mmcv DataContainers recursively from dicts and lists."""
-    if isinstance(obj, DataContainer):
-        return unwrap(obj.data)
-    elif isinstance(obj, dict):
+    if isinstance(obj, dict):
         return {k: unwrap(v) for k, v in obj.items()}
     elif isinstance(obj, list):
         return [unwrap(x) for x in obj]
@@ -76,14 +72,27 @@ def main():
             continue
             
         try:
-            # Match the exact dictionary paths from the test.py script
-            plan_gt = prediction['planning']['planning_gt']
-            res_plan = prediction['planning']['result_planning']
+            # 1. Load Ground Truth data from the preprocessed offline dataset
+            filepath = os.path.join(args.dataset_path, f"{qsl_idx}.pkl")
+            with open(filepath, 'rb') as f:
+                gt_data = pickle.load(f)
             
-            segmentation = to_tensor(plan_gt['segmentation'])
-            sdc_planning = to_tensor(plan_gt['sdc_planning'])
-            sdc_planning_mask = to_tensor(plan_gt['sdc_planning_mask'])
+            # 2. Extract Model predictions
+            res_plan = prediction['planning']['result_planning']
             pred_sdc_traj = to_tensor(res_plan['sdc_traj'])
+            
+            # 3. Extract Ground Truth directly from the dataset item
+            sdc_planning = to_tensor(gt_data['sdc_planning'])
+            sdc_planning_mask = to_tensor(gt_data['sdc_planning_mask'])
+            
+
+            if 'segmentation' in gt_data:
+                segmentation = to_tensor(gt_data['segmentation'])
+            elif 'gt_segmentation' in gt_data:
+                segmentation = to_tensor(gt_data['gt_segmentation'])
+            else:
+                plan_gt = prediction['planning']['planning_gt']
+                segmentation = to_tensor(plan_gt['segmentation'])
             
             # Apply the exact shape slices from the test.py script
             pred_sliced = pred_sdc_traj[:, :6, :2]
