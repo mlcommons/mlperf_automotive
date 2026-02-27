@@ -108,7 +108,7 @@ RUN cd /tmp && \
     rm -rf mlperf
 
 # Install BEVFormer_tensorrt required
-COPY requirements.txt /tmp/requirements.txt
+COPY ./docker/requirements.txt /tmp/requirements.txt
 RUN pip3 install -r /tmp/requirements.txt
 
 # Install MMLab
@@ -140,7 +140,11 @@ RUN pip3 install scikit-image==0.21.0
 RUN pip3 install yapf==0.40.1
 
 WORKDIR /workspace
-COPY ./nuscenes /usr/local/lib/python3.8/dist-packages/nuscenes
+COPY ./docker/nuscenes /usr/local/lib/python3.8/dist-packages/nuscenes
 RUN pip install torchmetrics==0.11.4
 RUN pip install pandas==1.4.4
 RUN pip install onnx==1.16.2 onnx_graphsurgeon==0.5.2
+
+COPY ./third_party/uniad_mmdet3d /workspace/third_party/uniad_mmdet3d
+RUN cd /workspace/third_party/uniad_mmdet3d/ && \
+    python3 setup.py install --user
