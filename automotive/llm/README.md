@@ -5,7 +5,7 @@ It evaluates the model's performance (latency) and accuracy on the **MMLU (Massi
 
 | model | accuracy | dataset | model source | precision |
 | ---- | ---- | ---- | ---- | ---- |
-| Llama3.2 3B Instruct | 58.61% | MMLU | https://huggingface.co/meta-llama/Llama-3.2-3B-Instruct | fp16 |
+| Llama3.1 8B Instruct | 64.94% | MMLU | https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct | fp16 |
 
 
 ## 1. Environment Setup
@@ -35,4 +35,4 @@ Run in accuracy mode
 `python main.py --model_path <path/to/model> --dataset_path <path/to/dataset> --device <cpu|cuda> --accuracy`
 
 Run the accuracy checker accuracy checker
-`python accuracy_checker.py`--dataset_file <path/to/dataset>
+`python accuracy_checker.py --dataset_file <path/to/dataset>`
