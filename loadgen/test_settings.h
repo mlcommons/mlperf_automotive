@@ -280,6 +280,18 @@ struct TestSettings {
   bool infer_token_latencies = false;
   uint64_t token_latency_scaling_factor;
   std::vector<size_t> group_sizes;
+
+  /// @brief set group sizes array,
+  /// @param input_vec 
+  /// @return group sizes array
+  std::vector<size_t> SetGroupSizes(const std::vector<size_t>& input_vec) {
+    group_sizes.clear();
+    for (int item : input_vec) 
+    {
+      group_sizes.push_back(item);
+    }
+    return group_sizes;
+  }
   /**@}*/
 };
 

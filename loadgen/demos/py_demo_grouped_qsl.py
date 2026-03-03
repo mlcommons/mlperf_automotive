@@ -27,20 +27,22 @@ import mlperf_loadgen
 
 
 def load_samples_to_ram(query_samples):
-    del query_samples
-    return
+    pass
 
 
 def unload_samples_from_ram(query_samples):
     del query_samples
     return
 
+COUNT = 0
 
 def process_query_async(query_samples):
     time.sleep(0.008)
+    global COUNT
     responses = []
     for s in query_samples:
-        print(s.index)
+        COUNT += 1
+        #print(COUNT, s.index)
         responses.append(mlperf_loadgen.QuerySampleResponse(s.id, 0, 0))
     mlperf_loadgen.QuerySamplesComplete(responses)
 
@@ -65,15 +67,17 @@ def main(argv):
     settings.min_duration_ms = 10000
     settings.server_constant_gen = True
     settings.use_grouped_qsl = True
+    group_sizes = [32 + i%2 for i in range(32)]
+    print(settings.SetGroupSizes(group_sizes))
 
     sut = mlperf_loadgen.ConstructSUT(issue_query, flush_queries)
     qsl = mlperf_loadgen.ConstructGroupedQSL(
-        1024, 32, load_samples_to_ram, unload_samples_from_ram
+        sum(group_sizes), 64, load_samples_to_ram, unload_samples_from_ram
     )
 
-    # qsl = mlperf_loadgen.ConstructQSL(
-    #     1024, 128, load_samples_to_ram, unload_samples_from_ram
-    # )
+    # # qsl = mlperf_loadgen.ConstructQSL(
+    # #     1024, 128, load_samples_to_ram, unload_samples_from_ram
+    # # )
     mlperf_loadgen.StartTestWithGroupedQSL(sut, qsl, settings, "")
     mlperf_loadgen.DestroyGroupedQSL(qsl)
     mlperf_loadgen.DestroySUT(sut)

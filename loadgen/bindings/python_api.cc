@@ -417,6 +417,8 @@ PYBIND11_MODULE(mlperf_loadgen, m) {
                      &TestSettings::infer_token_latencies)
       .def_readwrite("token_latency_scaling_factor",
                      &TestSettings::token_latency_scaling_factor)
+      .def("SetGroupSizes", &TestSettings::SetGroupSizes, pybind11::arg("input_vec"),
+            "This function sets the group sizes")
       .def("FromConfig", &TestSettings::FromConfig, pybind11::arg("path"),
            pybind11::arg("model"), pybind11::arg("scenario"),
            pybind11::arg("conf_type") = 1,
