@@ -1,6 +1,6 @@
-# MLPerf Automotive Benchmark: Llama 3.2 3B (Infotainment)
+# MLPerf Automotive Benchmark: Llama 3.1 8B (Infotainment)
 
-This repository implements an In-Vehicle Infotainment (IVI) benchmark using Meta Llama 3.2 3B Instruct.
+This repository implements an In-Vehicle Infotainment (IVI) benchmark using Meta Llama 3.1 8B Instruct.
 It evaluates the model's performance (latency) and accuracy on the **MMLU (Massive Multitask Language Understanding)** dataset.
 
 | model | accuracy | dataset | model source | precision |
