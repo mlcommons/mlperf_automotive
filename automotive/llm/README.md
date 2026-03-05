@@ -5,7 +5,7 @@ It evaluates the model's performance (latency) and accuracy on the **MMLU (Massi
 
 | model | accuracy | dataset | model source | precision |
 | ---- | ---- | ---- | ---- | ---- |
-| Llama3.1 8B Instruct | 64.94% | MMLU | https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct | fp16 |
+| Llama3.1 8B Instruct | 64.96% | MMLU | https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct | fp16 |
 
 
 ## 1. Environment Setup
