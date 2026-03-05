@@ -755,13 +755,20 @@ std::vector<LoadableSampleSet> GenerateLoadableSets(
     for (size_t i = 0; i < number_of_groups; i++) {
       size_t group_size = sequence_gen->GroupSize(groupIdx[idx]);
       if (loadable_set.size() + group_size >= set_size) {
+        for (size_t j = 0; j < group_size; j++) {
+          if (loadable_set.size() + group_size < set_size){
+            loadable_set.push_back(samples[idx]);
+          }
+          idx++;
+        }
         result.push_back({std::move(loadable_set), loadable_set.size()});
         loadable_set.clear();
         loadable_set.reserve(set_size + set_padding);
-      }
-      for (size_t j = 0; j < group_size; j++) {
-        loadable_set.push_back(samples[idx]);
-        idx++;
+      } else {
+        for (size_t j = 0; j < group_size; j++) {
+          loadable_set.push_back(samples[idx]);
+          idx++;
+        }
       }
     }
   }
@@ -967,7 +974,6 @@ void RunPerformanceMode(SystemUnderTest* sut, QuerySampleLibrary* qsl,
 
   PerformanceResult pr(IssueQueries<scenario, TestMode::PerformanceOnly>(
       sut, qsl, settings, performance_set, sequence_gen));
-
   // Measure PerfClock/system_clock timer durations for comparison vs
   // external timer.
   auto pc_stop_ts = PerfClock::now();

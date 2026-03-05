@@ -1388,6 +1388,10 @@ def check_compliance_acc_dir(test_dir, model, config):
 def check_compliance_dir(
     compliance_dir, model, scenario, config, division, system_json, name
 ):
+    if division.lower() not in ["closed", "network"]:
+        log.info("Skipping compliance test for open result: %s",
+                 compliance_dir,)
+        return True
     compliance_perf_pass = True
     compliance_perf_dir_pass = True
     compliance_acc_pass = True
@@ -1925,7 +1929,7 @@ def check_results_dir(
                         measurement_dir = os.path.join(
                             division,
                             submitter,
-                            "measurements",
+                            "results",
                             system_desc,
                             model_name,
                             scenario,
@@ -2010,7 +2014,7 @@ def check_results_dir(
                         compliance_dir = os.path.join(
                             division,
                             submitter,
-                            "compliance",
+                            "results",
                             system_desc,
                             model_name,
                             scenario,
@@ -2366,19 +2370,11 @@ def check_measurement_dir(
                 log.error("%s is having empty %s", measurement_dir, i)
                 is_valid = False
 
-    if config.version in ["v4.0", "v4.1"]:
-        system_file_prefix = system_desc
-    else:
-        system_file_prefix = "model-info"
+    system_file = None
+    system_file_prefix = "measurements"
     for i in files:
-        if i.startswith(system_desc) and i.endswith(
-                "_" + scenario + ".json"):
+        if i.startswith(system_file_prefix) and i.endswith(".json"):
             system_file = i
-            end = len("_" + scenario + ".json")
-            break
-        elif i.startswith(system_desc) and i.endswith(".json"):
-            system_file = i
-            end = len(".json")
             break
 
     weight_data_types = None
@@ -2395,15 +2391,7 @@ def check_measurement_dir(
                     log.error(
                         "%s, field %s is missing meaningful value", fname, k)
 
-        impl = system_file[len(system_desc) + 1: -end]
-        code_dir = os.path.join(root, "code", model)
-        if os.path.isfile(code_dir):
-            with open(code_dir, "r") as f:
-                line = f.read()
-                code_dir = os.path.join(root, "code", line.strip(), impl)
-        else:
-            code_dir = os.path.join(root, "code", model, impl)
-
+        code_dir = os.path.join(root, "src", model)
         if not os.path.exists(code_dir):
             # see if the code dir is per model
             if not os.path.exists(os.path.dirname(code_dir)):
@@ -2411,7 +2399,7 @@ def check_measurement_dir(
                 is_valid = False
 
     else:
-        log.error("%s is missing %s*.json", fname, system_desc)
+        log.error("%s is missing %s*.json", fname, system_file_prefix)
         is_valid = False
 
     return is_valid, weight_data_types
