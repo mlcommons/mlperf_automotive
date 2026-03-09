@@ -93,28 +93,28 @@ MODEL_CONFIG = {
             "bevformer",
             "deeplabv3plus",
             "ssd",
-            "llama3_2-3b",
+            "llama3_1-8b",
             "uniad",
         ],
         "required-scenarios-adas": {
             "bevformer": ["SingleStream"],
             "deeplabv3plus": ["SingleStream"],
             "ssd": ["SingleStream"],
-            "llama3_2-3b": ["SingleStream"],
+            "llama3_1-8b": ["SingleStream"],
             "uniad": ["SingleStream"],
         },
         "optional-scenarios-adas": {
             "bevformer": ["ConstantStream"],
             "deeplabv3plus": ["ConstantStream"],
             "ssd": ["ConstantStream"],
-            "llama3_2-3b": [],
+            "llama3_1-8b": [],
             "uniad": ["ConstantStream"],
         },
         "accuracy-target": {
             "bevformer": ("mAP_3D", .2683556 * 0.99),
             "deeplabv3plus": ("mIOU", .924355 * 0.999),
             "ssd": ("mAP", .7179 * 0.999),
-            "llama3_2-3b": ("ACC", 58.61 * 0.95),
+            "llama3_1-8b": ("ACC", 58.61 * 0.95),
             "uniad": ("L2", .8958691209554672 * 0.99)
         },
         "accuracy-upper-limit": {
@@ -127,7 +127,7 @@ MODEL_CONFIG = {
             "bevformer": 256,
             "deeplabv3plus": 128,
             "ssd": 128,
-            "llama3_2-3b": 8192,
+            "llama3_1-8b": 8192,
             "uniad": 256
         },
         # model_mapping.json is expected in the root directory of the
@@ -138,7 +138,7 @@ MODEL_CONFIG = {
             "SSD": "ssd",
             "BEVFORMER": "bevformer",
             "DEEPLABV3PLUS": "deeplabv3plus",
-            "LLAMA3_2-3B": "llama3_2-3b",
+            "llama3_1-8b": "llama3_1-8b",
             "UNIAD": "uniad",
         },
         "seeds": {
@@ -153,7 +153,7 @@ MODEL_CONFIG = {
             "bevformer": 0.999,
             "deeplabv3plus": 0.999,
             "ssd": 0.999,
-            "llama3_2-3b": 0.9,
+            "llama3_1-8b": 0.9,
             "uniad": 0.999,
         },
         "min-queries": {
@@ -169,7 +169,7 @@ MODEL_CONFIG = {
                 "ConstantStream": 100000,
                 "SingleStream": 6636,
             },
-            "llama3_2-3b": {
+            "llama3_1-8b": {
                 "SingleStream": 6636,
             },
             "uniad": {
@@ -1399,13 +1399,13 @@ def check_compliance_dir(
 
     if model in [
         "ssd",
-        "llama3-2b",
+        "llama3_1-8b",
         "uniad",
     ]:
         test_list.remove("TEST04")
 
     if model in [
-        "llama3-2b",
+        "llama3_1-8b",
     ]:
         test_list.remove("TEST01")
 
