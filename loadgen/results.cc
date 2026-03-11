@@ -525,11 +525,14 @@ void PerformanceSummary::LogSummary(AsyncSummary& summary) {
       // TODO: make a more permanent solution
       double qps_as_completed =
           (sample_count - 1) / pr.final_query_all_samples_done_time;
-      summary("Completed samples per second    : ",
-              DoubleToString(qps_as_completed));
+      summary("Target Latency (ns)   : ",
+              settings.target_latency.count());
       summary(DoubleToString(target_latency_percentile.percentile * 100, 1) +
                   "th percentile latency (ns) : ",
-              target_latency_percentile.sample_latency);
+              target_latency_percentile.sample_latency);     
+      summary("Percentage of queries under target latency   : ",
+              100 * (1 - overlatency_query_count / float(sample_count - 1)),
+            "%");  ;
       break;
     }
     case TestScenario::Offline: {
@@ -683,9 +686,12 @@ void PerformanceSummary::LogSummary(AsyncSummary& summary) {
   } else if (settings.scenario == TestScenario::ConstantStream) {
     // Scheduled samples per second as an additional stat
     double qps_as_scheduled =
-        (sample_count - 1) / pr.final_query_scheduled_time;
+        (sample_count - 1) / pr.final_query_scheduled_time; 
+    summary("Scheduled samples            : ", float(sample_count - 1));
     summary("Scheduled samples per second : ",
             DoubleToString(qps_as_scheduled));
+    summary("Samples over target latency  : ",
+              overlatency_query_count);
   } else if (settings.scenario == TestScenario::MultiStream) {
     summary("Per-query latency:  ");
     summary("Min latency (ns)                : ", query_latency_min);
