@@ -23,6 +23,7 @@ import time
 
 from absl import app
 import mlperf_loadgen
+import random
 
 
 def load_samples_to_ram(query_samples):
@@ -34,11 +35,16 @@ def unload_samples_from_ram(query_samples):
     del query_samples
     return
 
+# COUNT = 0
 
 def process_query_async(query_samples):
-    time.sleep(0.001)
     responses = []
+    if random.randint(0, 299) == 0:
+        time.sleep(0.12)
+    # global COUNT
     for s in query_samples:
+        # print(COUNT)
+        # COUNT += 1 
         responses.append(mlperf_loadgen.QuerySampleResponse(s.id, 0, 0))
     mlperf_loadgen.QuerySamplesComplete(responses)
 
@@ -56,8 +62,8 @@ def main(argv):
     settings = mlperf_loadgen.TestSettings()
     settings.scenario = mlperf_loadgen.TestScenario.ConstantStream
     settings.mode = mlperf_loadgen.TestMode.PerformanceOnly
-    settings.server_target_qps = 100
-    settings.server_target_latency_ns = 100000000
+    #settings.server_target_qps = 100
+    settings.server_target_latency_ns = 1000000
     settings.min_query_count = 100
     settings.min_duration_ms = 10000
     settings.server_constant_gen = True
