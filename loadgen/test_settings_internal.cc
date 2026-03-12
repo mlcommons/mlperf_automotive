@@ -76,23 +76,28 @@ TestSettingsInternal::TestSettingsInternal(
           requested.multi_stream_target_latency_percentile;
       break;
     case TestScenario::ConstantStream:{
-      if (requested.server_target_qps >= 0.0) {
-        target_qps = requested.server_target_qps;
-      } else {
-        LogDetail([server_target_qps = requested.server_target_qps,
-                   target_qps = target_qps](AsyncDetail &detail) {
-#if USE_NEW_LOGGING_FORMAT
-          std::stringstream ss;
-          ss << "Invalid value for server_target_qps requested."
-             << " requested: " << server_target_qps << " using: " << target_qps;
-          MLPERF_LOG_ERROR(detail, "error_invalid_test_settings", ss.str());
-#else
-          detail.Error("Invalid value for server_target_qps requested.",
-                       "requested", server_target_qps, "using", target_qps);
-#endif
-        });
+      if (requested.server_target_latency_ns > 0){
+        target_latency = std::chrono::nanoseconds(requested.server_target_latency_ns);
+        target_qps = double(1000000000) / requested.server_target_latency_ns;
+      } else{
+        if (requested.server_target_qps >= 0.0) {
+          target_qps = requested.server_target_qps;
+        } else {
+          LogDetail([server_target_qps = requested.server_target_qps,
+                     target_qps = target_qps](AsyncDetail &detail) {
+  #if USE_NEW_LOGGING_FORMAT
+            std::stringstream ss;
+            ss << "Invalid value for server_target_qps requested."
+               << " requested: " << server_target_qps << " using: " << target_qps;
+            MLPERF_LOG_ERROR(detail, "error_invalid_test_settings", ss.str());
+  #else
+            detail.Error("Invalid value for server_target_qps requested.",
+                         "requested", server_target_qps, "using", target_qps);
+  #endif
+          });
+        }
+        target_latency = std::chrono::nanoseconds(uint64_t(1000000000 / target_qps));
       }
-      target_latency = std::chrono::nanoseconds(uint64_t(1000000000 / target_qps));
       target_latency_percentile = requested.server_target_latency_percentile;
       max_async_queries = requested.server_max_async_queries;
       break;
@@ -840,6 +845,8 @@ int TestSettings::FromConfig(const std::string &path, const std::string &model,
            &single_stream_expected_latency_ns, 1000 * 1000);
   lookupkv(model, "MultiStream", "target_latency", nullptr,
            &multi_stream_expected_latency_ns, 1000 * 1000);
+  lookupkv(model, "ConstantStream", "target_latency", 
+           &server_target_latency_ns, nullptr, 1000 * 1000);
   lookupkv(model, "ConstantStream", "target_qps", nullptr, &server_target_qps);
   lookupkv(model, "Offline", "target_qps", 0, &offline_expected_qps);
 
