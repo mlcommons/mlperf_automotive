@@ -301,16 +301,16 @@ bool PerformanceSummary::EarlyStopping(
         return_false = true;
       }
 
-      // Also need to print the early stopping estimate for the target percentile
+      // Also need to print the early stopping estimate for the target
+      // percentile
       int64_t h_min;
       t = 1;
-      h_min =
-          find_min_passing(1, target_latency_percentile.percentile, 
-                           tolerance, confidence);
+      h_min = find_min_passing(1, target_latency_percentile.percentile,
+                               tolerance, confidence);
       h = h_min;
       for (int64_t i = 2; i < queries_issued + 1; ++i) {
-        h = find_min_passing(i, target_latency_percentile.percentile, 
-                             tolerance, confidence);
+        h = find_min_passing(i, target_latency_percentile.percentile, tolerance,
+                             confidence);
         if (queries_issued < h + i) {
           t = i - 1;
           break;
@@ -327,12 +327,10 @@ bool PerformanceSummary::EarlyStopping(
       double multi_stream_percentile = 0.99;
       t = 1;
       h_min =
-          find_min_passing(1, multi_stream_percentile, 
-                           tolerance, confidence);
+          find_min_passing(1, multi_stream_percentile, tolerance, confidence);
       h = h_min;
       for (int64_t i = 2; i < queries_issued + 1; ++i) {
-        h = find_min_passing(i, multi_stream_percentile, 
-                             tolerance, confidence);
+        h = find_min_passing(i, multi_stream_percentile, tolerance, confidence);
         if (queries_issued < h + i) {
           t = i - 1;
           break;
@@ -344,7 +342,7 @@ bool PerformanceSummary::EarlyStopping(
           DoubleToString(multi_stream_percentile * 100, 1) +
           "th percentile estimate: " + std::to_string(percentile_estimate);
       early_stopping_latency_ms = percentile_estimate;
-      
+
       // handle failure case
       if (return_false) {
         return false;
@@ -525,14 +523,15 @@ void PerformanceSummary::LogSummary(AsyncSummary& summary) {
       // TODO: make a more permanent solution
       double qps_as_completed =
           (sample_count - 1) / pr.final_query_all_samples_done_time;
-      summary("Target Latency (ns)   : ",
-              settings.target_latency.count());
+      summary("Target Latency (ns)   : ", settings.target_latency.count());
       summary(DoubleToString(target_latency_percentile.percentile * 100, 1) +
                   "th percentile latency (ns) : ",
-              target_latency_percentile.sample_latency);     
+              target_latency_percentile.sample_latency);
       summary("Percentage of queries under target latency   : ",
-              100 * (1 - overlatency_query_count / float(sample_count - 1)),
-            "%");  ;
+              DoubleToString(100 * (1 - overlatency_query_count /
+                                            float(sample_count - 1))),
+              "%");
+      ;
       break;
     }
     case TestScenario::Offline: {
@@ -686,12 +685,11 @@ void PerformanceSummary::LogSummary(AsyncSummary& summary) {
   } else if (settings.scenario == TestScenario::ConstantStream) {
     // Scheduled samples per second as an additional stat
     double qps_as_scheduled =
-        (sample_count - 1) / pr.final_query_scheduled_time; 
+        (sample_count - 1) / pr.final_query_scheduled_time;
     summary("Scheduled samples            : ", float(sample_count - 1));
     summary("Scheduled samples per second : ",
             DoubleToString(qps_as_scheduled));
-    summary("Samples over target latency  : ",
-              overlatency_query_count);
+    summary("Samples over target latency  : ", overlatency_query_count);
   } else if (settings.scenario == TestScenario::MultiStream) {
     summary("Per-query latency:  ");
     summary("Min latency (ns)                : ", query_latency_min);
