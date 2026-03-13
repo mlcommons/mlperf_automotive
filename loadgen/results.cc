@@ -531,7 +531,7 @@ void PerformanceSummary::LogSummary(AsyncSummary& summary) {
                   "th percentile latency (ns) : ",
               target_latency_percentile.sample_latency);     
       summary("Percentage of queries under target latency   : ",
-              100 * (1 - overlatency_query_count / float(sample_count - 1)),
+              DoubleToString(100 * (1 - overlatency_query_count / float(sample_count - 1))),
             "%");  ;
       break;
     }
