@@ -143,9 +143,9 @@ MODEL_CONFIG = {
         },
         "seeds": {
             # TODO: update seeds
-            "qsl_rng_seed": 1575625098,
-            "sample_index_rng_seed": 2227286192,
-            "schedule_rng_seed": 3495234579,
+            "qsl_rng_seed": 1215947953,
+            "sample_index_rng_seed": 295229089,
+            "schedule_rng_seed": 1380859451,
         },
         "ignore_errors": [],
         "latency-constraint": {},
