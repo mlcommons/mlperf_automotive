@@ -6,9 +6,29 @@ This repository contains the reference implementation for UniAD. It is based on 
 | ---- | ---- | ---- | ---- |
 | UniAD (tiny) | 0.8959 L2 Avg. | NuScenes | fp32 |
 
-## Dataset Download
 
-Contact [MLCommons](https://docs.google.com/forms/d/e/1FAIpQLSdUsbqaGcoIAxoNVrxpnkUKT03S1GbbPcUIAP3hKOeV7BCgKQ/viewform) support for accessing the NuScenes dataset. This includes preprocessed data as well as the model checkpoint. The preprocessed data is located in nuscenes_data/preprocessed_uniad/. The model checkpoint is located in model_checkpoint_uniad
+## Get Dataset
+### MLCommons Members Download (Recommended for official submission)
+
+Contact [MLCommons](https://docs.google.com/forms/d/e/1FAIpQLSdUsbqaGcoIAxoNVrxpnkUKT03S1GbbPcUIAP3hKOeV7BCgKQ/viewform) support for accessing the NuScenes dataset. This includes preprocessed data as well as the model checkpoint. The preprocessed data is located in nuscenes_data/preprocessed_uniad/. The model checkpoint is located in model_checkpoint_uniad.
+
+**Official dataset download using MLCFlow Automation**
+
+You can download the model automatically via the below command
+```
+mlcr get,preprocessed,dataset,nuscenes,_r2-downloader --outdirname=<path to download> -j
+```
+
+
+## Get Model
+### MLCommons Members Download (Recommended for official submission)
+
+Run the following command to download the model checkpoint using r2-downloader:
+
+```bash
+bash <(curl -s https://raw.githubusercontent.com/mlcommons/r2-downloader/refs/heads/main/mlc-r2-downloader.sh) https://automotive.mlcommons-storage.org/metadata/nuscenes_uniad.uri
+```
+
 
 ## Environment Setup
 
