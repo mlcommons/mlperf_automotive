@@ -1,0 +1,60 @@
+{
+  "_comment": "Deliberately invalid ADAS package used by the test suite. Expected errors: missing safety_manual + tool_qualification (ADAS profile), quantizer without calibration description, application without run_command, target_dependent_autotuning without autotuning_config, bad commit hash, has_local_patches with no disclosure.",
+  "hardened_package_version": "v1.0",
+  "system_desc_id": "broken_adas",
+  "hardened_profile": "ADAS",
+
+  "production_intended_inventory": [
+    {
+      "component_name": "Runtime",
+      "functional_role": "executes engine",
+      "supplier_or_owner": "Acme",
+      "used_during_benchmark": true,
+      "intended_for_production": false,
+      "provenance": "proprietary",
+      "identifier": {}
+    }
+  ],
+
+  "software_bill_of_materials": {
+    "build_toolchain_bom": [
+      { "component_name": "axc", "role": "quantizer", "version": "10.4.0" }
+    ],
+    "runtime_execution_bom": [
+      { "component_name": "App", "component_type": "application", "version": "1.0" }
+    ]
+  },
+
+  "oss_components": [
+    {
+      "component_name": "ORT",
+      "upstream_url": "https://github.com/microsoft/onnxruntime",
+      "immutable_identifier": "v1.18.0",
+      "role": "parity",
+      "has_local_patches": true
+    }
+  ],
+
+  "proprietary_components": [],
+  "license_summary": [],
+
+  "reproducibility": {
+    "mlperf_automotive_repo_reference": {
+      "implementation_repo_url": "https://github.com/mlcommons/mlperf_automotive",
+      "results_repo_url": "https://github.com/mlcommons/mlperf_automotive_results_v1.0",
+      "commit_hash": "not-a-hash"
+    },
+    "model_compilation_recipe": [
+      {
+        "model": "bevformer",
+        "steps": ["axc --onnx bevformer.onnx --out bevformer.plan"],
+        "compiler_config": "axc 10.4.0",
+        "target_dependent_autotuning": true
+      }
+    ]
+  },
+
+  "safety_evidence": {
+    "security_manual_reference": { "name": "Acme Security Manual", "version": "6.0" }
+  }
+}

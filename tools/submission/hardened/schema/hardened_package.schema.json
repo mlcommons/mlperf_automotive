@@ -1,0 +1,430 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://mlcommons.org/automotive/schemas/hardened_package.schema.json",
+  "title": "MLPerf Automotive Hardened Category Package",
+  "description": "Normative schema for the additional disclosure package required by the MLPerf Automotive 'Hardened System' submission category. This package is supplied IN ADDITION to all ordinary MLCommons submission artifacts. It lives alongside the per-system description as 'systems/<system_desc>_hardened.json' and is validated by tools/submission/hardened_checker.py. Sensitive or proprietary material is NOT expected to be placed in this file; instead an immutable identifier (commit hash / build ID / checksum) is recorded and the artifact is made available to a neutral third-party auditor under the standard MLCommons audit/NDA process.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "hardened_package_version",
+    "system_desc_id",
+    "hardened_profile",
+    "production_intended_inventory",
+    "software_bill_of_materials",
+    "oss_components",
+    "proprietary_components",
+    "license_summary",
+    "reproducibility"
+  ],
+  "properties": {
+    "hardened_package_version": {
+      "description": "Version of THIS hardened-package schema/format the file conforms to. Lets the checker select validation rules the same way MODEL_CONFIG keys on the benchmark version.",
+      "type": "string",
+      "enum": ["v0.5", "v1.0"]
+    },
+    "system_desc_id": {
+      "description": "Must equal the basename of the corresponding systems/<system_desc>.json (without extension). Binds this package to exactly one results line.",
+      "type": "string",
+      "minLength": 1
+    },
+    "hardened_profile": {
+      "description": "Which Hardened System Profile this submission targets. Drives which evidence is mandatory (see inference_rules.adoc 6.1). IVI is typically QM; ADAS is QM..ASIL-B; AD is ASIL-B and above.",
+      "type": "string",
+      "enum": ["IVI", "ADAS", "AD"]
+    },
+    "anticipated_safety_goal": {
+      "description": "Free-text statement of the anticipated ML-stack production safety goal (e.g. 'QM', 'ASIL-B at system level'). MLPerf does NOT certify safety; this records the submitter's stated intent only.",
+      "type": "string"
+    },
+
+    "production_intended_inventory": {
+      "description": "List of software components used while running the benchmark, each explicitly marked for whether it is intended for production. Separates benchmark-only utilities from the production path (firmware, drivers, model compiler, runtime libraries, graph executors, safety wrappers, orchestration).",
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/inventory_component" }
+    },
+
+    "software_bill_of_materials": {
+      "description": "Component-level BOM decomposed into the build-time toolchain (what produces the deployable artifact) and the runtime execution stack (what loads and executes it on the target).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["build_toolchain_bom", "runtime_execution_bom"],
+      "properties": {
+        "build_toolchain_bom": {
+          "description": "Everything that produces the deployable artifact: engines/plans, compiled graphs, quantized models.",
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/build_toolchain_component" }
+        },
+        "runtime_execution_bom": {
+          "description": "Everything that loads and executes the artifact on the target SoC: firmware, drivers, OS, AI runtime/inference engine, harness/application layer.",
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/runtime_execution_component" }
+        }
+      }
+    },
+
+    "oss_components": {
+      "description": "Open-source projects used in toolchain or runtime, with immutable identifiers and patch disclosure.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/oss_component" }
+    },
+
+    "proprietary_components": {
+      "description": "Vendor/supplier-developed components in toolchain (e.g. compiler backend) and runtime (e.g. safety runtime, drivers) that affect the compiled artifact or its execution.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/proprietary_component" }
+    },
+
+    "license_summary": {
+      "description": "License family and redistribution terms per component across toolchain and runtime.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/license_entry" }
+    },
+
+    "reproducibility": {
+      "description": "Public-repo references and a reproducible model-compilation recipe so that, given the same environment and toolchain, results can be reproduced.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mlperf_automotive_repo_reference", "model_compilation_recipe"],
+      "properties": {
+        "mlperf_automotive_repo_reference": {
+          "$ref": "#/$defs/repo_reference"
+        },
+        "model_compilation_recipe": {
+          "description": "Per-model reproducible compilation recipes. The compiled model itself is NOT shipped; the recipe + toolchain access is what an auditor uses to reproduce it.",
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/compilation_recipe" }
+        }
+      }
+    },
+
+    "safety_evidence": {
+      "description": "Safety/security evidence appropriate to the profile. Required content is enforced by the checker per hardened_profile rather than by the schema, because IVI/ADAS/AD differ.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "security_manual_reference": { "$ref": "#/$defs/document_reference" },
+        "safety_manual_reference": { "$ref": "#/$defs/document_reference" },
+        "tool_qualification_reference": { "$ref": "#/$defs/document_reference" },
+        "hardware_qualification": {
+          "description": "HW qualification evidence, e.g. AEC-Q100, high-safety-integrity compute.",
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "certification_evidence": {
+          "description": "Any evidence of an attempt at or progress toward certification. Free-form; an empty array means none claimed.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["standard", "status"],
+            "properties": {
+              "standard": {
+                "description": "e.g. ISO 26262, ISO 21448 (SOTIF), ISO 21434, IEC 61508.",
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "enum": ["none", "planned", "in_progress", "assessment", "certified"]
+              },
+              "asil_target": {
+                "type": "string",
+                "enum": ["QM", "ASIL-A", "ASIL-B", "ASIL-C", "ASIL-D", "not_applicable"]
+              },
+              "assessor": { "type": "string" },
+              "reference": { "$ref": "#/$defs/document_reference" }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  "$defs": {
+    "audit_identifier": {
+      "description": "An immutable, uniquely-identifying handle for a component build, consistent with MLCommons replication rules. At least one of these forms must be present so a neutral auditor can pin the exact artifact even when source is not shared.",
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": false,
+      "properties": {
+        "repository_url": { "type": "string", "format": "uri" },
+        "commit_hash": { "type": "string", "pattern": "^[0-9a-fA-F]{7,64}$" },
+        "release_tag": { "type": "string" },
+        "build_id": { "type": "string" },
+        "binary_checksum": {
+          "description": "Algorithm-prefixed digest, e.g. 'sha256:ab12...'.",
+          "type": "string",
+          "pattern": "^(sha256|sha512|sha1|md5):[0-9a-fA-F]{32,128}$"
+        },
+        "internal_source_identifier": {
+          "description": "Opaque internal handle resolvable by the submitter for an auditor under NDA.",
+          "type": "string"
+        }
+      }
+    },
+
+    "inventory_component": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "component_name",
+        "functional_role",
+        "supplier_or_owner",
+        "used_during_benchmark",
+        "intended_for_production",
+        "provenance",
+        "identifier"
+      ],
+      "properties": {
+        "component_name": { "type": "string", "minLength": 1 },
+        "functional_role": { "type": "string", "minLength": 1 },
+        "supplier_or_owner": { "type": "string", "minLength": 1 },
+        "used_during_benchmark": { "type": "boolean" },
+        "intended_for_production": { "type": "boolean" },
+        "provenance": {
+          "type": "string",
+          "enum": ["open-source", "proprietary", "mixed"]
+        },
+        "identifier": { "$ref": "#/$defs/audit_identifier" }
+      }
+    },
+
+    "build_toolchain_component": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["component_name", "role", "version"],
+      "properties": {
+        "component_name": { "type": "string", "minLength": 1 },
+        "role": {
+          "description": "Functional class within the toolchain.",
+          "type": "string",
+          "enum": [
+            "training_framework",
+            "export_tooling",
+            "ml_compiler",
+            "optimizer",
+            "quantizer",
+            "calibration_tool",
+            "packaging_tool",
+            "container_builder",
+            "other"
+          ]
+        },
+        "version": { "type": "string", "minLength": 1 },
+        "configuration_flags": {
+          "description": "Flags/settings that materially affect the produced artifact. Recorded so the build is reproducible.",
+          "type": "string"
+        },
+        "calibration_dataset_description": {
+          "description": "Required-by-checker for quantizer/calibration roles: which calibration data and how much was used.",
+          "type": "string"
+        },
+        "identifier": { "$ref": "#/$defs/audit_identifier" }
+      }
+    },
+
+    "runtime_execution_component": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["component_name", "component_type", "version"],
+      "properties": {
+        "component_name": { "type": "string", "minLength": 1 },
+        "component_type": {
+          "type": "string",
+          "enum": [
+            "firmware",
+            "kernel_driver",
+            "userspace_driver",
+            "operating_system",
+            "ai_runtime",
+            "inference_engine",
+            "safety_runtime",
+            "application",
+            "benchmark_harness",
+            "other"
+          ]
+        },
+        "version": { "type": "string", "minLength": 1 },
+        "configuration": {
+          "description": "Runtime config: device selection, scheduling mode, batching, hardening profile, delivery method, etc.",
+          "type": "string"
+        },
+        "delivery_method": {
+          "description": "For firmware: how it is delivered (BSP image, separate update).",
+          "type": "string"
+        },
+        "run_command": {
+          "description": "Required-by-checker for application/benchmark_harness components: run command/flags and how the app connects to the runtime and to LoadGen.",
+          "type": "string"
+        },
+        "identifier": { "$ref": "#/$defs/audit_identifier" }
+      }
+    },
+
+    "oss_component": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["component_name", "upstream_url", "immutable_identifier", "role"],
+      "properties": {
+        "component_name": { "type": "string", "minLength": 1 },
+        "upstream_url": { "type": "string", "format": "uri" },
+        "immutable_identifier": {
+          "description": "Release tag or commit hash pinning the exact upstream revision.",
+          "type": "string",
+          "minLength": 1
+        },
+        "role": {
+          "description": "Short description of its role in toolchain or runtime.",
+          "type": "string",
+          "minLength": 1
+        },
+        "has_local_patches": { "type": "boolean", "default": false },
+        "patch_reference": {
+          "description": "Patch/fork reference when patches can be shared.",
+          "type": "string"
+        },
+        "patch_feature_description": {
+          "description": "When patches cannot be shared: feature-level description of what changed, plus component boundary, inputs/outputs.",
+          "type": "string"
+        },
+        "affects_kernel_or_tactic_selection": {
+          "description": "Whether the patch/fork influences kernel or tactic selection (material to reproducibility/audit).",
+          "type": "boolean"
+        }
+      }
+    },
+
+    "proprietary_component": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "component_name",
+        "owner",
+        "version_or_build_id",
+        "interface_role",
+        "internal_identifier_or_checksum",
+        "available_to_external_customers",
+        "distribution_model"
+      ],
+      "properties": {
+        "component_name": { "type": "string", "minLength": 1 },
+        "owner": { "type": "string", "minLength": 1 },
+        "version_or_build_id": { "type": "string", "minLength": 1 },
+        "interface_role": {
+          "description": "What it plugs into (e.g. 'compiler backend', 'safety runtime', 'kernel driver').",
+          "type": "string",
+          "minLength": 1
+        },
+        "internal_identifier_or_checksum": {
+          "description": "Uniquely identifies the exact build for audit.",
+          "type": "string",
+          "minLength": 1
+        },
+        "available_to_external_customers": { "type": "boolean" },
+        "distribution_model": {
+          "description": "e.g. 'production license', 'evaluation only', 'internal only'.",
+          "type": "string",
+          "minLength": 1
+        },
+        "affects_compiled_artifact": {
+          "description": "Whether this component affects the compiled artifact or its execution.",
+          "type": "boolean"
+        }
+      }
+    },
+
+    "license_entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "component_name",
+        "license_family",
+        "binary_redistribution_allowed",
+        "source_redistribution_allowed"
+      ],
+      "properties": {
+        "component_name": { "type": "string", "minLength": 1 },
+        "license_family": {
+          "description": "e.g. 'Apache-2.0', 'GPL-3.0', 'proprietary-commercial'.",
+          "type": "string",
+          "minLength": 1
+        },
+        "binary_redistribution_allowed": { "type": "boolean" },
+        "source_redistribution_allowed": { "type": "boolean" },
+        "additional_terms": {
+          "description": "e.g. 'NDA', 'safety manual required', 'field-of-use restriction', or null.",
+          "type": ["string", "null"]
+        }
+      }
+    },
+
+    "repo_reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["implementation_repo_url", "results_repo_url", "commit_hash"],
+      "properties": {
+        "implementation_repo_url": { "type": "string", "format": "uri" },
+        "results_repo_url": { "type": "string", "format": "uri" },
+        "commit_hash": { "type": "string", "pattern": "^[0-9a-fA-F]{7,64}$" }
+      }
+    },
+
+    "compilation_recipe": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["model", "steps", "compiler_config"],
+      "properties": {
+        "model": {
+          "description": "Benchmark model this recipe compiles. Must be one of the benchmark models for the package version.",
+          "type": "string",
+          "minLength": 1
+        },
+        "steps": {
+          "description": "Ordered reproducible steps: each is either an inline command string or a URI to a script.",
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "compiler_config": {
+          "description": "Compiler flags and settings.",
+          "type": "string",
+          "minLength": 1
+        },
+        "quantization_description": {
+          "description": "Principled description of the quantization method (per inference_rules: must be reproducible and much smaller than the weights it produces).",
+          "type": "string"
+        },
+        "graph_optimizations": {
+          "description": "Graph-level optimizations applied (fusion, layout, etc.).",
+          "type": "string"
+        },
+        "autotuning_config": {
+          "description": "REQUIRED-by-checker for target-dependent autotuning flows (e.g. TensorRT-style builders): the autotuning configuration needed to reproduce the build.",
+          "type": "string"
+        },
+        "target_dependent_autotuning": {
+          "description": "Whether compilation uses target-dependent autotuning. When true, autotuning_config is required.",
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+
+    "document_reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "version": { "type": "string", "minLength": 1 },
+        "availability": {
+          "description": "How an auditor obtains it, e.g. 'under NDA', 'public', 'on request'.",
+          "type": "string"
+        }
+      }
+    }
+  }
+}

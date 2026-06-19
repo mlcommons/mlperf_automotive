@@ -1,0 +1,246 @@
+{
+  "hardened_package_version": "v1.0",
+  "system_desc_id": "drive_orin_adas",
+  "hardened_profile": "ADAS",
+  "anticipated_safety_goal": "ASIL-B at system level for the perception stack; QM for the benchmark harness and host tooling.",
+
+  "production_intended_inventory": [
+    {
+      "component_name": "SoC firmware (BSP)",
+      "functional_role": "Boot firmware and platform security controller for the target ECU",
+      "supplier_or_owner": "Acme Silicon",
+      "used_during_benchmark": true,
+      "intended_for_production": true,
+      "provenance": "proprietary",
+      "identifier": { "build_id": "BSP-6.0.9.2-prod", "binary_checksum": "sha256:9f1c2d3e4a5b60718293a4b5c6d7e8f90112233445566778899aabbccddeeff0" }
+    },
+    {
+      "component_name": "ML compiler (graph -> engine)",
+      "functional_role": "Compiles ONNX graphs into target engine plans with INT8 quantization",
+      "supplier_or_owner": "Acme Silicon",
+      "used_during_benchmark": true,
+      "intended_for_production": true,
+      "provenance": "proprietary",
+      "identifier": { "build_id": "axc-10.4.0", "internal_source_identifier": "acme://toolchain/axc/10.4.0" }
+    },
+    {
+      "component_name": "Safety inference runtime",
+      "functional_role": "Loads and executes compiled engines on the accelerator with the production scheduler",
+      "supplier_or_owner": "Acme Silicon",
+      "used_during_benchmark": true,
+      "intended_for_production": true,
+      "provenance": "proprietary",
+      "identifier": { "build_id": "safe-rt-3.2.1", "binary_checksum": "sha256:0011223344556677889900aabbccddeeff00112233445566778899aabbccddee" }
+    },
+    {
+      "component_name": "MLPerf LoadGen harness",
+      "functional_role": "Benchmark-only query driver linking LoadGen to the SUT",
+      "supplier_or_owner": "MLCommons",
+      "used_during_benchmark": true,
+      "intended_for_production": false,
+      "provenance": "open-source",
+      "identifier": { "repository_url": "https://github.com/mlcommons/mlperf_automotive", "commit_hash": "5d11f17c5316683369837e0cff3da64c5e094745" }
+    }
+  ],
+
+  "software_bill_of_materials": {
+    "build_toolchain_bom": [
+      {
+        "component_name": "PyTorch",
+        "role": "training_framework",
+        "version": "2.4.0",
+        "configuration_flags": "export only; no retraining (closed division)",
+        "identifier": { "release_tag": "v2.4.0" }
+      },
+      {
+        "component_name": "ONNX exporter",
+        "role": "export_tooling",
+        "version": "1.16.1",
+        "configuration_flags": "opset=17, dynamic_axes disabled",
+        "identifier": { "release_tag": "v1.16.1" }
+      },
+      {
+        "component_name": "Acme ML compiler (axc)",
+        "role": "ml_compiler",
+        "version": "10.4.0",
+        "configuration_flags": "--int8 --best --workspace=4096 --calib=entropy",
+        "identifier": { "build_id": "axc-10.4.0" }
+      },
+      {
+        "component_name": "Acme PTQ calibrator",
+        "role": "quantizer",
+        "version": "10.4.0",
+        "configuration_flags": "entropy calibration, per-tensor scales",
+        "calibration_dataset_description": "500-image MLCommons-provided Cognata/NuScenes calibration subset; no other data used.",
+        "identifier": { "build_id": "axc-10.4.0" }
+      },
+      {
+        "component_name": "Engine plan packager",
+        "role": "packaging_tool",
+        "version": "1.1.0",
+        "configuration_flags": "bundles engine + scaler metadata into signed .plan",
+        "identifier": { "build_id": "pkg-1.1.0" }
+      }
+    ],
+    "runtime_execution_bom": [
+      {
+        "component_name": "SoC firmware (BSP)",
+        "component_type": "firmware",
+        "version": "6.0.9.2",
+        "configuration": "production security profile, secure boot enabled",
+        "delivery_method": "BSP image",
+        "identifier": { "build_id": "BSP-6.0.9.2-prod" }
+      },
+      {
+        "component_name": "Accelerator kernel driver",
+        "component_type": "kernel_driver",
+        "version": "6.0.9",
+        "configuration": "MIG disabled, persistence mode on",
+        "identifier": { "build_id": "kmd-6.0.9" }
+      },
+      {
+        "component_name": "Hardened Linux (PREEMPT_RT)",
+        "component_type": "operating_system",
+        "version": "kernel 5.15.118-rt",
+        "configuration": "CIS-aligned hardening profile, read-only rootfs"
+      },
+      {
+        "component_name": "Safety inference runtime",
+        "component_type": "safety_runtime",
+        "version": "3.2.1",
+        "configuration": "device=0, scheduling=static, batch=1 (SingleStream)"
+      },
+      {
+        "component_name": "Perception application",
+        "component_type": "application",
+        "version": "2.7.0",
+        "configuration": "single-camera-set BEVFormer pipeline",
+        "run_command": "perception_app --engine bevformer.plan --loadgen-mode SingleStream --qsl 256 --backend safe-rt"
+      },
+      {
+        "component_name": "MLPerf LoadGen harness",
+        "component_type": "benchmark_harness",
+        "version": "v1.0",
+        "configuration": "links to perception_app over shared-memory queue",
+        "run_command": "run_and_time.sh --scenario SingleStream --model bevformer; LoadGen runs on host CPU, SUT callback in perception_app"
+      }
+    ]
+  },
+
+  "oss_components": [
+    {
+      "component_name": "MLPerf LoadGen",
+      "upstream_url": "https://github.com/mlcommons/mlperf_automotive",
+      "immutable_identifier": "5d11f17c5316683369837e0cff3da64c5e094745",
+      "role": "Query generation and latency measurement (benchmark-only)",
+      "has_local_patches": false
+    },
+    {
+      "component_name": "ONNX Runtime",
+      "upstream_url": "https://github.com/microsoft/onnxruntime",
+      "immutable_identifier": "v1.18.0",
+      "role": "Reference parity check during export validation",
+      "has_local_patches": true,
+      "patch_feature_description": "Backported a layernorm fusion fix; affects only export-time numerical parity checks, not the deployed engine.",
+      "affects_kernel_or_tactic_selection": false
+    }
+  ],
+
+  "proprietary_components": [
+    {
+      "component_name": "Acme ML compiler (axc)",
+      "owner": "Acme Silicon",
+      "version_or_build_id": "axc-10.4.0",
+      "interface_role": "compiler backend producing engine plans",
+      "internal_identifier_or_checksum": "sha256:1122334455667788990011223344556677889900aabbccddeeff001122334455",
+      "available_to_external_customers": true,
+      "distribution_model": "production license under SDK agreement",
+      "affects_compiled_artifact": true
+    },
+    {
+      "component_name": "Safety inference runtime",
+      "owner": "Acme Silicon",
+      "version_or_build_id": "safe-rt-3.2.1",
+      "interface_role": "safety runtime / inference engine",
+      "internal_identifier_or_checksum": "sha256:0011223344556677889900aabbccddeeff00112233445566778899aabbccddee",
+      "available_to_external_customers": true,
+      "distribution_model": "production license",
+      "affects_compiled_artifact": true
+    }
+  ],
+
+  "license_summary": [
+    {
+      "component_name": "MLPerf LoadGen",
+      "license_family": "Apache-2.0",
+      "binary_redistribution_allowed": true,
+      "source_redistribution_allowed": true,
+      "additional_terms": null
+    },
+    {
+      "component_name": "Acme ML compiler (axc)",
+      "license_family": "proprietary-commercial",
+      "binary_redistribution_allowed": false,
+      "source_redistribution_allowed": false,
+      "additional_terms": "NDA; safety manual required"
+    },
+    {
+      "component_name": "Safety inference runtime",
+      "license_family": "proprietary-commercial",
+      "binary_redistribution_allowed": false,
+      "source_redistribution_allowed": false,
+      "additional_terms": "field-of-use restriction (automotive only)"
+    }
+  ],
+
+  "reproducibility": {
+    "mlperf_automotive_repo_reference": {
+      "implementation_repo_url": "https://github.com/mlcommons/mlperf_automotive",
+      "results_repo_url": "https://github.com/mlcommons/mlperf_automotive_results_v1.0",
+      "commit_hash": "5d11f17c5316683369837e0cff3da64c5e094745"
+    },
+    "model_compilation_recipe": [
+      {
+        "model": "bevformer",
+        "steps": [
+          "python export/bevformer_to_onnx.py --weights bevformer_tiny.pth --out bevformer.onnx",
+          "axc --onnx bevformer.onnx --int8 --best --calib=entropy --calib-data calib/ --out bevformer.plan",
+          "pkg --engine bevformer.plan --sign --out bevformer.signed.plan"
+        ],
+        "compiler_config": "axc 10.4.0; --int8 --best --workspace=4096 --calib=entropy",
+        "quantization_description": "Post-training INT8, per-tensor entropy calibration on the 500-image MLCommons calibration subset; symmetric scales; method description fits in <1KB and is fully reproducible from the calibration data + fp16 weights.",
+        "graph_optimizations": "conv+bn fold, layernorm fusion, attention fusion",
+        "autotuning_config": "tactic sources = CUBLAS,CUDNN,EDGE_MASK_CONVOLUTIONS; timing iterations=8; deterministic builder cache pinned via --timing-cache=bevformer.cache",
+        "target_dependent_autotuning": true
+      },
+      {
+        "model": "ssd",
+        "steps": [
+          "python export/ssd_to_onnx.py --weights ssd_resnet.pth --out ssd.onnx",
+          "axc --onnx ssd.onnx --int8 --best --calib=entropy --calib-data calib_ssd/ --out ssd.plan"
+        ],
+        "compiler_config": "axc 10.4.0; --int8 --best --calib=entropy",
+        "quantization_description": "Post-training INT8, per-tensor entropy calibration on the 128-image SSD calibration subset.",
+        "graph_optimizations": "conv+bn fold, NMS plugin",
+        "autotuning_config": "tactic sources = CUBLAS,CUDNN; timing iterations=8; --timing-cache=ssd.cache",
+        "target_dependent_autotuning": true
+      }
+    ]
+  },
+
+  "safety_evidence": {
+    "security_manual_reference": { "name": "Acme SoC Security Manual", "version": "6.0", "availability": "under NDA" },
+    "safety_manual_reference": { "name": "Acme NPU IP Safety Manual (QM IP, ASIL-B system assumptions)", "version": "3.2", "availability": "under NDA" },
+    "tool_qualification_reference": { "name": "axc Tool Qualification Report (ISO 26262 TCL3)", "version": "10.4", "availability": "under NDA" },
+    "hardware_qualification": ["AEC-Q100 Grade 2", "High safety integrity compute"],
+    "certification_evidence": [
+      {
+        "standard": "ISO 26262",
+        "status": "in_progress",
+        "asil_target": "ASIL-B",
+        "assessor": "TUV (engagement ongoing)",
+        "reference": { "name": "Functional Safety Assessment Plan", "version": "0.9", "availability": "on request" }
+      }
+    ]
+  }
+}
