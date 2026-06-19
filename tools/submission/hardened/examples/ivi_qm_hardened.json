@@ -1,0 +1,111 @@
+{
+  "hardened_package_version": "v1.0",
+  "system_desc_id": "ivi_cockpit_qm",
+  "hardened_profile": "IVI",
+  "anticipated_safety_goal": "QM (no safety goal); in-vehicle infotainment voice assistant.",
+
+  "production_intended_inventory": [
+    {
+      "component_name": "Cockpit SoC firmware",
+      "functional_role": "Boot firmware for the IVI domain controller",
+      "supplier_or_owner": "Acme Silicon",
+      "used_during_benchmark": true,
+      "intended_for_production": true,
+      "provenance": "proprietary",
+      "identifier": { "build_id": "ivi-bsp-4.1.0" }
+    },
+    {
+      "component_name": "LLM inference engine",
+      "functional_role": "Executes the quantized Llama-3.1-8B engine for the voice assistant",
+      "supplier_or_owner": "Acme Silicon",
+      "used_during_benchmark": true,
+      "intended_for_production": true,
+      "provenance": "proprietary",
+      "identifier": { "build_id": "llm-rt-2.0.0" }
+    }
+  ],
+
+  "software_bill_of_materials": {
+    "build_toolchain_bom": [
+      { "component_name": "PyTorch", "role": "training_framework", "version": "2.4.0" },
+      { "component_name": "ONNX exporter", "role": "export_tooling", "version": "1.16.1" },
+      {
+        "component_name": "Acme LLM compiler",
+        "role": "ml_compiler",
+        "version": "10.4.0",
+        "configuration_flags": "--w4a16 --kv-cache=paged"
+      },
+      {
+        "component_name": "AWQ quantizer",
+        "role": "quantizer",
+        "version": "0.2.0",
+        "calibration_dataset_description": "MMLU-derived calibration subset provided by MLCommons; 256 prompts."
+      }
+    ],
+    "runtime_execution_bom": [
+      { "component_name": "Cockpit SoC firmware", "component_type": "firmware", "version": "4.1.0", "delivery_method": "BSP image" },
+      { "component_name": "Accelerator driver", "component_type": "kernel_driver", "version": "6.0.9" },
+      { "component_name": "Automotive Linux", "component_type": "operating_system", "version": "kernel 6.1-aglnext" },
+      { "component_name": "LLM inference engine", "component_type": "inference_engine", "version": "2.0.0", "configuration": "paged KV-cache, batch=1" },
+      {
+        "component_name": "Voice assistant app + harness",
+        "component_type": "benchmark_harness",
+        "version": "v1.0",
+        "run_command": "run_and_time.sh --scenario SingleStream --model llama3_1-8b; LoadGen on host CPU"
+      }
+    ]
+  },
+
+  "oss_components": [
+    {
+      "component_name": "MLPerf LoadGen",
+      "upstream_url": "https://github.com/mlcommons/mlperf_automotive",
+      "immutable_identifier": "5d11f17c5316683369837e0cff3da64c5e094745",
+      "role": "Query generation and latency measurement"
+    }
+  ],
+
+  "proprietary_components": [
+    {
+      "component_name": "Acme LLM compiler",
+      "owner": "Acme Silicon",
+      "version_or_build_id": "10.4.0",
+      "interface_role": "compiler backend",
+      "internal_identifier_or_checksum": "sha256:abc1230000000000000000000000000000000000000000000000000000000000",
+      "available_to_external_customers": true,
+      "distribution_model": "production license"
+    }
+  ],
+
+  "license_summary": [
+    { "component_name": "MLPerf LoadGen", "license_family": "Apache-2.0", "binary_redistribution_allowed": true, "source_redistribution_allowed": true, "additional_terms": null },
+    { "component_name": "Acme LLM compiler", "license_family": "proprietary-commercial", "binary_redistribution_allowed": false, "source_redistribution_allowed": false, "additional_terms": "NDA" }
+  ],
+
+  "reproducibility": {
+    "mlperf_automotive_repo_reference": {
+      "implementation_repo_url": "https://github.com/mlcommons/mlperf_automotive",
+      "results_repo_url": "https://github.com/mlcommons/mlperf_automotive_results_v1.0",
+      "commit_hash": "5d11f17c5316683369837e0cff3da64c5e094745"
+    },
+    "model_compilation_recipe": [
+      {
+        "model": "llama3_1-8b",
+        "steps": [
+          "python export/llama_to_onnx.py --weights llama3.1-8b --out llama.onnx",
+          "axc-llm --onnx llama.onnx --w4a16 --kv-cache=paged --out llama.plan"
+        ],
+        "compiler_config": "axc-llm 10.4.0; --w4a16 --kv-cache=paged",
+        "quantization_description": "W4A16 AWQ on 256-prompt MMLU calibration subset; greedy decode preserved per reference.",
+        "graph_optimizations": "rotary fusion, paged attention",
+        "target_dependent_autotuning": false
+      }
+    ]
+  },
+
+  "safety_evidence": {
+    "security_manual_reference": { "name": "Acme Cockpit Security Manual", "version": "4.1", "availability": "under NDA" },
+    "hardware_qualification": ["AEC-Q100 Grade 3"],
+    "certification_evidence": []
+  }
+}
